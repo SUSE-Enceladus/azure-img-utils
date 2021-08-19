@@ -27,3 +27,7 @@ class AzureImgUtilsException(Exception):
 
 class AzureCloudPartnerException(AzureImgUtilsException):
     """Exception for Azure Cloud Partner processes."""
+
+
+class AzureImgUtilsStorageException(AzureImgUtilsException):
+    """Exception for Azure Storage processes."""
