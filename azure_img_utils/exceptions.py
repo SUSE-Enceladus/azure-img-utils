@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""azure-img-utils Azure image utilities."""
+"""Azure image utils exceptions module."""
 
 # Copyright (c) 2021 SUSE LLC
 #
@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__author__ = """SUSE"""
-__email__ = 'public-cloud-dev@susecloud.net'
-__version__ = '0.0.1'
+
+class AzureImgUtilsException(Exception):
+    """Generic exception for the azure_img_utils package."""
+
+
+class AzureCloudPartnerException(AzureImgUtilsException):
+    """Exception for Azure Cloud Partner processes."""
