@@ -16,15 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from azure.mgmt.compute import ComputeManagementClient
-
-from azure_img_utils.auth import get_client_from_json
-
 
 def create_image(
     blob_name: str,
     image_name: str,
-    credentials: dict,
+    compute_client,
     container: str,
     resource_group: str,
     storage_account: str,
@@ -36,18 +32,6 @@ def create_image(
 
     hyper v generation of V2 is uefi and v1 is legacy bios.
     """
-    if image_exists(credentials, image_name):
-        delete_image(
-            credentials,
-            resource_group,
-            image_name
-        )
-
-    compute_client = get_client_from_json(
-        ComputeManagementClient,
-        credentials
-    )
-
     async_create_image = compute_client.images.begin_create_or_update(
         resource_group,
         image_name, {
@@ -73,28 +57,21 @@ def create_image(
     return image_name
 
 
-def delete_image(credentials: dict, resource_group: str, image_name: str):
+def delete_image(compute_client, resource_group: str, image_name: str):
     """
     Delete the image from resource group.
     """
-    compute_client = get_client_from_json(
-        ComputeManagementClient,
-        credentials
-    )
     async_delete_image = compute_client.images.begin_delete(
-        resource_group, image_name
+        resource_group,
+        image_name
     )
     async_delete_image.result()
 
 
-def list_images(credentials: dict):
+def list_images(compute_client):
     """
     Returns a list of image names.
     """
-    compute_client = get_client_from_json(
-        ComputeManagementClient,
-        credentials
-    )
     images = compute_client.images.list()
 
     names = []
@@ -104,9 +81,20 @@ def list_images(credentials: dict):
     return names
 
 
-def image_exists(credentials: dict, image_name: str):
+def image_exists(compute_client, image_name: str):
     """
     Return True if an image with name image_name exists.
     """
-    images = list_images(credentials)
+    images = list_images(compute_client)
     return image_name in images
+
+
+def get_image(compute_client, image_name: str):
+    """
+    Return image if it exists based on the image name.
+    """
+    images = compute_client.images.list()
+
+    for image in images:
+        if image_name == image.name:
+            return image
