@@ -18,6 +18,8 @@
 
 import lzma
 
+from functools import singledispatch
+
 from azure.mgmt.storage import StorageManagementClient
 from azure.storage.blob import (
     BlobServiceClient,
@@ -30,47 +32,31 @@ from azure_img_utils.filetype import FileType
 
 
 def delete_blob(
-    credentials: dict,
+    blob_service_client,
     blob: str,
-    container: str,
-    resource_group: str,
-    storage_account: str
+    container: str
 ):
     """
     Delete page blob in container.
     """
-    blob_service_client = get_blob_service_with_account_keys(
-        credentials,
-        resource_group,
-        storage_account
-    )
-    container_client = blob_service_client.get_container_client(container)
-    blob_client = container_client.get_blob_client(blob)
+    blob_client = get_blob_client(blob_service_client, blob, container)
     blob_client.delete_blob()
 
 
 def blob_exists(
-    credentials: dict,
+    blob_service_client,
     blob: str,
-    container: str,
-    resource_group: str,
-    storage_account: str
+    container: str
 ):
     """
     Return True if blob exists in container.
     """
-    blob_service_client = get_blob_service_with_account_keys(
-        credentials,
-        resource_group,
-        storage_account
-    )
-    container_client = blob_service_client.get_container_client(container)
-    blob_client = container_client.get_blob_client(blob)
+    blob_client = get_blob_client(blob_service_client, blob, container)
     return blob_client.exists()
 
 
 def get_blob_url(
-    blob_service,
+    blob_service_client,
     blob_name: str,
     storage_account: str,
     container: str,
@@ -84,7 +70,7 @@ def get_blob_url(
     The signature will expire based on expire_hours.
     """
     sas_token = create_sas_token(
-        blob_service,
+        blob_service_client,
         storage_account,
         container,
         permissions=permissions,
@@ -122,7 +108,13 @@ def get_storage_account_key(
     return storage_key_list.keys[0].value
 
 
-def get_blob_service_with_account_keys(
+def get_blob_client(blob_service_client, blob_name: str, container: str):
+    """Return blob client based on container and blob name."""
+    container_client = blob_service_client.get_container_client(container)
+    return container_client.get_blob_client(blob_name)
+
+@singledispatch
+def get_blob_service(
     credentials: dict,
     resource_group: str,
     storage_account: str
@@ -146,10 +138,8 @@ def get_blob_service_with_account_keys(
     )
 
 
-def get_blob_service_with_sas_token(
-    storage_account: str,
-    sas_token: str
-):
+@get_blob_service.register
+def _(sas_token: str, storage_account: str):
     """
     Return authenticated page blob service instance for the storage account.
 
@@ -167,12 +157,9 @@ def upload_azure_file(
     blob_name: str,
     container: str,
     file_name: str,
-    storage_account: str,
+    blob_service_client,
     max_retry_attempts: int = 5,
     max_workers: int = 5,
-    credentials: dict = None,
-    resource_group: str = None,
-    sas_token: str=None,
     is_page_blob: bool = False,
     expand_image: bool = True
 ):
@@ -185,25 +172,7 @@ def upload_azure_file(
     Blob can be block or page and if the blob is an image tarball
     it can be expanded during upload.
     """
-    if sas_token:
-        blob_service_client = get_blob_service_with_sas_token(
-            storage_account,
-            sas_token
-        )
-    elif credentials and resource_group:
-        blob_service_client = get_blob_service_with_account_keys(
-            credentials,
-            resource_group,
-            storage_account
-        )
-    else:
-        raise AzureImgUtilsStorageException(
-            'Either an sas_token or credentials and resource_group '
-            ' is required to upload an azure image to a page blob.'
-        )
-
-    container_client = blob_service_client.get_container_client(container)
-    blob_client = container_client.get_blob_client(blob_name)
+    blob_client = get_blob_client(blob_service_client, blob_name, container)
 
     if is_page_blob:
         blob_type = 'PageBlob'
