@@ -25,13 +25,21 @@ import logging
 import os
 
 from azure.core.exceptions import ResourceNotFoundError
+from azure.mgmt.compute import ComputeManagementClient
 
+from azure_img_utils.auth import get_client_from_json
 from azure_img_utils.exceptions import AzureImgUtilsException
 from azure_img_utils.storage import (
     get_blob_service,
     blob_exists,
     delete_blob,
     upload_azure_file
+)
+from azure_img_utils.compute import (
+    create_image,
+    delete_image,
+    get_image,
+    image_exists
 )
 
 
@@ -56,6 +64,7 @@ class AzureImage(object):
         self.container = container
         self.timeout = timeout
         self._blob_service_client = None
+        self._compute_client = None
         self._credentials = credentials
         self._credentials_file = credentials_file
         self._resource_group = resource_group
@@ -156,6 +165,67 @@ class AzureImage(object):
 
         return blob_name
 
+    def image_exists(self, image_name: str) -> bool:
+        """Return True if image exists, false otherwise."""
+        return image_exists(self.compute_client, image_name)
+
+    def delete_compute_image(self, image_name: str):
+        """
+        Delete compute image.
+        """
+        delete_image(
+            self.compute_client,
+            self.resource_group,
+            image_name
+        )
+
+    def get_compute_image(self, image_name: str) -> dict:
+        """
+        Return compute image by name.
+
+        If image is not found None is returned.
+        """
+        return get_image(self.compute_client, image_name)
+
+    def create_compute_image(
+        self,
+        blob_name: str,
+        image_name: str,
+        region: str,
+        force_replace_image: bool = False,
+        hyper_v_generation: str = 'v1'
+    ) -> str:
+        """
+        Create compute image from storage blob.
+
+        If image exists and force replace is True delete
+        the existing image before creation.
+        """
+        exists = image_exists(self.compute_client, image_name)
+
+        if exists and force_replace_image:
+            delete_image(
+                self.compute_client,
+                self.resource_group,
+                image_name
+            )
+        elif exists and not force_replace_image:
+            raise AzureImgUtilsException(
+                'Image already exists. To force deletion and re-create '
+                'the image use "force_replace_image=True".'
+            )
+
+        return create_image(
+            blob_name,
+            image_name,
+            self.compute_client,
+            self.container,
+            self.resource_group,
+            self.storage_account,
+            region,
+            hyper_v_generation
+        )
+
     @property
     def blob_service_client(self):
         """
@@ -178,13 +248,29 @@ class AzureImage(object):
             else:
                 raise Exception(
                     'Either an sas_token or credentials_file/credentials and '
-                    'resource_group is required for storage blob functions.'
+                    'resource_group is required to authenticate any '
+                    'operations.'
                 )
-            
+
             self._blob_service_client = get_blob_service(*args)
 
         return self._blob_service_client
-    
+
+    @property
+    def compute_client(self):
+        """
+        Lazy compute client attribute
+
+        If compute client is not set create a new client from credentials.
+        """
+        if not self._compute_client:
+            self._compute_client = get_client_from_json(
+                ComputeManagementClient,
+                self.credentials
+            )
+
+        return self._compute_client
+
     @property
     def credentials(self):
         """
@@ -195,19 +281,20 @@ class AzureImage(object):
         """
         if not self._credentials and self._credentials_file:
             creds_file = os.path.expanduser(self._credentials_file)
-            
+
             with open(creds_file, 'r') as json_file:
                 self._credentials = json.load(json_file)
 
         return self._credentials
-    
+
     @credentials.setter
     def credentials(self, creds):
         """
-        Invalidates the blob service client.
+        Invalidates the blob service and compute clients.
         """
         self._credentials = creds
         self._blob_service_client = None
+        self._compute_client = None
 
     @property
     def credentials_file(self):
@@ -220,7 +307,7 @@ class AzureImage(object):
         """
         self._credentials_file = creds_file
         self.credentials = None
-    
+
     @property
     def sas_token(self):
         return self._sas_token
@@ -244,7 +331,7 @@ class AzureImage(object):
         """
         self._resource_group = group
         self._blob_service_client = None
-    
+
     @property
     def storage_account(self):
         return self._storage_account
