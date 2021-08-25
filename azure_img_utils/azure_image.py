@@ -158,10 +158,6 @@ class AzureImage(object):
                 f'Image file {image_file} not found. Ensure the path to'
                 f' the file is correct.'
             )
-        except Exception as error:
-            raise AzureImgUtilsException(
-                f'Unable to upload image: {str(error)}'
-            )
 
         return blob_name
 
