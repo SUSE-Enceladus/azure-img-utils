@@ -113,6 +113,7 @@ def get_blob_client(blob_service_client, blob_name: str, container: str):
     container_client = blob_service_client.get_container_client(container)
     return container_client.get_blob_client(blob_name)
 
+
 @singledispatch
 def get_blob_service(
     credentials: dict,
@@ -201,7 +202,7 @@ def upload_azure_file(
                 max_retry_attempts -= 1
 
     raise AzureImgUtilsStorageException(
-        'Unable to upload file: {0} to Azure: {1}'.format(
+        'Unable to upload {0}: {1}'.format(
             file_name,
             msg
         )
