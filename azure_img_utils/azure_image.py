@@ -27,7 +27,7 @@ import os
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
 
-from azure_img_utils.auth import get_client_from_json
+from azure_img_utils.auth import get_client_from_json, acquire_access_token
 from azure_img_utils.exceptions import AzureImgUtilsException
 from azure_img_utils.storage import (
     get_blob_service,
@@ -43,7 +43,6 @@ from azure_img_utils.compute import (
     image_exists
 )
 from azure_img_utils.cloud_partner import (
-    acquire_access_token,
     get_cloud_partner_offer_status,
     get_cloud_partner_operation,
     request_cloud_partner_offer_doc,
