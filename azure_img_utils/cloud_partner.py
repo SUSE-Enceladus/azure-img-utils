@@ -25,14 +25,13 @@ import time
 from datetime import date, datetime
 
 from azure_img_utils.exceptions import AzureCloudPartnerException
-from azure_img_utils.auth import acquire_access_token
 
 
 def go_live_with_cloud_partner_offer(
-    credentials: dict,
+    access_token: str,
     offer_id: str,
     publisher_id: str
-):
+) -> str:
     """
     Go live with cloud partner offer and return the operation location.
     """
@@ -42,9 +41,8 @@ def go_live_with_cloud_partner_offer(
         go_live=True
     )
     headers = get_cloud_partner_api_headers(
-        credentials,
-        content_type='application/json',
-        content_length='0'
+        access_token,
+        content_type='application/json'
     )
 
     response = process_request(
@@ -62,8 +60,9 @@ def get_cloud_partner_endpoint(
     publisher_id: str,
     api_version: str = '2017-10-31',
     publish: bool = False,
-    go_live: bool = False
-):
+    go_live: bool = False,
+    status: bool = False
+) -> str:
     """
     Return the endpoint URL to cloud partner API for offer and publisher.
     """
@@ -77,6 +76,8 @@ def get_cloud_partner_endpoint(
         method = '/publish'
     elif go_live:
         method = '/golive'
+    elif status:
+        method = '/status'
     else:
         method = ''
 
@@ -91,16 +92,14 @@ def get_cloud_partner_endpoint(
 
 
 def get_cloud_partner_api_headers(
-    credentials: dict,
+    access_token: str,
     content_type: str = None,
     if_match: str = None,
     content_length: str = None
-):
+) -> dict:
     """
     Return dictionary of request headers for cloud partner API.
     """
-    access_token = acquire_access_token(credentials, cloud_partner=True)
-
     headers = {
         'Accept': 'application/json',
         'Authorization': 'Bearer ' + access_token
@@ -111,14 +110,14 @@ def get_cloud_partner_api_headers(
 
     if if_match:
         headers['If-Match'] = if_match
-    
+
     if content_length is not None:
         headers['Content-Length'] = content_length
 
     return headers
 
 
-def get_cloud_partner_operation_status(credentials: dict, operation: str):
+def get_cloud_partner_operation(access_token: str, operation: str) -> dict:
     """
     Get the status of the provided API operation.
     """
@@ -126,7 +125,7 @@ def get_cloud_partner_operation_status(credentials: dict, operation: str):
         operation=operation
     )
 
-    headers = get_cloud_partner_api_headers(credentials)
+    headers = get_cloud_partner_api_headers(access_token)
     response = process_request(
         endpoint,
         headers
@@ -135,7 +134,7 @@ def get_cloud_partner_operation_status(credentials: dict, operation: str):
     return response
 
 
-def log_operation_response_status(response: dict, log_callback):
+def log_offer_response_status(response: dict, log_callback):
     """
     Log the progress of the currently running operation step.
     """
@@ -151,7 +150,7 @@ def log_operation_response_status(response: dict, log_callback):
 
 
 def put_cloud_partner_offer_doc(
-    credentials: dict,
+    access_token: str,
     doc: dict,
     offer_id: str,
     publisher_id: str
@@ -164,7 +163,7 @@ def put_cloud_partner_offer_doc(
         publisher_id
     )
     headers = get_cloud_partner_api_headers(
-        credentials,
+        access_token,
         content_type='application/json',
         if_match='*'
     )
@@ -180,9 +179,10 @@ def put_cloud_partner_offer_doc(
 
 
 def publish_cloud_partner_offer(
-    credentials: dict,
+    access_token: str,
     offer_id: str,
-    publisher_id: str
+    publisher_id: str,
+    notification_emails: str
 ):
     """
     Publish the cloud partner offer and return the operation location.
@@ -193,14 +193,14 @@ def publish_cloud_partner_offer(
         publish=True
     )
     headers = get_cloud_partner_api_headers(
-        credentials,
-        content_type='application/json',
-        content_length='0'
+        access_token,
+        content_type='application/json'
     )
 
     response = process_request(
         endpoint,
         headers,
+        data={'metadata': {'notification-emails': notification_emails}},
         method='post',
         json_response=False
     )
@@ -244,21 +244,42 @@ def process_request(
 
 
 def request_cloud_partner_offer_doc(
-    credentials: dict,
+    access_token: str,
     offer_id: str,
     publisher_id: str
-):
+) -> dict:
     """
     Request a Cloud Partner Offer doc for the provided publisher and offer.
-
-    credentials:
-       A service account json dictionary.
     """
     endpoint = get_cloud_partner_endpoint(
         offer_id,
         publisher_id
     )
-    headers = get_cloud_partner_api_headers(credentials)
+    headers = get_cloud_partner_api_headers(access_token)
+
+    response = process_request(
+        endpoint,
+        headers,
+        method='get'
+    )
+
+    return response
+
+
+def get_cloud_partner_offer_status(
+    access_token: str,
+    offer_id: str,
+    publisher_id: str
+) -> dict:
+    """
+    Request a Cloud Partner Offer doc for the provided publisher and offer.
+    """
+    endpoint = get_cloud_partner_endpoint(
+        offer_id,
+        publisher_id,
+        status=True
+    )
+    headers = get_cloud_partner_api_headers(access_token)
 
     response = process_request(
         endpoint,
@@ -279,7 +300,7 @@ def update_cloud_partner_offer_doc(
     vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure',
     generation_id: str = None,
     cloud_image_name_generation_suffix: str = None
-):
+) -> dict:
     """
     Update the cloud partner offer doc with a new version of the given sku.
     """
@@ -350,7 +371,7 @@ def deprecate_image_in_offer_doc(
     sku: str,
     log_callback,
     vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure'
-):
+) -> dict:
     """
     Deprecate the image in the cloud partner offer doc.
 
@@ -384,15 +405,21 @@ def deprecate_image_in_offer_doc(
                 )
 
             break
+    else:
+        raise AzureCloudPartnerException(
+            f'No Match found for image in the SKU: {sku}. '
+            'Offer doc not updated properly.'
+        )
 
     return doc
 
 
-def wait_on_cloud_partner_operation(
-    credentials: dict,
-    operation: str,
+def wait_on_offer(
+    access_token: str,
+    offer_id: str,
+    publisher_id: str,
     log_callback,
-    wait_time: int = 60 * 60 * 4
+    wait_time: int = 30
 ):
     """
     Wait for the cloud partner operation to finish.
@@ -400,18 +427,23 @@ def wait_on_cloud_partner_operation(
     If the operation fails or is canceled an exception is raised.
     """
     while True:
-        response = get_cloud_partner_operation_status(
-            credentials,
-            operation
+        response = get_cloud_partner_offer_status(
+            access_token,
+            offer_id,
+            publisher_id
         )
         status = response['status']
 
-        if status == 'complete':
+        if status in ('succeeded', 'waitingForPublisherReview'):
             return
+        elif status == 'running':
+            log_offer_response_status(response, log_callback)
+            time.sleep(wait_time)
         elif status in ('canceled', 'failed'):
             raise AzureCloudPartnerException(
-                'Cloud partner operation did not finish successfully.'
+                'Offer entered a failed state.'
             )
         else:
-            log_operation_response_status(response, log_callback)
-            time.sleep(wait_time)
+            raise AzureCloudPartnerException(
+                f'Offer entered an unknown state {status}.'
+            )

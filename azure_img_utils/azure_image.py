@@ -27,10 +27,11 @@ import os
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
 
-from azure_img_utils.auth import get_client_from_json
+from azure_img_utils.auth import get_client_from_json, acquire_access_token
 from azure_img_utils.exceptions import AzureImgUtilsException
 from azure_img_utils.storage import (
     get_blob_service,
+    get_blob_url,
     blob_exists,
     delete_blob,
     upload_azure_file
@@ -40,6 +41,15 @@ from azure_img_utils.compute import (
     delete_image,
     get_image,
     image_exists
+)
+from azure_img_utils.cloud_partner import (
+    get_cloud_partner_offer_status,
+    get_cloud_partner_operation,
+    request_cloud_partner_offer_doc,
+    update_cloud_partner_offer_doc,
+    put_cloud_partner_offer_doc,
+    publish_cloud_partner_offer,
+    go_live_with_cloud_partner_offer
 )
 
 
@@ -65,6 +75,7 @@ class AzureImage(object):
         self.timeout = timeout
         self._blob_service_client = None
         self._compute_client = None
+        self._access_token = None
         self._credentials = credentials
         self._credentials_file = credentials_file
         self._resource_group = resource_group
@@ -222,6 +233,159 @@ class AzureImage(object):
             hyper_v_generation
         )
 
+    def get_offer_doc(
+        self,
+        offer_id: str,
+        publisher_id: str
+    ) -> dict:
+        """
+        Return the offer doc dictionary for the given offer.
+        """
+        return request_cloud_partner_offer_doc(
+            self.access_token,
+            offer_id,
+            publisher_id
+        )
+
+    def upload_offer_doc(
+        self,
+        offer_id: str,
+        publisher_id: str,
+        offer_doc: dict
+    ):
+        """
+        Upload the offer doc for the given offer.
+
+        offer_doc is a dictionary defining the offer details.
+        """
+        put_cloud_partner_offer_doc(
+            self.access_token,
+            offer_doc,
+            offer_id,
+            publisher_id
+        )
+
+    def add_image_to_offer(
+        self,
+        blob_name: str,
+        image_name: str,
+        image_description: str,
+        offer_id: str,
+        publisher_id: str,
+        label: str,
+        sku: str,
+        blob_url: str = None,
+        generation_id: str = None,
+        generation_suffix: str = None,
+        vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure'
+    ):
+        """
+        Add a new image version to the given offer.
+
+        The offer is pulled from the partner center, updated with the
+        new image version and re-uploaded. To make the new image available
+        the offer must be published and set to go-live.
+
+        A blob_url is generated for the container if one is not provided.
+        """
+        if not blob_url:
+            blob_url = get_blob_url(
+                self.blob_service_client,
+                blob_name,
+                self.storage_account,
+                self.container,
+                expire_hours=24 * 92,
+                start_hours=24
+            )
+
+        offer_doc = self.get_offer_doc(offer_id, publisher_id)
+
+        kwargs = {
+            'generation_id': generation_id,
+            'cloud_image_name_generation_suffix': generation_suffix
+        }
+
+        if vm_images_key:
+            kwargs['vm_images_key'] = vm_images_key
+
+        offer_doc = update_cloud_partner_offer_doc(
+            offer_doc,
+            blob_url,
+            image_description,
+            image_name,
+            label,
+            sku,
+            **kwargs
+        )
+        self.upload_offer_doc(
+            offer_id,
+            publisher_id,
+            offer_doc
+        )
+
+    def publish_offer(
+        self,
+        offer_id: str,
+        publisher_id: str,
+        notification_emails: str
+    ) -> str:
+        """
+        Publish the given offer.
+
+        notification_emails is required to be a comma separated list
+        of emails. This argument is required. However, for migrated
+        offers the emails are ignored. For migrated offers
+        notifications will be sent to the email address set in the
+        Seller contact info section of your Account settings in
+        Partner Center.
+
+        Returns the operation uri.
+        """
+        return publish_cloud_partner_offer(
+            self.access_token,
+            offer_id,
+            publisher_id,
+            notification_emails
+        )
+
+    def go_live_with_offer(
+        self,
+        offer_id: str,
+        publisher_id: str
+    ) -> str:
+        """
+        Set the offer as go-live.
+
+        This makes all new changes to the offer publicly visible.
+
+        Returns the operation uri.
+        """
+        return go_live_with_cloud_partner_offer(
+            self.access_token,
+            offer_id,
+            publisher_id
+        )
+
+    def get_offer_status(self, offer_id, publisher_id) -> str:
+        """
+        Returns the status of the offer.
+
+        If status is not found "unkown" is returned.
+        """
+        response = get_cloud_partner_offer_status(
+            self.access_token,
+            offer_id,
+            publisher_id
+        )
+
+        return response.get('status', 'unkown')
+
+    def get_operation(self, operation: str) -> dict:
+        """
+        Returns a dictionary status for the given operation.
+        """
+        return get_cloud_partner_operation(self.access_token, operation)
+
     @property
     def blob_service_client(self):
         """
@@ -266,6 +430,16 @@ class AzureImage(object):
             )
 
         return self._compute_client
+
+    @property
+    def access_token(self):
+        if not self._access_token:
+            self._access_token = acquire_access_token(
+                self.credentials,
+                cloud_partner=True
+            )
+
+        return self._access_token
 
     @property
     def credentials(self):
