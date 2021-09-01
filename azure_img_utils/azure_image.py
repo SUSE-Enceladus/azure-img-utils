@@ -369,16 +369,12 @@ class AzureImage(object):
     def get_offer_status(self, offer_id, publisher_id) -> str:
         """
         Returns the status of the offer.
-
-        If status is not found "unkown" is returned.
         """
-        response = get_cloud_partner_offer_status(
+        return get_cloud_partner_offer_status(
             self.access_token,
             offer_id,
             publisher_id
         )
-
-        return response.get('status', 'unkown')
 
     def get_operation(self, operation: str) -> dict:
         """

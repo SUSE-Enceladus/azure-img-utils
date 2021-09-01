@@ -5,3 +5,4 @@ azure-mgmt-resource
 azure-mgmt-storage
 azure-storage-blob>=12.0.0
 requests
+jmespath
