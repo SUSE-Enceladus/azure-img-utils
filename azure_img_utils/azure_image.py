@@ -277,7 +277,7 @@ class AzureImage(object):
         blob_url: str = None,
         generation_id: str = None,
         generation_suffix: str = None,
-        vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure'
+        vm_images_key: str = None
     ):
         """
         Add a new image version to the given offer.
