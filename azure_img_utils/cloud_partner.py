@@ -17,10 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+import jmespath
 import json
 import re
 import requests
-import time
 
 from datetime import date, datetime
 
@@ -132,21 +132,6 @@ def get_cloud_partner_operation(access_token: str, operation: str) -> dict:
     )
 
     return response
-
-
-def log_offer_response_status(response: dict, log_callback):
-    """
-    Log the progress of the currently running operation step.
-    """
-    for step in response['steps']:
-        if step['status'] == 'inProgress':
-            log_callback.info(
-                '{0} {1}% complete.'.format(
-                    step['stepName'],
-                    str(step['progressPercentage'])
-                )
-            )
-            break
 
 
 def put_cloud_partner_offer_doc(
@@ -272,7 +257,12 @@ def get_cloud_partner_offer_status(
     publisher_id: str
 ) -> dict:
     """
-    Request a Cloud Partner Offer doc for the provided publisher and offer.
+    Returns the status of a Cloud Partner Offer based on id and publisher.
+
+    If status is not found "unkown" is returned. If offer is publishing
+    and publisher-signoff step is waitingForPublisherReview then this
+    is the offer status. The offer is waiting for publisher to trigger
+    go-live.
     """
     endpoint = get_cloud_partner_endpoint(
         offer_id,
@@ -287,7 +277,17 @@ def get_cloud_partner_offer_status(
         method='get'
     )
 
-    return response
+    status = response.get('status', 'unkown')
+
+    if status == 'running':
+        signoff_status = jmespath.search(
+            "steps[?stepName=='publisher-signoff'].status | [0]",
+            response
+        )
+        if signoff_status == 'waitingForPublisherReview':
+            status = 'waitingForPublisherReview'
+
+    return status
 
 
 def update_cloud_partner_offer_doc(
@@ -412,38 +412,3 @@ def deprecate_image_in_offer_doc(
         )
 
     return doc
-
-
-def wait_on_offer(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str,
-    log_callback,
-    wait_time: int = 30
-):
-    """
-    Wait for the cloud partner operation to finish.
-
-    If the operation fails or is canceled an exception is raised.
-    """
-    while True:
-        response = get_cloud_partner_offer_status(
-            access_token,
-            offer_id,
-            publisher_id
-        )
-        status = response['status']
-
-        if status in ('succeeded', 'waitingForPublisherReview'):
-            return
-        elif status == 'running':
-            log_offer_response_status(response, log_callback)
-            time.sleep(wait_time)
-        elif status in ('canceled', 'failed'):
-            raise AzureCloudPartnerException(
-                'Offer entered a failed state.'
-            )
-        else:
-            raise AzureCloudPartnerException(
-                f'Offer entered an unknown state {status}.'
-            )
