@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import adal
+import msal
 
 from datetime import datetime, timedelta
 
@@ -25,34 +25,41 @@ from azure.storage.blob import (
     generate_container_sas,
     ContainerSasPermissions
 )
+from azure_img_utils.exceptions import AzureImgUtilsException
 
 
 def acquire_access_token(credentials: dict, cloud_partner: bool = False):
     """
-    Get an access token from adal library.
+    Get an access token from msal library.
 
     credentials:
       A service account json dictionary.
     """
-    context = adal.AuthenticationContext(
-        '/'.join([
-            credentials['activeDirectoryEndpointUrl'],
-            credentials['tenantId']
+    client = msal.ConfidentialClientApplication(
+        client_id=credentials.get('clientId'),
+        client_credential=credentials.get('clientSecret'),
+        authority='/'.join([
+            credentials.get('activeDirectoryEndpointUrl'),
+            credentials.get('tenantId')
         ])
     )
 
     if cloud_partner:
-        resource = 'https://cloudpartner.azure.com'
+        resource = 'https://cloudpartner.azure.com/.default'
     else:
-        resource = credentials['managementEndpointUrl']
+        resource = credentials['managementEndpointUrl'] + '.default'
 
-    access_token = context.acquire_token_with_client_credentials(
-        resource,
-        credentials['clientId'],
-        credentials['clientSecret']
-    ).get('accessToken')
+    response = client.acquire_token_for_client(
+        resource
+    )
 
-    return access_token
+    if 'error' in response:
+        raise AzureImgUtilsException(
+            f'Unable to authenticate against {resource}: '
+            f'{response.get("error")}'
+        )
+
+    return response.get('access_token')
 
 
 def create_sas_token(
