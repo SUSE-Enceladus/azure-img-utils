@@ -1,4 +1,4 @@
-adal
+msal
 azure-identity
 azure-mgmt-compute>=17.0.0
 azure-mgmt-storage
