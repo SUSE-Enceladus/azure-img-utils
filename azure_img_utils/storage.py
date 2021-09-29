@@ -139,7 +139,7 @@ def get_blob_service(
     )
 
 
-@get_blob_service.register
+@get_blob_service.register(str)
 def _(sas_token: str, storage_account: str):
     """
     Return authenticated page blob service instance for the storage account.
