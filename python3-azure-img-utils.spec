@@ -30,6 +30,7 @@ BuildRequires:  python3-azure-mgmt-storage
 BuildRequires:  python3-azure-storage-blob >= 12.0.0
 BuildRequires:  python3-requests
 BuildRequires:  python3-jmespath
+BuildRequires:  python3-pytest
 Requires:       python3-msal
 Requires:       python3-azure-identity
 Requires:       python3-azure-mgmt-compute >= 17.0.0
@@ -42,7 +43,7 @@ Requires:       python3-jmespath
 Package that provides utilities for handling images in Azure Cloud.
 
 %prep
-%setup -q
+%setup -q -n azure-img-utils-%{version}
 
 %build
 python3 setup.py build
@@ -57,6 +58,6 @@ python3 -m pytest
 %license LICENSE
 %doc CHANGES.md README.md
 %{python3_sitelib}/*
+%{_bindir}/azure-img-utils
 
 %changelog
-
