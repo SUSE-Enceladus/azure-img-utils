@@ -1,0 +1,14 @@
+-------------------------------------------------------------------
+Thu Sep 29 08:02:35 PM UTC 2021 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.0.2
+  + Fix singledispatch registration of get_blob_service for py3.6
+    compatibility.
+  + Setup CI/CT workflows.
+
+-------------------------------------------------------------------
+Thu Aug 17 08:02:35 PM UTC 2021 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.0.1
+  + Initial release
+
