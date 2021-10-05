@@ -38,7 +38,7 @@ with open('requirements-dev.txt') as req_file:
 
 setup(
     name='azure-img-utils',
-    version='0.0.2',
+    version='0.0.3',
     description='Package that provides utilities for '
                 'handling images in Azure Cloud.',
     long_description=readme,
