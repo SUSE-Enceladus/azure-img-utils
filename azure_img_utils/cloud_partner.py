@@ -21,6 +21,7 @@ import jmespath
 import json
 import re
 import requests
+import time
 
 from datetime import date, datetime
 
@@ -237,6 +238,8 @@ def process_request(
         else:
             retries -= 1
             sleep = sleep * 2
+
+        time.sleep(sleep)
 
     if json_response:
         return response.json()
