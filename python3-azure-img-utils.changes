@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Dec 10 06:21:25 PM UTC 2021 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.1.0
+  + Retry all failed requests
+
+-------------------------------------------------------------------
 Tue Oct  5 04:29:49 PM UTC 2021 - Sean Marlow <sean.marlow@suse.com>
 
 - v0.0.3
