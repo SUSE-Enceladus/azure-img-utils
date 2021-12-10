@@ -198,7 +198,8 @@ def process_request(
     headers: dict,
     data: dict = None,
     method: str = 'get',
-    json_response: bool = True
+    json_response: bool = True,
+    retries: int = 5
 ):
     """
     Build and run API request.
@@ -214,13 +215,28 @@ def process_request(
     if data:
         kwargs['data'] = json.dumps(data)
 
-    response = getattr(requests, method)(
-        endpoint,
-        **kwargs
-    )
+    sleep = 1
+    while True:
+        try:
+            response = getattr(requests, method)(
+                endpoint,
+                **kwargs
+            )
+        except requests.exceptions.ConnectionError:
+            if retries <= 0:
+                raise
+            else:
+                retries -= 1
+                sleep = sleep * 2
+                continue
 
-    if response.status_code not in (200, 202):
-        response.raise_for_status()
+        if response.status_code in (200, 202):
+            break
+        elif retries <= 0:
+            response.raise_for_status()
+        else:
+            retries -= 1
+            sleep = sleep * 2
 
     if json_response:
         return response.json()
