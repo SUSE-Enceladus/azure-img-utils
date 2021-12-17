@@ -23,6 +23,7 @@ Summary:        Package that provides utilities for handling images in Azure Clo
 License:        GPL-3.0-or-later
 URL:            https://github.com/SUSE-Enceladus/azure-img-utils
 Source:         https://files.pythonhosted.org/packages/source/a/azure-img-utils/azure-img-utils-%{version}.tar.gz
+BuildRequires:  python-rpm-macros
 BuildRequires:  python3-msal
 BuildRequires:  python3-azure-identity
 BuildRequires:  python3-azure-mgmt-compute >= 17.0.0
