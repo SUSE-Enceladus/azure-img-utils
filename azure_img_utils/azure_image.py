@@ -339,8 +339,6 @@ class AzureImage(object):
         The offer is pulled from the partner center, the old image version
         is deleted and re-uploaded. To make the new image available
         the offer must be published and set to go-live.
-
-        A blob_url is generated for the container if one is not provided.
         """
         offer_doc = self.get_offer_doc(offer_id, publisher_id)
 
