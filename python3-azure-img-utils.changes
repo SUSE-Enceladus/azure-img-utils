@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 16 09:17:23 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.2.1
+  + No changes: Re-sync OBS and PyPI versions.
+
+-------------------------------------------------------------------
 Wed Mar 16 09:02:09 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
 
 - v0.2.0
