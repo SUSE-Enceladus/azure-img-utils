@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 16 09:02:09 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.2.0
+  + Add method for removing an image version from an offer.
+
+-------------------------------------------------------------------
 Fri Dec 17 05:40:58 PM UTC 2021 - Sean Marlow <sean.marlow@suse.com>
 
 - v0.1.1
