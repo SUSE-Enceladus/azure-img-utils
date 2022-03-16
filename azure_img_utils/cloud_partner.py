@@ -309,7 +309,7 @@ def get_cloud_partner_offer_status(
     return status
 
 
-def add_new_image_to_offer(
+def add_image_version_to_offer(
     doc: dict,
     blob_url: str,
     description: str,
@@ -384,7 +384,7 @@ def add_new_image_to_offer(
     return doc
 
 
-def remove_image_from_offer(
+def remove_image_version_from_offer(
     doc: dict,
     image_version: str,
     sku: str,

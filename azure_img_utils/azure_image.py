@@ -46,11 +46,11 @@ from azure_img_utils.cloud_partner import (
     get_cloud_partner_offer_status,
     get_cloud_partner_operation,
     request_cloud_partner_offer_doc,
-    add_new_image_to_offer,
+    add_image_version_to_offer,
     put_cloud_partner_offer_doc,
     publish_cloud_partner_offer,
     go_live_with_cloud_partner_offer,
-    remove_image_from_offer
+    remove_image_version_from_offer
 )
 
 
@@ -309,7 +309,7 @@ class AzureImage(object):
         if vm_images_key:
             kwargs['vm_images_key'] = vm_images_key
 
-        offer_doc = add_new_image_to_offer(
+        offer_doc = add_image_version_to_offer(
             offer_doc,
             blob_url,
             image_description,
@@ -349,7 +349,7 @@ class AzureImage(object):
         if vm_images_key:
             kwargs['vm_images_key'] = vm_images_key
 
-        offer_doc = remove_image_from_offer(
+        offer_doc = remove_image_version_from_offer(
             offer_doc,
             image_version,
             sku,
