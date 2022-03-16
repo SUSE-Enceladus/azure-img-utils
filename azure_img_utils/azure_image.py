@@ -46,10 +46,11 @@ from azure_img_utils.cloud_partner import (
     get_cloud_partner_offer_status,
     get_cloud_partner_operation,
     request_cloud_partner_offer_doc,
-    update_cloud_partner_offer_doc,
+    add_new_image_to_offer,
     put_cloud_partner_offer_doc,
     publish_cloud_partner_offer,
-    go_live_with_cloud_partner_offer
+    go_live_with_cloud_partner_offer,
+    remove_image_from_offer
 )
 
 
@@ -308,12 +309,51 @@ class AzureImage(object):
         if vm_images_key:
             kwargs['vm_images_key'] = vm_images_key
 
-        offer_doc = update_cloud_partner_offer_doc(
+        offer_doc = add_new_image_to_offer(
             offer_doc,
             blob_url,
             image_description,
             image_name,
             label,
+            sku,
+            **kwargs
+        )
+        self.upload_offer_doc(
+            offer_id,
+            publisher_id,
+            offer_doc
+        )
+
+    def remove_image_from_offer(
+        self,
+        image_version: str,
+        offer_id: str,
+        publisher_id: str,
+        sku: str,
+        generation_id: str = None,
+        vm_images_key: str = None
+    ):
+        """
+        Delete the given image version from the offer.
+
+        The offer is pulled from the partner center, the old image version
+        is deleted and re-uploaded. To make the new image available
+        the offer must be published and set to go-live.
+
+        A blob_url is generated for the container if one is not provided.
+        """
+        offer_doc = self.get_offer_doc(offer_id, publisher_id)
+
+        kwargs = {
+            'generation_id': generation_id
+        }
+
+        if vm_images_key:
+            kwargs['vm_images_key'] = vm_images_key
+
+        offer_doc = remove_image_from_offer(
+            offer_doc,
+            image_version,
             sku,
             **kwargs
         )
