@@ -309,7 +309,7 @@ def get_cloud_partner_offer_status(
     return status
 
 
-def update_cloud_partner_offer_doc(
+def add_image_version_to_offer(
     doc: dict,
     blob_url: str,
     description: str,
@@ -364,6 +364,47 @@ def update_cloud_partner_offer_doc(
 
                         plan[vm_images_key][release] = generation_version
                         break
+                else:
+                    raise AzureCloudPartnerException(
+                        'No Match found for Generation ID: {gen}. '
+                        'Offer doc not updated properly.'.format(
+                            gen=generation_id
+                        )
+                    )
+
+            break
+    else:
+        raise AzureCloudPartnerException(
+            'No Match found for SKU: {sku}. '
+            'Offer doc not updated properly.'.format(
+                sku=sku
+            )
+        )
+
+    return doc
+
+
+def remove_image_version_from_offer(
+    doc: dict,
+    image_version: str,
+    sku: str,
+    generation_id: str = None,
+    vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure'
+) -> dict:
+    """
+    Remove the given image version from the cloud partner offer doc.
+    """
+    for doc_sku in doc['definition']['plans']:
+        if doc_sku['planId'] == sku:
+            if image_version in doc_sku[vm_images_key]:
+                del doc_sku[vm_images_key][image_version]
+
+            if generation_id:
+                for plan in doc_sku['diskGenerations']:
+                    if plan['planId'] == generation_id:
+                        if image_version in plan[vm_images_key]:
+                            del plan[vm_images_key][image_version]
+                            break
                 else:
                     raise AzureCloudPartnerException(
                         'No Match found for Generation ID: {gen}. '

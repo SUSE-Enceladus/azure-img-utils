@@ -63,6 +63,45 @@ class TestAzureCloudPartner(object):
         assert generation['showInGui']
 
     @patch('azure_img_utils.cloud_partner.process_request')
+    def test_remove_image_from_offer(self, mock_process_request):
+        vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
+        doc = {
+            'definition': {
+                'plans': [
+                    {
+                        'planId': 'gen1',
+                        vm_key: {'2011.11.11': {
+                            'mediaName': 'image123-v20111111-gen2',
+                            'showInGui': True
+                        }},
+                        'diskGenerations': [{
+                            'planId': 'gen2',
+                            vm_key: {'2011.11.11': {
+                                'mediaName': 'image123-v20111111-gen2',
+                                'showInGui': True
+                            }}
+                        }]
+                    }
+                ]
+            }
+        }
+
+        mock_process_request.return_value = doc
+        self.image.remove_image_from_offer(
+            '2011.11.11',
+            'sles',
+            'suse',
+            'gen1',
+            'gen2'
+        )
+
+        plan = doc['definition']['plans'][0]
+        generations = plan['diskGenerations'][0][vm_key]
+
+        assert '2011.11.11' not in plan[vm_key]
+        assert '2011.11.11' not in generations
+
+    @patch('azure_img_utils.cloud_partner.process_request')
     def test_publish_offer(self, mock_process_request):
         response = MagicMock(spec=Response)
         response.headers = {'Location': '/uri/to/operation/id'}
