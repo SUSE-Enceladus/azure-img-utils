@@ -181,6 +181,11 @@ class AzureImage(object):
         """
         Delete compute image.
         """
+        if not self.resource_group:
+            raise AzureImgUtilsException(
+                'Resource group is required to delete a compute image'
+            )
+
         delete_image(
             self.compute_client,
             self.resource_group,
@@ -209,6 +214,11 @@ class AzureImage(object):
         If image exists and force replace is True delete
         the existing image before creation.
         """
+        if not self.resource_group:
+            raise AzureImgUtilsException(
+                'Resource group is required to create a compute image'
+            )
+
         exists = image_exists(self.compute_client, image_name)
 
         if exists and force_replace_image:
