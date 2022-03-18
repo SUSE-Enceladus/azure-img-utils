@@ -201,7 +201,7 @@ class AzureImage(object):
         image_name: str,
         region: str,
         force_replace_image: bool = False,
-        hyper_v_generation: str = 'v1'
+        hyper_v_generation: str = 'V1'
     ) -> str:
         """
         Create compute image from storage blob.
