@@ -25,12 +25,12 @@ def create_image(
     resource_group: str,
     storage_account: str,
     region: str,
-    hyper_v_generation: str = 'v1'
+    hyper_v_generation: str = 'V1'
 ):
     """
     Create image in ARM from existing page blob.
 
-    hyper v generation of V2 is uefi and v1 is legacy bios.
+    hyper v generation of V2 is uefi and V1 is legacy bios.
     """
     async_create_image = compute_client.images.begin_create_or_update(
         resource_group,
