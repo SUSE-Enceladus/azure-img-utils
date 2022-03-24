@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Mar 24 07:47:55 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.2.2
+  + Capitalize Hyper v default generation
+  + Raise exception if resource group missing when creating or
+    deleting compute images.
+
+-------------------------------------------------------------------
 Wed Mar 16 09:17:23 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
 
 - v0.2.1
