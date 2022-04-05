@@ -87,13 +87,8 @@ class TestAzureCloudPartner(object):
         }
 
         mock_process_request.return_value = doc
-        self.image.remove_image_from_offer(
-            '2011.11.11',
-            'sles',
-            'suse',
-            'gen1',
-            'gen2'
-        )
+        self.image.remove_image_from_offer('suse:sles:gen1:2011.11.11')
+        self.image.remove_image_from_offer('suse:sles:gen2:2011.11.11')
 
         plan = doc['definition']['plans'][0]
         generations = plan['diskGenerations'][0][vm_key]

@@ -387,38 +387,31 @@ def add_image_version_to_offer(
 def remove_image_version_from_offer(
     doc: dict,
     image_version: str,
-    sku: str,
-    generation_id: str = None,
+    plan_id: str,
     vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure'
 ) -> dict:
     """
     Remove the given image version from the cloud partner offer doc.
     """
+    removed = False
     for doc_sku in doc['definition']['plans']:
-        if doc_sku['planId'] == sku:
+        if doc_sku['planId'] == plan_id:
             if image_version in doc_sku[vm_images_key]:
                 del doc_sku[vm_images_key][image_version]
+                removed = True
 
-            if generation_id:
-                for plan in doc_sku['diskGenerations']:
-                    if plan['planId'] == generation_id:
-                        if image_version in plan[vm_images_key]:
-                            del plan[vm_images_key][image_version]
-                            break
-                else:
-                    raise AzureCloudPartnerException(
-                        'No Match found for Generation ID: {gen}. '
-                        'Offer doc not updated properly.'.format(
-                            gen=generation_id
-                        )
-                    )
+        for plan in doc_sku['diskGenerations']:
+            if plan['planId'] == plan_id:
+                if image_version in plan[vm_images_key]:
+                    del plan[vm_images_key][image_version]
+                    removed = True
 
-            break
-    else:
+    if not removed:
         raise AzureCloudPartnerException(
-            'No Match found for SKU: {sku}. '
-            'Offer doc not updated properly.'.format(
-                sku=sku
+            'No match found for version: {version} and Plan ID: {plan}.'
+            ' Offer doc not updated properly.'.format(
+                version=image_version,
+                plan=plan_id
             )
         )
 

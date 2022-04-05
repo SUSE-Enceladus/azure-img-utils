@@ -336,11 +336,7 @@ class AzureImage(object):
 
     def remove_image_from_offer(
         self,
-        image_version: str,
-        offer_id: str,
-        publisher_id: str,
-        sku: str,
-        generation_id: str = None,
+        image_urn: str,
         vm_images_key: str = None
     ):
         """
@@ -350,19 +346,17 @@ class AzureImage(object):
         is deleted and re-uploaded. To make the new image available
         the offer must be published and set to go-live.
         """
+        publisher_id, offer_id, plan_id, image_version = image_urn.split(':')
         offer_doc = self.get_offer_doc(offer_id, publisher_id)
 
-        kwargs = {
-            'generation_id': generation_id
-        }
-
+        kwargs = {}
         if vm_images_key:
             kwargs['vm_images_key'] = vm_images_key
 
         offer_doc = remove_image_version_from_offer(
             offer_doc,
             image_version,
-            sku,
+            plan_id,
             **kwargs
         )
         self.upload_offer_doc(
