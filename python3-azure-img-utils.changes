@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr  8 05:01:44 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.3.0
+  + Drive image removal by image URN
+  + Make all args optional at class instantiation of AzureImage
+    - Instead catch missing args in a lazy fashion
+
+-------------------------------------------------------------------
 Thu Mar 24 07:47:55 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
 
 - v0.2.2
