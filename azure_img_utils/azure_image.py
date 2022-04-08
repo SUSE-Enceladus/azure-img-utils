@@ -61,8 +61,8 @@ class AzureImage(object):
 
     def __init__(
         self,
-        container: str,
-        storage_account: str,
+        container: str = None,
+        storage_account: str = None,
         credentials: dict = None,
         credentials_file: str = None,
         resource_group: str = None,
@@ -214,9 +214,19 @@ class AzureImage(object):
         If image exists and force replace is True delete
         the existing image before creation.
         """
+        if not self.container:
+            raise AzureImgUtilsException(
+                'Container is required to create a compute image'
+            )
+
         if not self.resource_group:
             raise AzureImgUtilsException(
                 'Resource group is required to create a compute image'
+            )
+
+        if not self.storage_account:
+            raise AzureImgUtilsException(
+                'Storage account is required to create a compute image'
             )
 
         exists = image_exists(self.compute_client, image_name)
@@ -299,6 +309,11 @@ class AzureImage(object):
 
         A blob_url is generated for the container if one is not provided.
         """
+        if not self.container:
+            raise AzureImgUtilsException(
+                'Container is required to add an image to an offer'
+            )
+
         if not blob_url:
             blob_url = get_blob_url(
                 self.blob_service_client,
@@ -431,6 +446,12 @@ class AzureImage(object):
 
         Lazy blob service client initialization.
         """
+        if not self.storage_account:
+            raise AzureImgUtilsException(
+                'Storage account is required to authenticate storage '
+                'blob operations.'
+            )
+
         if not self._blob_service_client:
             if self.sas_token:
                 args = (
