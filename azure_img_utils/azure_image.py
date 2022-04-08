@@ -96,11 +96,6 @@ class AzureImage(object):
 
     def image_blob_exists(self, blob_name: str):
         """Return True if image blob exists in the configured container."""
-        if not self.container:
-            raise AzureImgUtilsException(
-                'Container is required to check if a blob exists'
-            )
-
         return blob_exists(
             self.blob_service_client,
             blob_name,
@@ -109,11 +104,6 @@ class AzureImage(object):
 
     def delete_storage_blob(self, blob_name: str):
         """Delete blob if it exists in the configured container."""
-        if not self.container:
-            raise AzureImgUtilsException(
-                'Container is required to delete a storage blob'
-            )
-
         try:
             delete_blob(
                 self.blob_service_client,
@@ -145,11 +135,6 @@ class AzureImage(object):
         Generate blob name based on image file path if a
         name is not provided.
         """
-        if not self.container:
-            raise AzureImgUtilsException(
-                'Container is required to upload an image blob'
-            )
-
         if not blob_name:
             blob_name = image_file.rsplit(os.sep, maxsplit=1)[-1]
 

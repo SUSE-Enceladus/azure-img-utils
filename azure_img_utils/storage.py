@@ -110,8 +110,13 @@ def get_storage_account_key(
 
 def get_blob_client(blob_service_client, blob_name: str, container: str):
     """Return blob client based on container and blob name."""
-    container_client = blob_service_client.get_container_client(container)
-    return container_client.get_blob_client(blob_name)
+    try:
+        container_client = blob_service_client.get_container_client(container)
+        blob_client = container_client.get_blob_client(blob_name)
+    except ValueError as error:
+        raise AzureImgUtilsStorageException(error) from error
+
+    return blob_client
 
 
 @singledispatch
