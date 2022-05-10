@@ -57,6 +57,59 @@ def create_image(
     return image_name
 
 
+def create_gallery_image_def_version(
+    blob_name: str,
+    gallery_name: str,
+    gallery_image_name: str,
+    image_version: str,
+    gallery_resource_group: str,
+    region: str,
+    storage_account: str,
+    container: str,
+    compute_client
+):
+    """
+    Create new gallery image definition version
+
+    The image is replicated only in one source region.
+    """
+    subscription_id = compute_client._config.subscription_id
+    image_profile = {
+        'location': region,
+        'publishing_profile': {
+            'target_regions': [
+                {
+                    'name': region
+                }
+            ]
+        },
+        'storage_profile': {
+            'os_disk_image': {
+                'source': {
+                    'id': f'/subscriptions/{subscription_id}/'
+                          f'resourceGroups/{gallery_resource_group}/'
+                          'providers/Microsoft.Storage/'
+                          f'storageAccounts/{storage_account}',
+                    'uri': f'https://{storage_account}.blob.core.windows.net/'
+                           f'{container}/{blob_name}'
+                },
+                'host_caching': 'ReadWrite'
+            }
+        }
+    }
+
+    async_create = compute_client.gallery_image_versions.begin_create_or_update(  # noqa
+        gallery_resource_group,
+        gallery_name,
+        gallery_image_name,
+        image_version,
+        image_profile
+    )
+    async_create.result()
+
+    return gallery_image_name
+
+
 def delete_image(compute_client, resource_group: str, image_name: str):
     """
     Delete the image from resource group.
@@ -64,6 +117,25 @@ def delete_image(compute_client, resource_group: str, image_name: str):
     async_delete_image = compute_client.images.begin_delete(
         resource_group,
         image_name
+    )
+    async_delete_image.result()
+
+
+def remove_gallery_image_version(
+    gallery_name: str,
+    gallery_image_name: str,
+    image_version: str,
+    gallery_resource_group: str,
+    compute_client
+):
+    """
+    Delete the gallery image version from the gallery definition.
+    """
+    async_delete_image = compute_client.gallery_image_versions.begin_delete(
+        gallery_resource_group,
+        gallery_name,
+        gallery_image_name,
+        image_version
     )
     async_delete_image.result()
 
@@ -98,3 +170,31 @@ def get_image(compute_client, image_name: str):
     for image in images:
         if image_name == image.name:
             return image
+
+
+def retrieve_gallery_image_version(
+    gallery_name: str,
+    gallery_image_name: str,
+    image_version: str,
+    gallery_resource_group: str,
+    compute_client
+):
+    """
+    Return gallery image if it exists based on the gallery_image_name.
+
+    Return None if an exception is raised. A generic exception is raised
+    if the resource is not found.
+    """
+    try:
+        image = compute_client.gallery_image_versions.get(
+            gallery_resource_group,
+            gallery_name,
+            gallery_image_name,
+            image_version
+        )
+    except Exception:
+        # A generic exception is always raised if resource not found
+        # so there's no disadvantage to return None.
+        return None
+
+    return image.as_dict()
