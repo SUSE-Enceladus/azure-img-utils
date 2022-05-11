@@ -17,7 +17,7 @@
 
 
 Name:           python3-azure-img-utils
-Version:        0.3.0
+Version:        0.4.0
 Release:        0
 Summary:        Package that provides utilities for handling images in Azure Cloud
 License:        GPL-3.0-or-later
