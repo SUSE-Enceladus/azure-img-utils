@@ -38,7 +38,7 @@ from azure_img_utils.storage import (
 )
 from azure_img_utils.compute import (
     create_image,
-    create_gallery_image_def_version,
+    create_gallery_image_definition_version,
     delete_image,
     get_image,
     image_exists,
@@ -368,7 +368,7 @@ class AzureImage(object):
                 're-create the image set "force_replace_image" to True.'
             )
 
-        return create_gallery_image_def_version(
+        return create_gallery_image_definition_version(
             blob_name,
             gallery_name,
             gallery_image_name,

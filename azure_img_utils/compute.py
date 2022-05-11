@@ -57,7 +57,7 @@ def create_image(
     return image_name
 
 
-def create_gallery_image_def_version(
+def create_gallery_image_definition_version(
     blob_name: str,
     gallery_name: str,
     gallery_image_name: str,
