@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 11 01:45:42 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
+
+- v0.4.0
+  + Add endpoints for processing shared image gallery images.
+
+-------------------------------------------------------------------
 Fri Apr  8 05:01:44 PM UTC 2022 - Sean Marlow <sean.marlow@suse.com>
 
 - v0.3.0
