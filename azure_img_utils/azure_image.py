@@ -38,9 +38,12 @@ from azure_img_utils.storage import (
 )
 from azure_img_utils.compute import (
     create_image,
+    create_gallery_image_definition_version,
     delete_image,
     get_image,
-    image_exists
+    image_exists,
+    remove_gallery_image_version,
+    retrieve_gallery_image_version
 )
 from azure_img_utils.cloud_partner import (
     get_cloud_partner_offer_status,
@@ -177,6 +180,22 @@ class AzureImage(object):
         """Return True if image exists, false otherwise."""
         return image_exists(self.compute_client, image_name)
 
+    def gallery_image_version_exists(
+        self,
+        gallery_name: str,
+        gallery_image_name: str,
+        image_version: str
+    ) -> bool:
+        """
+        Return True if gallery image version exists, false otherwise.
+        """
+        gallery_image_version = self.get_gallery_image_version(
+            gallery_name,
+            gallery_image_name,
+            image_version
+        )
+        return gallery_image_version is not None
+
     def delete_compute_image(self, image_name: str):
         """
         Delete compute image.
@@ -192,6 +211,28 @@ class AzureImage(object):
             image_name
         )
 
+    def delete_gallery_image_version(
+        self,
+        gallery_name: str,
+        gallery_image_name: str,
+        image_version: str
+    ):
+        """
+        Delete gallery image version.
+        """
+        if not self.resource_group:
+            raise AzureImgUtilsException(
+                'Resource group is required to delete a gallery image'
+            )
+
+        remove_gallery_image_version(
+            gallery_name,
+            gallery_image_name,
+            image_version,
+            self.resource_group,
+            self.compute_client
+        )
+
     def get_compute_image(self, image_name: str) -> dict:
         """
         Return compute image by name.
@@ -199,6 +240,30 @@ class AzureImage(object):
         If image is not found None is returned.
         """
         return get_image(self.compute_client, image_name)
+
+    def get_gallery_image_version(
+        self,
+        gallery_name: str,
+        gallery_image_name: str,
+        image_version: str
+    ) -> dict:
+        """
+        Return gallery image by gallery_image_name.
+
+        If image is not found None is returned.
+        """
+        if not self.resource_group:
+            raise AzureImgUtilsException(
+                'Resource group is required to retrieve a gallery image'
+            )
+
+        return retrieve_gallery_image_version(
+            gallery_name,
+            gallery_image_name,
+            image_version,
+            self.resource_group,
+            self.compute_client
+        )
 
     def create_compute_image(
         self,
@@ -252,6 +317,67 @@ class AzureImage(object):
             self.storage_account,
             region,
             hyper_v_generation
+        )
+
+    def create_gallery_image_version(
+        self,
+        blob_name: str,
+        gallery_name: str,
+        gallery_image_name: str,
+        image_version: str,
+        region: str,
+        force_replace_image: bool = False
+    ) -> str:
+        """
+        Create gallery image version from storage blob.
+
+        If gallery image version exists and force replace is True
+        then delete the existing image before creation. Otherwise
+        an error is raised.
+        """
+        if not self.container:
+            raise AzureImgUtilsException(
+                'Container is required to create a gallery image'
+            )
+
+        if not self.resource_group:
+            raise AzureImgUtilsException(
+                'Resource group is required to create a gallery image'
+            )
+
+        if not self.storage_account:
+            raise AzureImgUtilsException(
+                'Storage account is required to create a gallery image'
+            )
+
+        exists = self.gallery_image_version_exists(
+            gallery_name,
+            gallery_image_name,
+            image_version
+        )
+
+        if exists and force_replace_image:
+            self.delete_gallery_image_version(
+                gallery_name,
+                gallery_image_name,
+                image_version
+            )
+        elif exists and not force_replace_image:
+            raise AzureImgUtilsException(
+                'Gallery image version already exists. To force deletion and '
+                're-create the image set "force_replace_image" to True.'
+            )
+
+        return create_gallery_image_definition_version(
+            blob_name,
+            gallery_name,
+            gallery_image_name,
+            image_version,
+            self.resource_group,
+            region,
+            self.storage_account,
+            self.container,
+            self.compute_client
         )
 
     def get_offer_doc(
