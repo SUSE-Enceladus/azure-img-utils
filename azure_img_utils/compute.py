@@ -62,17 +62,21 @@ def create_gallery_image_definition_version(
     gallery_name: str,
     gallery_image_name: str,
     image_version: str,
-    gallery_resource_group: str,
     region: str,
+    resource_group: str,
     storage_account: str,
     container: str,
-    compute_client
+    compute_client,
+    gallery_resource_group: str = None
 ):
     """
     Create new gallery image definition version
 
     The image is replicated only in one source region.
     """
+    if not gallery_resource_group:
+        gallery_resource_group = resource_group
+
     subscription_id = compute_client._config.subscription_id
     image_profile = {
         'location': region,
@@ -87,7 +91,7 @@ def create_gallery_image_definition_version(
             'os_disk_image': {
                 'source': {
                     'id': f'/subscriptions/{subscription_id}/'
-                          f'resourceGroups/{gallery_resource_group}/'
+                          f'resourceGroups/{resource_group}/'
                           'providers/Microsoft.Storage/'
                           f'storageAccounts/{storage_account}',
                     'uri': f'https://{storage_account}.blob.core.windows.net/'

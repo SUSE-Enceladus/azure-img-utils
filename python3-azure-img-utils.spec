@@ -26,7 +26,7 @@ Source:         https://files.pythonhosted.org/packages/source/a/azure-img-utils
 BuildRequires:  python-rpm-macros
 BuildRequires:  python3-msal
 BuildRequires:  python3-azure-identity
-BuildRequires:  python3-azure-mgmt-compute >= 17.0.0
+BuildRequires:  python3-azure-mgmt-compute >= 26.1.0
 BuildRequires:  python3-azure-mgmt-storage
 BuildRequires:  python3-azure-storage-blob >= 12.0.0
 BuildRequires:  python3-requests
@@ -34,7 +34,7 @@ BuildRequires:  python3-jmespath
 BuildRequires:  python3-pytest
 Requires:       python3-msal
 Requires:       python3-azure-identity
-Requires:       python3-azure-mgmt-compute >= 17.0.0
+Requires:       python3-azure-mgmt-compute >= 26.1.0
 Requires:       python3-azure-mgmt-storage
 Requires:       python3-azure-storage-blob >= 12.0.0
 Requires:       python3-requests
