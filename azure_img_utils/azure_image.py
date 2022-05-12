@@ -184,7 +184,8 @@ class AzureImage(object):
         self,
         gallery_name: str,
         gallery_image_name: str,
-        image_version: str
+        image_version: str,
+        gallery_resource_group: str = None
     ) -> bool:
         """
         Return True if gallery image version exists, false otherwise.
@@ -192,7 +193,8 @@ class AzureImage(object):
         gallery_image_version = self.get_gallery_image_version(
             gallery_name,
             gallery_image_name,
-            image_version
+            image_version,
+            gallery_resource_group
         )
         return gallery_image_version is not None
 
@@ -215,21 +217,25 @@ class AzureImage(object):
         self,
         gallery_name: str,
         gallery_image_name: str,
-        image_version: str
+        image_version: str,
+        gallery_resource_group: str = None
     ):
         """
         Delete gallery image version.
         """
-        if not self.resource_group:
+        if not self.resource_group and not gallery_resource_group:
             raise AzureImgUtilsException(
                 'Resource group is required to delete a gallery image'
             )
+
+        if not gallery_resource_group:
+            gallery_resource_group = self.resource_group
 
         remove_gallery_image_version(
             gallery_name,
             gallery_image_name,
             image_version,
-            self.resource_group,
+            gallery_resource_group,
             self.compute_client
         )
 
@@ -245,23 +251,27 @@ class AzureImage(object):
         self,
         gallery_name: str,
         gallery_image_name: str,
-        image_version: str
+        image_version: str,
+        gallery_resource_group: str = None
     ) -> dict:
         """
         Return gallery image by gallery_image_name.
 
         If image is not found None is returned.
         """
-        if not self.resource_group:
+        if not self.resource_group and not gallery_resource_group:
             raise AzureImgUtilsException(
                 'Resource group is required to retrieve a gallery image'
             )
+
+        if not gallery_resource_group:
+            gallery_resource_group = self.resource_group
 
         return retrieve_gallery_image_version(
             gallery_name,
             gallery_image_name,
             image_version,
-            self.resource_group,
+            gallery_resource_group,
             self.compute_client
         )
 
@@ -326,7 +336,8 @@ class AzureImage(object):
         gallery_image_name: str,
         image_version: str,
         region: str,
-        force_replace_image: bool = False
+        force_replace_image: bool = False,
+        gallery_resource_group: str = None
     ) -> str:
         """
         Create gallery image version from storage blob.
@@ -353,14 +364,16 @@ class AzureImage(object):
         exists = self.gallery_image_version_exists(
             gallery_name,
             gallery_image_name,
-            image_version
+            image_version,
+            gallery_resource_group
         )
 
         if exists and force_replace_image:
             self.delete_gallery_image_version(
                 gallery_name,
                 gallery_image_name,
-                image_version
+                image_version,
+                gallery_resource_group
             )
         elif exists and not force_replace_image:
             raise AzureImgUtilsException(
@@ -373,11 +386,12 @@ class AzureImage(object):
             gallery_name,
             gallery_image_name,
             image_version,
-            self.resource_group,
             region,
+            self.resource_group,
             self.storage_account,
             self.container,
-            self.compute_client
+            self.compute_client,
+            gallery_resource_group
         )
 
     def get_offer_doc(
