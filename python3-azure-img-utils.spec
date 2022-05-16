@@ -57,7 +57,7 @@ python3 -m pytest
 
 %files
 %license LICENSE
-%doc python3-azure-img-utils.changes README.md
+%doc CHANGES.md README.md
 %{python3_sitelib}/*
 %{_bindir}/azure-img-utils
 
