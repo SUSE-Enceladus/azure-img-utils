@@ -1,3 +1,4 @@
+click
 msal
 azure-identity
 azure-mgmt-compute>=26.1.0
