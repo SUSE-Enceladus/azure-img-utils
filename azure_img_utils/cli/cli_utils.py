@@ -71,3 +71,14 @@ def echo_style(message, no_color, fg='yellow'):
         click.echo(message)
     else:
         click.secho(message, fg=fg)
+
+
+# -----------------------------------------------------------------------------
+# Printing options
+def process_shared_options(context_obj, kwargs):
+    """
+    Update context with values for shared options.
+    """
+    # context_obj['config_dir'] = kwargs['config_dir']
+    context_obj['no_color'] = kwargs['no_color']
+    context_obj['log_level'] = kwargs['log_level']

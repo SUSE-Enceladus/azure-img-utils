@@ -56,8 +56,7 @@ def main(context):
     """
     if context.obj is None:
         context.obj = {}
+    pass
 
 
-if __name__ == '__main__':
-    main.add_command(blob)
-    main()
+main.add_command(blob)

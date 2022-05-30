@@ -52,7 +52,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'azure-img-utils=azure_img_utils.azure_cli:main'
+            'azure-img-utils=azure_img_utils.cli.cli:main'
         ]
     },
     include_package_data=True,
