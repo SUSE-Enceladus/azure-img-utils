@@ -26,6 +26,9 @@ import sys
 
 from azure_img_utils.cli.cli_utils import (
     add_options,
+    check_required_config_provided,
+    get_config,
+    get_credentials_from_configuration_data,
     process_shared_options,
     shared_options,
     echo_style
@@ -34,28 +37,22 @@ from azure_img_utils.azure_image import AzureImage
 
 
 # -----------------------------------------------------------------------------
-# Blob commands function
+# Image commands function
 @click.group()
-def blob():
+def image():
     """
-    Commands for blob management.
+    Commands for image management.
     """
 
 
 # -----------------------------------------------------------------------------
-# Blob exists commands function
-@blob.command()
+# Image blob exists commands function
+@image.command()
 @click.option(
     '--storage-account',
     type=click.STRING,
     required=True,
     help='Storage account for the blobs.'
-)
-@click.option(
-    '--sas-token',
-    type=click.STRING,
-    required=True,
-    help='The Sas token used for the requests.'
 )
 @click.option(
     '--blob-name',
@@ -71,64 +68,66 @@ def blob():
 )
 @add_options(shared_options)
 @click.pass_context
-def exists(
+def blobexists(
     context,
     storage_account,
-    sas_token,
     blob_name,
     container,
     **kwargs
 ):
     """
-    Checks if a blob exists for the specified container
+    Checks if a image blob exists for the specified container
     """
 
     process_shared_options(context.obj, kwargs)
-
+    config_data = get_config(context.obj)
+    check_required_config_provided(config_data)
     logger = logging.getLogger('azure_img_utils')
-    logger.setLevel(kwargs['log_level'])
+    logger.setLevel(config_data.log_level)
     try:
+        credentials = None
+        if (
+            not config_data.sas_token and
+            not config_data.credentials_file
+        ):
+            credentials = get_credentials_from_configuration_data(
+                config_data
+            )
         az_img = AzureImage(
             container,
             storage_account,
-            None,
-            None,
-            None,
-            sas_token,
-            kwargs['log_level'],
+            credentials,
+            config_data.credentials_file,
+            config_data.resource_group,
+            config_data.sas_token,
+            config_data.log_level,
             None,
             None
         )
         exists = az_img.image_blob_exists(blob_name)
         if exists:
-            echo_style('True', kwargs['no_color'], fg='green')
+            echo_style('True', config_data.no_color, fg='green')
         else:
-            echo_style('False', kwargs['no_color'])
+            echo_style('False', config_data.no_color)
 
     except Exception as e:
         echo_style(
             'Unable to check blob existence',
-            kwargs['no_color'],
+            config_data.no_color,
             fg='red'
         )
-        echo_style(str(e), kwargs['no_color'], fg='red')
+        echo_style(str(e), config_data.no_color, fg='red')
         sys.exit(1)
 
 
 # -----------------------------------------------------------------------------
-# Blob exists commands function
-@blob.command()
+# Image blob upload command function
+@image.command()
 @click.option(
     '--storage-account',
     type=click.STRING,
     required=True,
     help='Storage account for the blobs.'
-)
-@click.option(
-    '--sas-token',
-    type=click.STRING,
-    required=True,
-    help='The Sas token used for the requests.'
 )
 @click.option(
     '--blob-name',
@@ -180,10 +179,9 @@ def exists(
 )
 @add_options(shared_options)
 @click.pass_context
-def upload(
+def uploadblob(
     context,
     storage_account,
-    sas_token,
     blob_name,
     container,
     image_file,
@@ -198,17 +196,27 @@ def upload(
     Uploads an image file as blob to the specified container
     """
     process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    check_required_config_provided(config_data)
     logger = logging.getLogger('azure_img_utils')
-    logger.setLevel(kwargs['log_level'])
+    logger.setLevel(config_data.log_level)
     try:
+        credentials = None
+        if (
+            not config_data.sas_token and
+            not config_data.credentials_file
+        ):
+            credentials = get_credentials_from_configuration_data(
+                config_data
+            )
         az_img = AzureImage(
             container,
             storage_account,
-            None,
-            None,
-            None,
-            sas_token,
-            kwargs['log_level'],
+            credentials,
+            config_data.credentials_file,
+            config_data.resource_group,
+            config_data.sas_token,
+            config_data.log_level,
             None,
             None
         )
@@ -221,35 +229,36 @@ def upload(
             page_blob,
             expand_image
         )
-        if blob_name and context.obj['log_level'] != logging.ERROR:
-            echo_style(f'blob {blob_name} uploaded', kwargs['no_color'], fg='green')
+        if blob_name and config_data.log_level != logging.ERROR:
+            echo_style(
+                f'blob {blob_name} uploaded',
+                config_data.no_color,
+                fg='green'
+            )
         else:
-            echo_style(f'unable to upload blob {blob_name}', kwargs['no_color'])
+            echo_style(
+                f'unable to upload blob {blob_name}',
+                config_data.no_color
+            )
 
     except Exception as e:
         echo_style(
             'Unable to upload blob',
-            kwargs['no_color'],
+            config_data.no_color,
             fg='red'
         )
-        echo_style(str(e), kwargs['no_color'], fg='red')
+        echo_style(str(e), config_data.no_color, fg='red')
         sys.exit(1)
 
 
 # -----------------------------------------------------------------------------
-# Blob delete commands function
-@blob.command()
+# Image Blob delete commands function
+@image.command()
 @click.option(
     '--storage-account',
     type=click.STRING,
     required=True,
     help='Storage account for the blobs.'
-)
-@click.option(
-    '--sas-token',
-    type=click.STRING,
-    required=True,
-    help='The Sas token used for the requests.'
 )
 @click.option(
     '--blob-name',
@@ -265,10 +274,9 @@ def upload(
 )
 @add_options(shared_options)
 @click.pass_context
-def delete(
+def deleteblob(
     context,
     storage_account,
-    sas_token,
     blob_name,
     container,
     **kwargs
@@ -278,32 +286,41 @@ def delete(
     """
 
     process_shared_options(context.obj, kwargs)
-
+    config_data = get_config(context.obj)
+    check_required_config_provided(config_data)
     logger = logging.getLogger('azure_img_utils')
-    logger.setLevel(kwargs['log_level'])
+    logger.setLevel(config_data.log_level)
     try:
+        credentials = None
+        if (
+            not config_data.sas_token and
+            not config_data.credentials_file
+        ):
+            credentials = get_credentials_from_configuration_data(
+                config_data
+            )
         az_img = AzureImage(
             container,
             storage_account,
-            None,
-            None,
-            None,
-            sas_token,
-            kwargs['log_level'],
+            credentials,
+            config_data.credentials_file,
+            config_data.resource_group,
+            config_data.sas_token,
+            config_data.log_level,
             None,
             None
         )
         deleted = az_img.delete_storage_blob(blob_name)
         if deleted and context.obj['log_level'] != logging.ERROR:
-            echo_style('blob deleted', kwargs['no_color'], fg='green')
+            echo_style('blob deleted', config_data.no_color, fg='green')
         else:
-            echo_style(f'blob {blob_name} not found', kwargs['no_color'])
+            echo_style(f'blob {blob_name} not found', config_data.no_color)
 
     except Exception as e:
         echo_style(
             'Unable to delete blob',
-            kwargs['no_color'],
+            config_data.no_color,
             fg='red'
         )
-        echo_style(str(e), kwargs['no_color'], fg='red')
+        echo_style(str(e), config_data.no_color, fg='red')
         sys.exit(1)

@@ -22,7 +22,7 @@
 
 import click
 
-from azure_img_utils.cli.blob import blob
+from azure_img_utils.cli.image import image
 
 
 # -----------------------------------------------------------------------------
@@ -47,9 +47,9 @@ def print_license(ctx, param, value):
     help='Show license information.'
 )
 @click.pass_context
-def main(context):
+def az_img_utils(context):
     """
-    The command line interface provides aliyun image utilities.
+    The command line interface provides azure image utilities.
 
     This includes uploading image tarballs and
     creating/publishing/deprecating framework images.
@@ -59,4 +59,4 @@ def main(context):
     pass
 
 
-main.add_command(blob)
+az_img_utils.add_command(image)

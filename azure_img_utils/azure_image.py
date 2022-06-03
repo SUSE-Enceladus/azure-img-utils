@@ -2,7 +2,7 @@
 
 """Azure image class module."""
 
-# Copyright (c) 2021 SUSE LLC
+# Copyright (c) 2022 SUSE LLC
 #
 # This file is part of azure_img_utils. azure_img_utils provides an
 # api and command line utilities for handling images in the Azure Cloud.
