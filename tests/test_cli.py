@@ -45,15 +45,15 @@ def test_print_license():
 
 # -------------------------------------------------
 # authentication parameters tests
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_auth_provided_sas_token(azure_image_mock):
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_auth_provided_sas_token(azure_image_mock, caplog):
     """Confirm if --sas_token is provided authentication is ok."""
     image_class = MagicMock()
     image_class.image_blob_exists.return_value = True
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -63,9 +63,10 @@ def test_auth_provided_sas_token(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 0
+    assert "true" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_cli(azure_image_mock):
     """Confirm if authentication parameters are provided all is ok."""
     image_class = MagicMock()
@@ -73,7 +74,7 @@ def test_auth_provided_credentials_via_cli(azure_image_mock):
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--client-id', 'myClientId',
         '--client-secret', 'myClientSecret',
         '--subscription-id', 'mySubscriptionId',
@@ -89,7 +90,7 @@ def test_auth_provided_credentials_via_cli(azure_image_mock):
     assert result.exit_code == 0
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_cli_subscriptionid_missing(
     azure_image_mock
 ):
@@ -101,7 +102,7 @@ def test_auth_provided_credentials_via_cli_subscriptionid_missing(
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--client-id', 'myClientId',
         '--client-secret', 'myClientSecret',
         '--tenant-id', 'myTenantId',
@@ -117,7 +118,7 @@ def test_auth_provided_credentials_via_cli_subscriptionid_missing(
     assert 'Required authentication data not provided' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_cli_tenantid_missing(azure_image_mock):
     """Confirm if authentication parameters are provided all is ok.
        tenant-id missing.
@@ -127,7 +128,7 @@ def test_auth_provided_credentials_via_cli_tenantid_missing(azure_image_mock):
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--client-id', 'myClientId',
         '--client-secret', 'myClientSecret',
         '--subscription-id', 'mySubscriptionId',
@@ -143,7 +144,7 @@ def test_auth_provided_credentials_via_cli_tenantid_missing(azure_image_mock):
     assert 'Required authentication data not provided' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_cli_clientid_missing(azure_image_mock):
     """Confirm if authentication parameters are provided all is ok.
        client-id missing.
@@ -153,7 +154,7 @@ def test_auth_provided_credentials_via_cli_clientid_missing(azure_image_mock):
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--client-secret', 'myClientSecret',
         '--subscription-id', 'mySubscriptionId',
         '--tenant-id', 'myTenantId',
@@ -169,7 +170,7 @@ def test_auth_provided_credentials_via_cli_clientid_missing(azure_image_mock):
     assert 'Required authentication data not provided' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_cli_clientsecret_missing(
     azure_image_mock
 ):
@@ -181,7 +182,7 @@ def test_auth_provided_credentials_via_cli_clientsecret_missing(
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--client-id', 'myClientId',
         '--subscription-id', 'mySubscriptionId',
         '--tenant-id', 'myTenantId',
@@ -197,7 +198,7 @@ def test_auth_provided_credentials_via_cli_clientsecret_missing(
     assert 'Required authentication data not provided' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_cli_resourcegroup_missing(
     azure_image_mock
 ):
@@ -209,7 +210,7 @@ def test_auth_provided_credentials_via_cli_resourcegroup_missing(
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--client-id', 'myClientId',
         '--client-secret', 'myClientSecret',
         '--subscription-id', 'mySubscriptionId',
@@ -225,7 +226,7 @@ def test_auth_provided_credentials_via_cli_resourcegroup_missing(
     assert 'Required authentication data not provided' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_credentials_file(
     azure_image_mock
 ):
@@ -236,7 +237,7 @@ def test_auth_provided_credentials_via_credentials_file(
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--credentials-file', 'tests/creds.json',
         '--resource-group', 'myResourceGroup',
         '--tenant-id', 'myTenantId',
@@ -250,7 +251,7 @@ def test_auth_provided_credentials_via_credentials_file(
     assert result.exit_code == 0
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_credentials_file_resourcegroup_missing(
     azure_image_mock
 ):
@@ -262,7 +263,7 @@ def test_auth_provided_credentials_via_credentials_file_resourcegroup_missing(
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--credentials-file', 'tests/creds.json',
         '--tenant-id', 'myTenantId',
         '--storage-account', 'myStorageAccount',
@@ -276,7 +277,7 @@ def test_auth_provided_credentials_via_credentials_file_resourcegroup_missing(
     assert 'Required authentication data not provided' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
+@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_not_provided(azure_image_mock):
     """Confirm if no provided authentication is ok."""
     image_class = MagicMock()
@@ -284,7 +285,7 @@ def test_auth_not_provided(azure_image_mock):
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer'
@@ -297,16 +298,16 @@ def test_auth_not_provided(azure_image_mock):
 
 
 # -------------------------------------------------
-# image blobexists
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_blobexists_ok(azure_image_mock):
-    """Confirm image blobexists is ok"""
+# blob exists
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_exists_ok(azure_image_mock):
+    """Confirm image exists is ok"""
     image_class = MagicMock()
     image_class.image_blob_exists.return_value = False
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -317,18 +318,18 @@ def test_image_blobexists_ok(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 0
-    assert 'False' in result.output
+    assert 'false' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_blobexists_nok_storageaccount_missing(azure_image_mock):
-    """image blobexists test with --storage-account missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_exists_nok_storageaccount_missing(azure_image_mock):
+    """image exists test with --storage-account missing"""
     image_class = MagicMock()
     image_class.image_blob_exists.return_value = False
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--sas-token', 'mySasToken',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -341,15 +342,15 @@ def test_image_blobexists_nok_storageaccount_missing(azure_image_mock):
     assert "Missing option '--storage-account'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_blobexists_nok_blobname_missing(azure_image_mock):
-    """image blobexists test with --storage-account missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_exists_nok_blobname_missing(azure_image_mock):
+    """image exists test with --storage-account missing"""
     image_class = MagicMock()
     image_class.image_blob_exists.return_value = False
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--container', 'myContainer',
@@ -362,15 +363,15 @@ def test_image_blobexists_nok_blobname_missing(azure_image_mock):
     assert "Missing option '--blob-name'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_blobexists_nok_container_missing(azure_image_mock):
-    """image blobexists test with --container missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_exists_nok_container_missing(azure_image_mock):
+    """image exists test with --container missing"""
     image_class = MagicMock()
     image_class.image_blob_exists.return_value = False
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -383,8 +384,8 @@ def test_image_blobexists_nok_container_missing(azure_image_mock):
     assert "Missing option '--container'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_blobexists_exception(azure_image_mock):
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_exists_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
     image_class = MagicMock()
 
@@ -395,7 +396,7 @@ def test_image_blobexists_exception(azure_image_mock):
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'blobexists',
+        'blob', 'exists',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -411,16 +412,16 @@ def test_image_blobexists_exception(azure_image_mock):
 
 
 # -------------------------------------------------
-# image blobupload
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_ok(azure_image_mock):
-    """Confirm image uploadblob is ok"""
+# blob upload
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_ok(azure_image_mock):
+    """Confirm image upload is ok"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = 'myBlobName'
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -435,15 +436,15 @@ def test_image_uploadblob_ok(azure_image_mock):
     assert 'blob myBlobName uploaded' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_ok2(azure_image_mock):
-    """Confirm image uploadblob is ok"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_ok2(azure_image_mock):
+    """Confirm image upload is ok"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = ''
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -458,15 +459,15 @@ def test_image_uploadblob_ok2(azure_image_mock):
     assert 'unable to upload blob' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_nok_storageaccount_missing(azure_image_mock):
-    """image uploadblob test with --storage-account missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_nok_storageaccount_missing(azure_image_mock):
+    """image upload test with --storage-account missing"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = 'myBlobName'
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -480,15 +481,15 @@ def test_image_uploadblob_nok_storageaccount_missing(azure_image_mock):
     assert "Missing option '--storage-account'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_nok_blobname_missing(azure_image_mock):
-    """image uploadblob test with --storage-account missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_nok_blobname_missing(azure_image_mock):
+    """image upload test with --storage-account missing"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = 'myBlobName'
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--container', 'myContainer',
@@ -502,15 +503,15 @@ def test_image_uploadblob_nok_blobname_missing(azure_image_mock):
     assert "Missing option '--blob-name'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_nok_container_missing(azure_image_mock):
-    """image uploadblob test with --container missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_nok_container_missing(azure_image_mock):
+    """image upload test with --container missing"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = 'myBlobName'
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -524,15 +525,15 @@ def test_image_uploadblob_nok_container_missing(azure_image_mock):
     assert "Missing option '--container'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_nok_filename_missing(azure_image_mock):
-    """image uploadblob test with --file-name missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_nok_filename_missing(azure_image_mock):
+    """image upload test with --file-name missing"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = 'myBlobName'
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -546,15 +547,15 @@ def test_image_uploadblob_nok_filename_missing(azure_image_mock):
     assert "Missing option '--image-file'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_nok_filename_notafile(azure_image_mock):
-    """image uploadblob test with --file-name wrong"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_nok_filename_notafile(azure_image_mock):
+    """image upload test with --file-name wrong"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = 'myBlobName'
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -569,8 +570,8 @@ def test_image_uploadblob_nok_filename_notafile(azure_image_mock):
     assert "Invalid value for '--image-file'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_uploadblob_exception(azure_image_mock):
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_upload_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
     image_class = MagicMock()
 
@@ -581,7 +582,7 @@ def test_image_uploadblob_exception(azure_image_mock):
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'uploadblob',
+        'blob', 'upload',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -598,21 +599,22 @@ def test_image_uploadblob_exception(azure_image_mock):
 
 
 # -------------------------------------------------
-# image deleteblob
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_deleteblob_ok(azure_image_mock):
-    """Confirm image uploadblob is ok"""
+# blob delete
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_ok(azure_image_mock):
+    """Confirm image upload is ok"""
     image_class = MagicMock()
     image_class.delete_storage_blob.return_value = True
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'deleteblob',
+        'blob', 'delete',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
         '--no-color',
+        '--yes',
         '--verbose',
     ]
 
@@ -622,19 +624,66 @@ def test_image_deleteblob_ok(azure_image_mock):
     assert 'blob deleted' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_deleteblob_ok2(azure_image_mock):
-    """Confirm image uploadblob is ok"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_ok_confirmation(azure_image_mock):
+    """Confirm image upload is ok with confirmation"""
+    image_class = MagicMock()
+    image_class.delete_storage_blob.return_value = True
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'blob', 'delete',
+        '--sas-token', 'mySasToken',
+        '--storage-account', 'myStorageAccount',
+        '--blob-name', 'myBlobName',
+        '--container', 'myContainer',
+        '--no-color',
+        '--verbose',
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args, input='y\n')
+    assert result.exit_code == 0
+    assert 'blob deleted' in result.output
+
+
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_ok_noconfirmation(azure_image_mock):
+    """Confirm image upload is ok with confirmation"""
+    image_class = MagicMock()
+    image_class.delete_storage_blob.return_value = True
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'blob', 'delete',
+        '--sas-token', 'mySasToken',
+        '--storage-account', 'myStorageAccount',
+        '--blob-name', 'myBlobName',
+        '--container', 'myContainer',
+        '--no-color',
+        '--verbose',
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args, input='n\n')
+    assert result.exit_code == 1
+    assert 'Aborted' in result.output
+
+
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_ok2(azure_image_mock):
+    """Confirm image upload is ok"""
     image_class = MagicMock()
     image_class.delete_storage_blob.return_value = False
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'deleteblob',
+        'blob', 'delete',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
+        '--yes',
         '--no-color',
         '--verbose',
     ]
@@ -645,15 +694,15 @@ def test_image_deleteblob_ok2(azure_image_mock):
     assert 'blob myBlobName not found' in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_deleteblob_nok_storageaccount_missing(azure_image_mock):
-    """image deleteblob test with --storage-account missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_nok_storageaccount_missing(azure_image_mock):
+    """image delete test with --storage-account missing"""
     image_class = MagicMock()
     image_class.delete_storage_blob.return_value = True
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'deleteblob',
+        'blob', 'delete',
         '--sas-token', 'mySasToken',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -666,15 +715,15 @@ def test_image_deleteblob_nok_storageaccount_missing(azure_image_mock):
     assert "Missing option '--storage-account'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_deleteblob_nok_blobname_missing(azure_image_mock):
-    """image deleteblob test with --storage-account missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_nok_blobname_missing(azure_image_mock):
+    """image delete test with --storage-account missing"""
     image_class = MagicMock()
     image_class.delete_storage_blob.return_value = True
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'deleteblob',
+        'blob', 'delete',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--container', 'myContainer',
@@ -687,15 +736,15 @@ def test_image_deleteblob_nok_blobname_missing(azure_image_mock):
     assert "Missing option '--blob-name'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_deleteblob_nok_container_missing(azure_image_mock):
-    """image deleteblob test with --container missing"""
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_nok_container_missing(azure_image_mock):
+    """image delete test with --container missing"""
     image_class = MagicMock()
     image_class.delete_storage_blob.return_value = True
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'deleteblob',
+        'blob', 'delete',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
@@ -708,8 +757,8 @@ def test_image_deleteblob_nok_container_missing(azure_image_mock):
     assert "Missing option '--container'" in result.output
 
 
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_deleteblob_exception(azure_image_mock):
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_blob_delete_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
     image_class = MagicMock()
 
@@ -720,11 +769,12 @@ def test_image_deleteblob_exception(azure_image_mock):
     azure_image_mock.return_value = image_class
 
     args = [
-        'image', 'deleteblob',
+        'blob', 'delete',
         '--sas-token', 'mySasToken',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
+        '--yes',
         '--no-color'
     ]
 

@@ -39,15 +39,15 @@ from azure_img_utils.azure_image import AzureImage
 # -----------------------------------------------------------------------------
 # Image commands function
 @click.group()
-def image():
+def blob():
     """
-    Commands for image management.
+    Commands for blob management.
     """
 
 
 # -----------------------------------------------------------------------------
-# Image blob exists commands function
-@image.command()
+# blob exists commands function
+@blob.command()
 @click.option(
     '--storage-account',
     type=click.STRING,
@@ -68,7 +68,7 @@ def image():
 )
 @add_options(shared_options)
 @click.pass_context
-def blobexists(
+def exists(
     context,
     storage_account,
     blob_name,
@@ -76,7 +76,7 @@ def blobexists(
     **kwargs
 ):
     """
-    Checks if a image blob exists for the specified container
+    Checks if a blob exists for the specified container
     """
 
     process_shared_options(context.obj, kwargs)
@@ -106,9 +106,11 @@ def blobexists(
         )
         exists = az_img.image_blob_exists(blob_name)
         if exists:
-            echo_style('True', config_data.no_color, fg='green')
+            print("HERE")
+            echo_style('true', config_data.no_color, fg='green')
         else:
-            echo_style('False', config_data.no_color)
+            print("HERE2")
+            echo_style('false', config_data.no_color)
 
     except Exception as e:
         echo_style(
@@ -121,8 +123,8 @@ def blobexists(
 
 
 # -----------------------------------------------------------------------------
-# Image blob upload command function
-@image.command()
+# blob upload command function
+@blob.command()
 @click.option(
     '--storage-account',
     type=click.STRING,
@@ -179,7 +181,7 @@ def blobexists(
 )
 @add_options(shared_options)
 @click.pass_context
-def uploadblob(
+def upload(
     context,
     storage_account,
     blob_name,
@@ -193,7 +195,7 @@ def uploadblob(
     **kwargs
 ):
     """
-    Uploads an image file as blob to the specified container
+    Uploads an file as blob to the specified container
     """
     process_shared_options(context.obj, kwargs)
     config_data = get_config(context.obj)
@@ -252,8 +254,8 @@ def uploadblob(
 
 
 # -----------------------------------------------------------------------------
-# Image Blob delete commands function
-@image.command()
+# Blob delete commands function
+@blob.command()
 @click.option(
     '--storage-account',
     type=click.STRING,
@@ -273,8 +275,10 @@ def uploadblob(
     help='Container for the blob to check.'
 )
 @add_options(shared_options)
+@click.confirmation_option(
+    help='This command will delete the specified blob. Are you sure?')
 @click.pass_context
-def deleteblob(
+def delete(
     context,
     storage_account,
     blob_name,

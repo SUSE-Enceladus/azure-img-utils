@@ -22,7 +22,7 @@
 
 import click
 
-from azure_img_utils.cli.image import image
+from azure_img_utils.cli.blob import blob
 
 
 # -----------------------------------------------------------------------------
@@ -59,4 +59,4 @@ def az_img_utils(context):
     pass
 
 
-az_img_utils.add_command(image)
+az_img_utils.add_command(blob)
