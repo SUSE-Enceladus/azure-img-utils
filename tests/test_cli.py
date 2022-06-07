@@ -46,187 +46,6 @@ def test_print_license():
 # -------------------------------------------------
 # authentication parameters tests
 @patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_sas_token(azure_image_mock, caplog):
-    """Confirm if --sas_token is provided authentication is ok."""
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--sas-token', 'mySasToken',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 0
-    assert "true" in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_credentials_via_cli(azure_image_mock):
-    """Confirm if authentication parameters are provided all is ok."""
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = False
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--client-id', 'myClientId',
-        '--client-secret', 'myClientSecret',
-        '--subscription-id', 'mySubscriptionId',
-        '--tenant-id', 'myTenantId',
-        '--resource-group', 'myResourceGroup',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 0
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_credentials_via_cli_subscriptionid_missing(
-    azure_image_mock
-):
-    """Confirm if authentication parameters are provided all is ok.
-       subscription-id missing.
-    """
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--client-id', 'myClientId',
-        '--client-secret', 'myClientSecret',
-        '--tenant-id', 'myTenantId',
-        '--resource-group', 'myResourceGroup',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 1
-    assert 'Required authentication data not provided' in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_credentials_via_cli_tenantid_missing(azure_image_mock):
-    """Confirm if authentication parameters are provided all is ok.
-       tenant-id missing.
-    """
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--client-id', 'myClientId',
-        '--client-secret', 'myClientSecret',
-        '--subscription-id', 'mySubscriptionId',
-        '--resource-group', 'myResourceGroup',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 1
-    assert 'Required authentication data not provided' in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_credentials_via_cli_clientid_missing(azure_image_mock):
-    """Confirm if authentication parameters are provided all is ok.
-       client-id missing.
-    """
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--client-secret', 'myClientSecret',
-        '--subscription-id', 'mySubscriptionId',
-        '--tenant-id', 'myTenantId',
-        '--resource-group', 'myResourceGroup',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 1
-    assert 'Required authentication data not provided' in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_credentials_via_cli_clientsecret_missing(
-    azure_image_mock
-):
-    """Confirm if authentication parameters are provided all is ok.
-       client-secret missing.
-    """
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--client-id', 'myClientId',
-        '--subscription-id', 'mySubscriptionId',
-        '--tenant-id', 'myTenantId',
-        '--resource-group', 'myResourceGroup',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 1
-    assert 'Required authentication data not provided' in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_credentials_via_cli_resourcegroup_missing(
-    azure_image_mock
-):
-    """Confirm if authentication parameters are provided all is ok.
-       resource-group missing.
-    """
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--client-id', 'myClientId',
-        '--client-secret', 'myClientSecret',
-        '--subscription-id', 'mySubscriptionId',
-        '--tenant-id', 'myTenantId',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 1
-    assert 'Required authentication data not provided' in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
 def test_auth_provided_credentials_via_credentials_file(
     azure_image_mock
 ):
@@ -240,7 +59,6 @@ def test_auth_provided_credentials_via_credentials_file(
         'blob', 'exists',
         '--credentials-file', 'tests/creds.json',
         '--resource-group', 'myResourceGroup',
-        '--tenant-id', 'myTenantId',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer'
@@ -252,20 +70,23 @@ def test_auth_provided_credentials_via_credentials_file(
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_provided_credentials_via_credentials_file_resourcegroup_missing(
+def test_auth_provided_credentials_via_credentials_file_exception(
     azure_image_mock
 ):
     """Confirm if authentication parameters are provided all is ok.
     resource-group missing
     """
+
+    def my_side_eff(*args):
+        raise Exception('myException')
+
     image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
+    image_class.image_blob_exists.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
         'blob', 'exists',
         '--credentials-file', 'tests/creds.json',
-        '--tenant-id', 'myTenantId',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer'
@@ -274,27 +95,8 @@ def test_auth_provided_credentials_via_credentials_file_resourcegroup_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 1
-    assert 'Required authentication data not provided' in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
-def test_auth_not_provided(azure_image_mock):
-    """Confirm if no provided authentication is ok."""
-    image_class = MagicMock()
-    image_class.image_blob_exists.return_value = True
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'exists',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 1
-    assert 'Required authentication data not provided' in result.output
+    assert "Unable to check blob existence" in result.output
+    assert "myException" in result.output
 
 
 # -------------------------------------------------
@@ -308,7 +110,7 @@ def test_blob_exists_ok(azure_image_mock):
 
     args = [
         'blob', 'exists',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -330,7 +132,7 @@ def test_blob_exists_nok_storageaccount_missing(azure_image_mock):
 
     args = [
         'blob', 'exists',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
         '--no-color'
@@ -351,7 +153,7 @@ def test_blob_exists_nok_blobname_missing(azure_image_mock):
 
     args = [
         'blob', 'exists',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--container', 'myContainer',
         '--no-color'
@@ -372,7 +174,7 @@ def test_blob_exists_nok_container_missing(azure_image_mock):
 
     args = [
         'blob', 'exists',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--no-color'
@@ -397,7 +199,7 @@ def test_blob_exists_exception(azure_image_mock):
 
     args = [
         'blob', 'exists',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -422,7 +224,7 @@ def test_blob_upload_ok(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -445,7 +247,7 @@ def test_blob_upload_ok2(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -468,7 +270,7 @@ def test_blob_upload_nok_storageaccount_missing(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
         '--image-file', 'tests/image.raw',
@@ -490,7 +292,7 @@ def test_blob_upload_nok_blobname_missing(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--container', 'myContainer',
         '--image-file', 'tests/image.raw',
@@ -512,7 +314,7 @@ def test_blob_upload_nok_container_missing(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--image-file', 'tests/image.raw',
@@ -534,7 +336,7 @@ def test_blob_upload_nok_filename_missing(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -556,7 +358,7 @@ def test_blob_upload_nok_filename_notafile(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -575,7 +377,7 @@ def test_blob_upload_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
     image_class = MagicMock()
 
-    def my_side_eff(a1, a2, a3, a4, a5, a6, a7):
+    def my_side_eff(*args, **kwargs):
         raise Exception('myException')
 
     image_class.upload_image_blob.side_effect = my_side_eff
@@ -583,7 +385,7 @@ def test_blob_upload_exception(azure_image_mock):
 
     args = [
         'blob', 'upload',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -609,7 +411,7 @@ def test_blob_delete_ok(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -633,7 +435,7 @@ def test_blob_delete_ok_confirmation(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -656,7 +458,7 @@ def test_blob_delete_ok_noconfirmation(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -679,7 +481,7 @@ def test_blob_delete_ok2(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
@@ -703,7 +505,7 @@ def test_blob_delete_nok_storageaccount_missing(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
         '--no-color'
@@ -724,7 +526,7 @@ def test_blob_delete_nok_blobname_missing(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--container', 'myContainer',
         '--no-color'
@@ -745,7 +547,7 @@ def test_blob_delete_nok_container_missing(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--no-color'
@@ -770,7 +572,7 @@ def test_blob_delete_exception(azure_image_mock):
 
     args = [
         'blob', 'delete',
-        '--sas-token', 'mySasToken',
+        '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',

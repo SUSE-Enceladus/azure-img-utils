@@ -99,61 +99,6 @@ shared_options = [
         help='Display only errors to console.'
     ),
     click.option(
-        '--sas-token',
-        type=click.STRING,
-        help='The Sas token used for the requests.'
-    ),
-    click.option(
-        '--client-id',
-        type=click.STRING,
-        help='The client id used for the requests.'
-    ),
-    click.option(
-        '--client-secret',
-        type=click.STRING,
-        help='The client secret used for the requests.'
-    ),
-    click.option(
-        '--subscription-id',
-        type=click.STRING,
-        help='The subscription id used for the requests.'
-    ),
-    click.option(
-        '--tenant-id',
-        type=click.STRING,
-        help='The tenant id used for the requests.'
-    ),
-    click.option(
-        '--active-directory-url',
-        type=click.STRING,
-        help='The URL for the active directory endpoint.'
-    ),
-    click.option(
-        '--resource-manager-url',
-        type=click.STRING,
-        help='The URL for the resource manager endpoint.'
-    ),
-    click.option(
-        '--active-directory-graph-res-url',
-        type=click.STRING,
-        help='The URL for the active directory graph resource id endpoint.'
-    ),
-    click.option(
-        '--sql-management-url',
-        type=click.STRING,
-        help='The URL for the sql management endpoint.'
-    ),
-    click.option(
-        '--gallery-url',
-        type=click.STRING,
-        help='The URL for the gallery endpoint.'
-    ),
-    click.option(
-        '--management-url',
-        type=click.STRING,
-        help='The URL for the management endpoint.'
-    ),
-    click.option(
         '--credentials-file',
         type=click.Path(exists=True),
         help='Azure Image utils credentials file to use.'
@@ -238,82 +183,10 @@ def process_shared_options(context_obj, kwargs):
     """
     Update context with values for shared options.
     """
-    context_obj['active_directory_graph_res_url'] = \
-        kwargs.get('active_directory_graph_res_url')
-    context_obj['active_directory_url'] = kwargs.get('active_directory_url')
-    context_obj['client_id'] = kwargs.get('client_id')
-    context_obj['client_secret'] = kwargs.get('client_secret')
     context_obj['config_dir'] = kwargs.get('config_dir')
     context_obj['credentials_file'] = kwargs.get('credentials_file')
-    context_obj['gallery_url'] = kwargs.get('gallery_url')
     context_obj['log_level'] = kwargs.get('log_level')
-    context_obj['management_url'] = kwargs.get('management_url')
     context_obj['no_color'] = kwargs.get('no_color')
     context_obj['profile'] = kwargs.get('profile')
     context_obj['region'] = kwargs.get('region')
     context_obj['resource_group'] = kwargs.get('resource_group')
-    context_obj['resource_manager_url'] = kwargs.get('resource_manager_url')
-    context_obj['sas_token'] = kwargs.get('sas_token')
-    context_obj['subscription_id'] = kwargs.get('subscription_id')
-    context_obj['sql_management_url'] = kwargs.get('sql_management_url')
-    context_obj['tenant_id'] = kwargs.get('tenant_id')
-
-
-# -----------------------------------------------------------------------------
-# Check required config provided
-def check_required_config_provided(config_data):
-    check_authentication_data_provided(config_data)
-
-
-# -----------------------------------------------------------------------------
-# Check required arguments for authentication provided
-def check_authentication_data_provided(config_data):
-    if config_data.sas_token:
-        return
-    elif (
-        config_data.tenant_id and
-        config_data.client_id and
-        config_data.client_secret and
-        config_data.subscription_id and
-        config_data.resource_group
-    ):
-        return
-    elif (
-        config_data.credentials_file and
-        config_data.resource_group
-    ):
-        return
-    else:
-        msg = 'Required authentication data not provided. '
-        msg += 'Sas-token or credentials/credentials file and '
-        msg += 'resource_group is required to authenticate any operation. '
-        echo_style(
-            msg,
-            config_data.no_color,
-            fg='red'
-        )
-        sys.exit(1)
-    return
-
-
-# -----------------------------------------------------------------------------
-# Build credentials from configuration data
-def get_credentials_from_configuration_data(config_data):
-    credentials = {}
-    credentials['clientId'] = config_data.client_id
-    credentials['clientSecret'] = config_data.client_secret
-    credentials['subscriptionId'] = config_data.subscription_id
-    credentials['tenantId'] = config_data.tenant_id
-    credentials['activeDirectoryEndpointUrl'] = \
-        config_data.active_directory_url
-    credentials['resourceManagerEndpointUrl'] = \
-        config_data.resource_manager_url
-    credentials['activeDirectoryGraphResourceId'] = \
-        config_data.active_directory_graph_res_url
-    credentials['sqlManagementEndpointUrl'] = \
-        config_data.sql_management_url
-    credentials['galleryEndpointUrl'] = \
-        config_data.gallery_url
-    credentials['managementEndpointUrl'] = \
-        config_data.management_url
-    return credentials

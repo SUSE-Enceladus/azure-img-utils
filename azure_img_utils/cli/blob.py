@@ -26,9 +26,7 @@ import sys
 
 from azure_img_utils.cli.cli_utils import (
     add_options,
-    check_required_config_provided,
     get_config,
-    get_credentials_from_configuration_data,
     process_shared_options,
     shared_options,
     echo_style
@@ -81,35 +79,20 @@ def exists(
 
     process_shared_options(context.obj, kwargs)
     config_data = get_config(context.obj)
-    check_required_config_provided(config_data)
     logger = logging.getLogger('azure_img_utils')
     logger.setLevel(config_data.log_level)
     try:
-        credentials = None
-        if (
-            not config_data.sas_token and
-            not config_data.credentials_file
-        ):
-            credentials = get_credentials_from_configuration_data(
-                config_data
-            )
         az_img = AzureImage(
-            container,
-            storage_account,
-            credentials,
-            config_data.credentials_file,
-            config_data.resource_group,
-            config_data.sas_token,
-            config_data.log_level,
-            None,
-            None
+            container=container,
+            storage_account=storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level
         )
         exists = az_img.image_blob_exists(blob_name)
         if exists:
-            print("HERE")
             echo_style('true', config_data.no_color, fg='green')
         else:
-            print("HERE2")
             echo_style('false', config_data.no_color)
 
     except Exception as e:
@@ -199,37 +182,25 @@ def upload(
     """
     process_shared_options(context.obj, kwargs)
     config_data = get_config(context.obj)
-    check_required_config_provided(config_data)
     logger = logging.getLogger('azure_img_utils')
     logger.setLevel(config_data.log_level)
     try:
-        credentials = None
-        if (
-            not config_data.sas_token and
-            not config_data.credentials_file
-        ):
-            credentials = get_credentials_from_configuration_data(
-                config_data
-            )
         az_img = AzureImage(
-            container,
-            storage_account,
-            credentials,
-            config_data.credentials_file,
-            config_data.resource_group,
-            config_data.sas_token,
-            config_data.log_level,
-            None,
-            None
+            container=container,
+            storage_account=storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
         )
         blob_name = az_img.upload_image_blob(
             image_file,
-            max_workers,
-            max_retry_attempts,
-            blob_name,
-            force_replace_image,
-            page_blob,
-            expand_image
+            max_workers=max_workers,
+            max_retry_attempts=max_retry_attempts,
+            blob_name=blob_name,
+            force_replace_image=force_replace_image,
+            page_blob=page_blob,
+            expand_image=expand_image
         )
         if blob_name and config_data.log_level != logging.ERROR:
             echo_style(
@@ -291,28 +262,16 @@ def delete(
 
     process_shared_options(context.obj, kwargs)
     config_data = get_config(context.obj)
-    check_required_config_provided(config_data)
     logger = logging.getLogger('azure_img_utils')
     logger.setLevel(config_data.log_level)
     try:
-        credentials = None
-        if (
-            not config_data.sas_token and
-            not config_data.credentials_file
-        ):
-            credentials = get_credentials_from_configuration_data(
-                config_data
-            )
         az_img = AzureImage(
-            container,
-            storage_account,
-            credentials,
-            config_data.credentials_file,
-            config_data.resource_group,
-            config_data.sas_token,
-            config_data.log_level,
-            None,
-            None
+            container=container,
+            storage_account=storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
         )
         deleted = az_img.delete_storage_blob(blob_name)
         if deleted and context.obj['log_level'] != logging.ERROR:

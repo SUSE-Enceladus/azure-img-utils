@@ -46,17 +46,6 @@ The following configration options are available in a configuration profile:
 
 - no_color
 - log_level
-- sas_token
-- client_id
-- client_secret
-- subscription_id
-- tenant_id
-- active_directory_url
-- resource_manager_url
-- active_directory_graph_res_url
-- sql_management_url
-- gallery_url
-- management_url
 - credentials_file
 - resource_group
 - region
@@ -74,10 +63,39 @@ When running any command the profile can be chosen via the *--profile* option.
 For example, *azure-img-utils image blobexists --profile production* would pull
 configuration from ~/.config/azure_img_utils/production.yaml.
 
+
 # CLI
 
 The CLI is broken into multiple distinct subcommands that handle different
 steps of creating and publishing images in the Azure cloud framework.
+
+## Authentication
+
+This cli tool expects the user to provide a json file containing the
+credentials of a service principal to access his/her Azure services.
+
+Per Azure documentation:
+> An Azure service principal is an identity created for use with applications,
+> hosted services, and automated tools to access Azure resources.
+
+[Here](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal
+-azure-cli) you can find how to create a service principal with the azure cli.
+
+With your subscriptionId, the resourceGroupId and the required permissions, you can
+create the service principal with the following command:
+
+```sh
+az ad sp create-for-rbac \
+        --sdk-auth \
+        --role Contributor \
+        --scopes /subscriptions/{YOUR_SUSCRI_ID}/resourceGroups/{YOUR_RES_GROUP_ID} \
+        --name "YOUR_SP_NAME" > mycredentials.json
+```
+
+The expected format for the json file is the output for that *create-for-rbac* az
+command. Note that the API this repo provides allows additional methods of
+authentication, but these are not supported in this CLI tool.
+
 
 ## blob command
 ### exists subcommand
