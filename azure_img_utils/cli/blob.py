@@ -47,30 +47,16 @@ def blob():
 # blob exists commands function
 @blob.command()
 @click.option(
-    '--storage-account',
-    type=click.STRING,
-    required=True,
-    help='Storage account for the blobs.'
-)
-@click.option(
     '--blob-name',
     type=click.STRING,
     required=True,
     help='Name of the blob to check.'
 )
-@click.option(
-    '--container',
-    type=click.STRING,
-    required=True,
-    help='Container for the blob to check.'
-)
 @add_options(shared_options)
 @click.pass_context
 def exists(
     context,
-    storage_account,
     blob_name,
-    container,
     **kwargs
 ):
     """
@@ -81,15 +67,17 @@ def exists(
     config_data = get_config(context.obj)
     logger = logging.getLogger('azure_img_utils')
     logger.setLevel(config_data.log_level)
+
     try:
         az_img = AzureImage(
-            container=container,
-            storage_account=storage_account,
+            container=config_data.container,
+            storage_account=config_data.storage_account,
             credentials_file=config_data.credentials_file,
             resource_group=config_data.resource_group,
             log_level=config_data.log_level
         )
         exists = az_img.image_blob_exists(blob_name)
+
         if exists:
             echo_style('true', config_data.no_color, fg='green')
         else:
@@ -109,22 +97,10 @@ def exists(
 # blob upload command function
 @blob.command()
 @click.option(
-    '--storage-account',
-    type=click.STRING,
-    required=True,
-    help='Storage account for the blobs.'
-)
-@click.option(
     '--blob-name',
     type=click.STRING,
     required=True,
     help='Name of the blob to check.'
-)
-@click.option(
-    '--container',
-    type=click.STRING,
-    required=True,
-    help='Container for the blob to check.'
 )
 @click.option(
     '--image-file',
@@ -166,9 +142,7 @@ def exists(
 @click.pass_context
 def upload(
     context,
-    storage_account,
     blob_name,
-    container,
     image_file,
     force_replace_image,
     page_blob,
@@ -184,10 +158,11 @@ def upload(
     config_data = get_config(context.obj)
     logger = logging.getLogger('azure_img_utils')
     logger.setLevel(config_data.log_level)
+
     try:
         az_img = AzureImage(
-            container=container,
-            storage_account=storage_account,
+            container=config_data.container,
+            storage_account=config_data.storage_account,
             credentials_file=config_data.credentials_file,
             resource_group=config_data.resource_group,
             log_level=config_data.log_level,
@@ -199,9 +174,10 @@ def upload(
             max_retry_attempts=max_retry_attempts,
             blob_name=blob_name,
             force_replace_image=force_replace_image,
-            page_blob=page_blob,
+            is_page_blob=page_blob,
             expand_image=expand_image
         )
+
         if blob_name and config_data.log_level != logging.ERROR:
             echo_style(
                 f'blob {blob_name} uploaded',
@@ -228,52 +204,40 @@ def upload(
 # Blob delete commands function
 @blob.command()
 @click.option(
-    '--storage-account',
-    type=click.STRING,
-    required=True,
-    help='Storage account for the blobs.'
-)
-@click.option(
     '--blob-name',
     type=click.STRING,
     required=True,
     help='Name of the blob to check.'
 )
-@click.option(
-    '--container',
-    type=click.STRING,
-    required=True,
-    help='Container for the blob to check.'
-)
 @add_options(shared_options)
 @click.confirmation_option(
-    help='This command will delete the specified blob. Are you sure?')
+    help='This command will delete the specified blob. Are you sure?'
+)
 @click.pass_context
 def delete(
     context,
-    storage_account,
     blob_name,
-    container,
     **kwargs
 ):
     """
     Deletes the specified blob in the container
     """
-
     process_shared_options(context.obj, kwargs)
     config_data = get_config(context.obj)
     logger = logging.getLogger('azure_img_utils')
     logger.setLevel(config_data.log_level)
+
     try:
         az_img = AzureImage(
-            container=container,
-            storage_account=storage_account,
+            container=config_data.container,
+            storage_account=config_data.storage_account,
             credentials_file=config_data.credentials_file,
             resource_group=config_data.resource_group,
             log_level=config_data.log_level,
             log_callback=logger
         )
         deleted = az_img.delete_storage_blob(blob_name)
+
         if deleted and context.obj['log_level'] != logging.ERROR:
             echo_style('blob deleted', config_data.no_color, fg='green')
         else:

@@ -37,19 +37,11 @@ config_defaults = {
     'profile': default_profile,
     'log_level': logging.INFO,
     'no_color': False,
-    'sas_token': None,
-    'tenant_id': None,
-    'client_id': None,
-    'client_secret': None,
-    'subscription_id': None,
-    'active_directory_url': 'https://login.microsoftonline.com',
-    'resource_manager_url': 'https://management.azure.com/',
-    'active_directory_graph_res_url': 'https://graph.windows.net/',
-    'sql_management_url': 'https://gallery.azure.com/',
-    'gallery_url': 'https://management.core.windows.net:8443/',
-    'management_url': 'https://management.core.windows.net/',
-    'credentials_file': None,
-    'resource_group': None,
+    'credentials_file': '',
+    'resource_group': '',
+    'storage_account': '',
+    'container': '',
+    'region': '',
 }
 
 azure_img_utils_config = namedtuple(
@@ -112,6 +104,16 @@ shared_options = [
         '--region',
         type=click.STRING,
         help='The region to use for the image requests.'
+    ),
+    click.option(
+        '--storage-account',
+        type=click.STRING,
+        help='Storage account for the blobs.'
+    ),
+    click.option(
+        '--container',
+        type=click.STRING,
+        help='Container for the blob to check.'
     )
 ]
 
@@ -162,6 +164,7 @@ def get_config(cli_context):
         )
         echo_style(str(e), no_color=True)
         sys.exit(1)
+
     return config_data
 
 
@@ -190,3 +193,5 @@ def process_shared_options(context_obj, kwargs):
     context_obj['profile'] = kwargs.get('profile')
     context_obj['region'] = kwargs.get('region')
     context_obj['resource_group'] = kwargs.get('resource_group')
+    context_obj['container'] = kwargs.get('container')
+    context_obj['storage_account'] = kwargs.get('storage_account')

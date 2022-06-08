@@ -100,6 +100,45 @@ def test_auth_provided_credentials_via_credentials_file_exception(
 
 
 # -------------------------------------------------
+# parameter precedence tests
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_parameter_precedence(
+    azure_image_mock
+):
+    """Confirm if authentication parameters are provided all is ok.
+    resource-group missing
+    """
+
+    instance = MagicMock()
+    instance.image_blob_exists.return_value = True
+
+    def my_side_eff(*args, **kwargs):
+        print("container->" + kwargs["container"])
+        print("storage_account->" + kwargs["storage_account"])
+        print("resource_group->" + kwargs["resource_group"])
+        return instance
+
+    azure_image_mock.side_effect = my_side_eff
+
+    args = [
+        'blob', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--config-dir', 'tests',
+        '--profile', 'default2',
+        '--blob-name', 'myBlobName',
+        '--container', 'myContainer'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+    assert "true" in result.output
+    assert "container->myContainer" in result.output
+    assert "resource_group->my_resource_group" in result.output
+    assert "storage_account->my_storage_account" in result.output
+
+
+# -------------------------------------------------
 # blob exists
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_exists_ok(azure_image_mock):
@@ -126,8 +165,12 @@ def test_blob_exists_ok(azure_image_mock):
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_exists_nok_storageaccount_missing(azure_image_mock):
     """image exists test with --storage-account missing"""
+
+    def my_side_eff(*args):
+        raise Exception('myException')
+
     image_class = MagicMock()
-    image_class.image_blob_exists.return_value = False
+    image_class.image_blob_exists.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
@@ -140,8 +183,8 @@ def test_blob_exists_nok_storageaccount_missing(azure_image_mock):
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--storage-account'" in result.output
+    assert result.exit_code == 1
+    assert "myException" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -168,8 +211,12 @@ def test_blob_exists_nok_blobname_missing(azure_image_mock):
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_exists_nok_container_missing(azure_image_mock):
     """image exists test with --container missing"""
+
+    def my_side_eff(*args):
+        raise Exception('myException')
+
     image_class = MagicMock()
-    image_class.image_blob_exists.return_value = False
+    image_class.image_blob_exists.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
@@ -182,8 +229,8 @@ def test_blob_exists_nok_container_missing(azure_image_mock):
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--container'" in result.output
+    assert result.exit_code == 1
+    assert "myException" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -191,7 +238,7 @@ def test_blob_exists_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
     image_class = MagicMock()
 
-    def my_side_eff(a1):
+    def my_side_eff(*args):
         raise Exception('myException')
 
     image_class.image_blob_exists.side_effect = my_side_eff
@@ -264,8 +311,12 @@ def test_blob_upload_ok2(azure_image_mock):
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_upload_nok_storageaccount_missing(azure_image_mock):
     """image upload test with --storage-account missing"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
     image_class = MagicMock()
-    image_class.upload_image_blob.return_value = 'myBlobName'
+    image_class.upload_image_blob.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
@@ -279,8 +330,8 @@ def test_blob_upload_nok_storageaccount_missing(azure_image_mock):
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--storage-account'" in result.output
+    assert result.exit_code == 1
+    assert "myException" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -308,8 +359,12 @@ def test_blob_upload_nok_blobname_missing(azure_image_mock):
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_upload_nok_container_missing(azure_image_mock):
     """image upload test with --container missing"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
     image_class = MagicMock()
-    image_class.upload_image_blob.return_value = 'myBlobName'
+    image_class.upload_image_blob.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
@@ -323,8 +378,8 @@ def test_blob_upload_nok_container_missing(azure_image_mock):
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--container'" in result.output
+    assert result.exit_code == 1
+    assert "myException" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -375,11 +430,11 @@ def test_blob_upload_nok_filename_notafile(azure_image_mock):
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_upload_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
-    image_class = MagicMock()
 
     def my_side_eff(*args, **kwargs):
         raise Exception('myException')
 
+    image_class = MagicMock()
     image_class.upload_image_blob.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
@@ -499,8 +554,12 @@ def test_blob_delete_ok2(azure_image_mock):
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_delete_nok_storageaccount_missing(azure_image_mock):
     """image delete test with --storage-account missing"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
     image_class = MagicMock()
-    image_class.delete_storage_blob.return_value = True
+    image_class.delete_storage_blob.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
@@ -508,13 +567,14 @@ def test_blob_delete_nok_storageaccount_missing(azure_image_mock):
         '--credentials-file', 'tests/creds.json',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
-        '--no-color'
+        '--no-color',
+        '--yes',
     ]
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--storage-account'" in result.output
+    assert result.exit_code == 1
+    assert "myException" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -529,7 +589,8 @@ def test_blob_delete_nok_blobname_missing(azure_image_mock):
         '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--container', 'myContainer',
-        '--no-color'
+        '--no-color',
+        '--yes'
     ]
 
     runner = CliRunner()
@@ -541,8 +602,12 @@ def test_blob_delete_nok_blobname_missing(azure_image_mock):
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_delete_nok_container_missing(azure_image_mock):
     """image delete test with --container missing"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
     image_class = MagicMock()
-    image_class.delete_storage_blob.return_value = True
+    image_class.delete_storage_blob.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
@@ -550,13 +615,14 @@ def test_blob_delete_nok_container_missing(azure_image_mock):
         '--credentials-file', 'tests/creds.json',
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
-        '--no-color'
+        '--no-color',
+        '--yes'
     ]
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--container'" in result.output
+    assert result.exit_code == 1
+    assert "myException" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')

@@ -11,14 +11,10 @@ more info on the Azure cloud.
 
 # Requirements
 
-- click
-- msal
-- azure-identity
-- azure-mgmt-compute>=26.1.0
-- azure-mgmt-storage
-- azure-storage-blob>=12.0.0
-- requests
-- jmespath
+The requirements for the project can be found in the following repo files:
+- [requirements](requirement.txt)
+- [requirements for testing](requirement-test.txt)
+- [requirements for development](requirement-dev.txt)
 
 # Installation
 
@@ -49,6 +45,8 @@ The following configration options are available in a configuration profile:
 - credentials_file
 - resource_group
 - region
+- container
+- storage_account
 
 
 An example configuration profile may look like:
@@ -57,6 +55,7 @@ An example configuration profile may look like:
 region: westus
 no_color: True
 credentials_file: mycredentials.json
+container: my_container
 ```
 
 When running any command the profile can be chosen via the *--profile* option.
@@ -252,7 +251,7 @@ blob_deleted = azure_image.delete_storage_blob("my_blob_name")
 ### Upload image blob
 ```python
 blob_name = azure_image.upload_image_blob(
-	"my_image_file.qcow2",
+    "my_image_file.qcow2",
     blob_name="my_blob_name"
 )
 ```
@@ -265,7 +264,7 @@ image_exists = azure_image.image_exists("my_image_name")
 ### Check if gallery image version exists
 ```python
 gallery_image_version_exists = azure_image.gallery_image_version_exists(
-	"my_gallery_name",
+    "my_gallery_name",
     "my_gallery_image_name",
     "my_image_version",
     gallery_resource_group="my_gallery_resource_group"
@@ -280,7 +279,7 @@ azure_image.delete_compute_image("my_image_name")
 ### Delete gallery image version
 ```python
 azure_image.delete_gallery_image_version(
-	"my_gallery_name",
+    "my_gallery_name",
     "my_gallery_image_name",
     "my_image_version",
     gallery_resource_group="my_gallery_resource_group"
@@ -295,7 +294,7 @@ image_dict = azure_image.get_compute_image("my_image_name")
 ### Get gallery image version
 ```python
 image_dict = azure_image.get_gallery_image_version(
-	"my_gallery_name",
+    "my_gallery_name",
     "my_gallery_image_name",
     "my_image_version",
     gallery_resource_group="my_gallery_resource_group"
@@ -305,7 +304,7 @@ image_dict = azure_image.get_gallery_image_version(
 ### Create compute image
 ```python
 image_name = azure_image.create_compute_image(
-	"my_blob_name",
+    "my_blob_name",
     "my_image_name",
     "my_region",
     force_replace_image=True,
@@ -316,7 +315,7 @@ image_name = azure_image.create_compute_image(
 ### Create gallery image version
 ```python
 image_name = azure_image.create_gallery_image_version(
-	"my_blob_name",
+    "my_blob_name",
     "my_gallery_name",
     "my_gallery_image_name",
     "my_image_version",
@@ -329,7 +328,7 @@ image_name = azure_image.create_gallery_image_version(
 ### Get offer doc dictionary
 ```python
 offer_doc = azure_image.get_offer_doc(
-	"my_offer_id",
+    "my_offer_id",
     "my_publisher_id"
 )
 ```
@@ -337,7 +336,7 @@ offer_doc = azure_image.get_offer_doc(
 ### Upload offer doc
 ```python
 azure_image.upload_offer_doc(
-	"my_offer_id",
+    "my_offer_id",
     "my_publisher_id"
     my_offer_doc_dict
 )
@@ -346,12 +345,12 @@ azure_image.upload_offer_doc(
 ### Add image to offer
 ```python
 azure_image.add_image_to_offer(
-	"my_blob_name",
-	"my_image_name",
-	"my image description...",
-	"my_offer_id",
-	"my_publisher_id",
-	"my_label",
+    "my_blob_name",
+    "my_image_name",
+    "my image description...",
+    "my_offer_id",
+    "my_publisher_id",
+    "my_label",
     "my_sku",
     blob_url="https://my.blob.url",
     generation_id="my_generation_id",
@@ -368,7 +367,7 @@ azure_image.add_image_to_offer("my_image_urn")
 ### Publish offer
 ```python
 operation_uri = azure_image.publish_offer(
-	"my_offer_id",
+    "my_offer_id",
     "my_publisher_id",
     "my_notification_emaili1@whatever.com,my_not_email2@somedomain.com'
 )
@@ -377,7 +376,7 @@ operation_uri = azure_image.publish_offer(
 ### Go live with offer
 ```python
 operation_uri = azure_image.go_live_with_offer(
-	"my_offer_id",
+    "my_offer_id",
     "my_publisher_id",
 )
 ```
@@ -385,7 +384,7 @@ operation_uri = azure_image.go_live_with_offer(
 ### Get offer status
 ```python
 offer_status = azure_image.get_offer_status(
-	"my_offer_id",
+    "my_offer_id",
     "my_publisher_id",
 )
 ```
