@@ -35,7 +35,7 @@ from azure_img_utils.azure_image import AzureImage
 
 
 # -----------------------------------------------------------------------------
-# Image commands function
+# Blob commands function
 @click.group()
 def blob():
     """
