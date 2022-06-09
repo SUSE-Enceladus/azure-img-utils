@@ -224,6 +224,39 @@ For more information about the image exists command see the help message:
 $ azure-img-utils image exists --help
 ```
 
+### create subcommand
+
+This subcommand allows the user to create an image based in one blob.
+The subcommand is *azure-img-utils image create*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --blob-name
+- --image-name
+- --container
+- --resource-group
+- --storage-account
+
+Some *optional* parameters for the execution of the command include:
+- --force-replace-image  (defaults to False)
+- --hyper-v-generation   (defaults to 'V1')
+
+Example:
+
+```shell
+$ azure-img-utils image create --blob-name myBlobName \
+                               --image-name myImageName
+```
+
+This command will output if the creation of the image has been successful or
+ not.
+
+For more information about the image create command see the help message:
+
+```shell
+$ azure-img-utils image create --help
+```
+
 ### delete subcommand
 
 This subcommand allows the user to delete an existing image.

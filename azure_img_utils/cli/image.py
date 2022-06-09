@@ -94,6 +94,90 @@ def exists(
 
 
 # -----------------------------------------------------------------------------
+# image create command function
+@image.command()
+@click.option(
+    '--blob-name',
+    type=click.STRING,
+    required=True,
+    help='Name of the blob for the image.'
+)
+@click.option(
+    '--image-name',
+    type=click.STRING,
+    required=True,
+    help='Name of the image to be created.'
+)
+@click.option(
+    '--force-replace-image',
+    is_flag=True,
+    default=False,
+    help='Delete the image prior to create if it already exists.'
+)
+@click.option(
+    '--hyper-v-generation',
+    type=click.STRING,
+    default='V1',
+    help='Hypervisor generation for the image. Defaults to "V1".'
+)
+@add_options(shared_options)
+@click.pass_context
+def create(
+    context,
+    blob_name,
+    image_name,
+    force_replace_image,
+    hyper_v_generation,
+    **kwargs
+):
+    """
+    Creates an image based on the already uploaded blob.
+    """
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        img_name = az_img.create_compute_image(
+            blob_name,
+            image_name,
+            config_data.region,
+            force_replace_image=force_replace_image,
+            hyper_v_generation=hyper_v_generation
+        )
+
+        if img_name and config_data.log_level != logging.ERROR:
+            echo_style(
+                f'image {img_name} created',
+                config_data.no_color,
+                fg='green'
+            )
+        elif not img_name:
+            echo_style(
+                f'unable to create image {image_name}',
+                config_data.no_color
+            )
+
+    except Exception as e:
+        echo_style(
+            'Unable to create image',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
 # image delete command function
 @image.command()
 @click.option(

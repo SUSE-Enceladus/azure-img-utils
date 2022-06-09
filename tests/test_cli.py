@@ -282,7 +282,7 @@ def test_blob_upload_ok2(azure_image_mock):
 
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_upload_nok_blobname_missing(azure_image_mock):
-    """blob upload test with --storage-account missing"""
+    """blob upload test with --blob-name missing"""
     image_class = MagicMock()
     image_class.upload_image_blob.return_value = 'myBlobName'
     azure_image_mock.return_value = image_class
@@ -609,6 +609,118 @@ def test_image_exists_nok_exc(azure_image_mock):
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 1
     assert "myException" in result.output
+
+
+# -------------------------------------------------
+# image create
+@patch('azure_img_utils.cli.image.AzureImage')
+def test_image_create_ok(azure_image_mock):
+    """Confirm image create is ok"""
+    image_class = MagicMock()
+    image_class.create_compute_image.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'image', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+    assert 'image myImageName created' in result.output
+
+
+@patch('azure_img_utils.cli.image.AzureImage')
+def test_image_create_ok2(azure_image_mock):
+    """Confirm image create is ok"""
+    image_class = MagicMock()
+    image_class.create_compute_image.return_value = ''
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'image', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+    assert 'unable to create image myImageName' in result.output
+
+
+@patch('azure_img_utils.cli.image.AzureImage')
+def test_image_create_nok_blobname_missing(azure_image_mock):
+    """blob upload test with --blob-name missing"""
+    image_class = MagicMock()
+    image_class.create_compute_image.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'image', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--image-name', 'myImageName',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--blob-name'" in result.output
+
+
+@patch('azure_img_utils.cli.image.AzureImage')
+def test_image_create_nok_imagename_missing(azure_image_mock):
+    """blob upload test with --image-name missing"""
+    image_class = MagicMock()
+    image_class.create_compute_image.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'image', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--image-name'" in result.output
+
+
+@patch('azure_img_utils.cli.image.AzureImage')
+def test_image_create_exception(azure_image_mock):
+    """Confirm if exception handling is ok"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.create_compute_image.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'image', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--config-dir', 'tests/',
+        '--profile', 'default2',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert 'Unable to create image' in result.output
+    assert 'myException' in result.output
 
 
 # -------------------------------------------------

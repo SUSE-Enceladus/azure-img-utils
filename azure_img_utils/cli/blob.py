@@ -100,7 +100,7 @@ def exists(
     '--blob-name',
     type=click.STRING,
     required=True,
-    help='Name of the blob to check.'
+    help='Name of the blob to upload.'
 )
 @click.option(
     '--image-file',
