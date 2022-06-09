@@ -184,7 +184,7 @@ def upload(
                 config_data.no_color,
                 fg='green'
             )
-        else:
+        elif not blob_name:
             echo_style(
                 f'unable to upload blob {blob_name}',
                 config_data.no_color
@@ -240,7 +240,7 @@ def delete(
 
         if deleted and context.obj['log_level'] != logging.ERROR:
             echo_style('blob deleted', config_data.no_color, fg='green')
-        else:
+        elif not deleted:
             echo_style(f'blob {blob_name} not found', config_data.no_color)
 
     except Exception as e:

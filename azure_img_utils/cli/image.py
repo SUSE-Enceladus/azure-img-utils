@@ -44,7 +44,7 @@ def image():
 
 
 # -----------------------------------------------------------------------------
-# image exists commands function
+# image exists command function
 @image.command()
 @click.option(
     '--image-name',
@@ -86,6 +86,59 @@ def exists(
     except Exception as e:
         echo_style(
             'Unable to check image existence',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# image delete command function
+@image.command()
+@click.option(
+    '--image-name',
+    type=click.STRING,
+    required=True,
+    help='Name of the image to delete.'
+)
+@add_options(shared_options)
+@click.confirmation_option(
+    help='This command will delete the specified image. Are you sure?'
+)
+@click.pass_context
+def delete(
+    context,
+    image_name,
+    **kwargs
+):
+    """
+    Deletes an image if the image exists in the resource group
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level
+        )
+        deleted = az_img.delete_compute_image(image_name)
+
+        if deleted and context.obj['log_level'] != logging.ERROR:
+            echo_style('image deleted', config_data.no_color, fg='green')
+        elif not deleted:
+            echo_style(f'image {image_name} not found', config_data.no_color)
+
+    except Exception as e:
+        echo_style(
+            'Unable to delete image',
             config_data.no_color,
             fg='red'
         )

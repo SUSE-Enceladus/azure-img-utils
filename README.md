@@ -105,8 +105,8 @@ Group of commands for blob management.
 This subcommand allows the user to check if a blob exists in the storage
 container specified. The subcommand is *azure-img-utils blob exists*.
 
-The *required* parameters for the execution of the command (other than
-authentication ones):
+The *required* parameters for the execution of the command (authentication
+ aside):
 - --storage-account
 - --blob-name
 - --container
@@ -133,8 +133,8 @@ $ azure-img-utils blob exists --help
 This subcommand allows the user to upload a file as a blob to the storage
 container specified. The subcommand is *azure-img-utils blob upload*.
 
-The *required* parameters for the execution of the command (other than
-authentication ones):
+The *required* parameters for the execution of the command (authentication
+ aside):
 - --storage-account
 - --blob-name
 - --container
@@ -170,8 +170,8 @@ $ azure-img-utils blob upload --help
 This subcommand allows the user to delete a blob file from the storage
 container specified. The subcommand is *azure-img-utils blob delete*.
 
-The *required* parameters for the execution of the command (other than
-authentication ones):
+The *required* parameters for the execution of the command (authentication
+ aside):
 - --storage-account
 - --blob-name
 - --container
@@ -205,8 +205,8 @@ Group of commands for image management.
 This subcommand allows the user to check if an image exists.
 The subcommand is *azure-img-utils image exists*.
 
-The *required* parameters for the execution of the command (other than
-authentication ones):
+The *required* parameters for the execution of the command (authentication
+ aside):
 - --image-name
 
 Example:
@@ -222,6 +222,29 @@ For more information about the image exists command see the help message:
 
 ```shell
 $ azure-img-utils image exists --help
+```
+
+### delete subcommand
+
+This subcommand allows the user to delete an existing image.
+The subcommand is *azure-img-utils image delete*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --image-name
+
+Example:
+
+```shell
+$ azure-img-utils image delete --image-name myImageName
+```
+
+This command will output if the deletion has been successful or not.
+
+For more information about the image delete command see the help message:
+
+```shell
+$ azure-img-utils image delete --help
 ```
 
 # API
