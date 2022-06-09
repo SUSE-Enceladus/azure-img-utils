@@ -648,7 +648,13 @@ class AzureImage(object):
         If credentials not set and a file is available attempt
         to load credentials json as dictionary.
         """
-        if not self._credentials and self._credentials_file:
+        if not self._credentials and not self._credentials_file:
+            raise AzureImgUtilsException(
+                'No credentials dictionary or credentials file provided. '
+                'Unable to authenticate with Azure.'
+            )
+
+        if not self._credentials:
             creds_file = os.path.expanduser(self._credentials_file)
 
             with open(creds_file, 'r') as json_file:
