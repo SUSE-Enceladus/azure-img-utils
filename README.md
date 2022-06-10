@@ -249,9 +249,6 @@ $ azure-img-utils image create --blob-name myBlobName \
                                --image-name myImageName
 ```
 
-This command will output if the creation of the image has been successful or
- not.
-
 For more information about the image create command see the help message:
 
 ```shell
@@ -272,8 +269,6 @@ Example:
 ```shell
 $ azure-img-utils image delete --image-name myImageName
 ```
-
-This command will output if the deletion has been successful or not.
 
 For more information about the image delete command see the help message:
 
