@@ -215,6 +215,7 @@ def delete(
         )
         deleted = az_img.delete_compute_image(image_name)
 
+        print("DELETED->" + str(deleted))
         if deleted and context.obj['log_level'] != logging.ERROR:
             echo_style('image deleted', config_data.no_color, fg='green')
         elif not deleted:
