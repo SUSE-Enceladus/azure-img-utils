@@ -1,3 +1,4 @@
+click
 msal
 azure-identity
 azure-mgmt-compute>=26.1.0
@@ -5,3 +6,4 @@ azure-mgmt-storage
 azure-storage-blob>=12.0.0
 requests
 jmespath
+pyyaml

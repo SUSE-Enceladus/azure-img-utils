@@ -1,0 +1,5 @@
+region: westus
+no_color: True
+container: my_othercontainer
+resource_group: my_resource_group
+storage_account: my_storage_account
