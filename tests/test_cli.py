@@ -186,7 +186,7 @@ def test_blob_exists_ok2(azure_image_mock):
 
 @patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_exists_nok_blobname_missing(azure_image_mock):
-    """blob exists test with --storage-account missing"""
+    """blob exists test with --blob-name missing"""
     image_class = MagicMock()
     image_class.image_blob_exists.return_value = False
     azure_image_mock.return_value = image_class
