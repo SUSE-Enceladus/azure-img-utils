@@ -184,11 +184,6 @@ def upload(
                 config_data.no_color,
                 fg='green'
             )
-        elif not blob_name:
-            echo_style(
-                f'unable to upload blob {blob_name}',
-                config_data.no_color
-            )
 
     except Exception as e:
         echo_style(

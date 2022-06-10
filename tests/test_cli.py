@@ -258,29 +258,6 @@ def test_blob_upload_ok(azure_image_mock):
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
-def test_blob_upload_ok2(azure_image_mock):
-    """Confirm blob upload is ok"""
-    image_class = MagicMock()
-    image_class.upload_image_blob.return_value = ''
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'blob', 'upload',
-        '--credentials-file', 'tests/creds.json',
-        '--storage-account', 'myStorageAccount',
-        '--blob-name', 'myBlobName',
-        '--container', 'myContainer',
-        '--image-file', 'tests/image.raw',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 0
-    assert 'unable to upload blob' in result.output
-
-
-@patch('azure_img_utils.cli.blob.AzureImage')
 def test_blob_upload_nok_blobname_missing(azure_image_mock):
     """blob upload test with --blob-name missing"""
     image_class = MagicMock()
@@ -635,27 +612,6 @@ def test_image_create_ok(azure_image_mock):
 
 
 @patch('azure_img_utils.cli.image.AzureImage')
-def test_image_create_ok2(azure_image_mock):
-    """Confirm image create is ok"""
-    image_class = MagicMock()
-    image_class.create_compute_image.return_value = ''
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'image', 'create',
-        '--credentials-file', 'tests/creds.json',
-        '--blob-name', 'myBlobName',
-        '--image-name', 'myImageName',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 0
-    assert 'unable to create image myImageName' in result.output
-
-
-@patch('azure_img_utils.cli.image.AzureImage')
 def test_image_create_nok_blobname_missing(azure_image_mock):
     """blob upload test with --blob-name missing"""
     image_class = MagicMock()
@@ -729,7 +685,7 @@ def test_image_create_exception(azure_image_mock):
 def test_image_delete_ok(azure_image_mock):
     """Confirm delete is ok"""
     image_class = MagicMock()
-    image_class.delete_compute_image.return_value = True
+    image_class.delete_compute_image.return_value = None
     azure_image_mock.return_value = image_class
 
     args = [
@@ -744,14 +700,13 @@ def test_image_delete_ok(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 0
-    assert 'image deleted' in result.output
 
 
 @patch('azure_img_utils.cli.image.AzureImage')
 def test_image_delete_ok_confirmation(azure_image_mock):
     """Confirm image delete is ok with confirmation"""
     image_class = MagicMock()
-    image_class.delete_compute_image.return_value = True
+    image_class.delete_compute_image.return_value = None
     azure_image_mock.return_value = image_class
 
     args = [
@@ -765,14 +720,13 @@ def test_image_delete_ok_confirmation(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args, input='y\n')
     assert result.exit_code == 0
-    assert 'image deleted' in result.output
 
 
 @patch('azure_img_utils.cli.image.AzureImage')
 def test_image_delete_ok_noconfirmation(azure_image_mock):
     """Confirm image delete is ok answering NO to confirmation"""
     image_class = MagicMock()
-    image_class.delete_compute_image.return_value = True
+    image_class.delete_compute_image.return_value = None
     azure_image_mock.return_value = image_class
 
     args = [
@@ -787,28 +741,6 @@ def test_image_delete_ok_noconfirmation(azure_image_mock):
     result = runner.invoke(az_img_utils, args, input='n\n')
     assert result.exit_code == 1
     assert 'Aborted' in result.output
-
-
-@patch('azure_img_utils.cli.image.AzureImage')
-def test_image_delete_ok2(azure_image_mock):
-    """Confirm image delete is ok"""
-    image_class = MagicMock()
-    image_class.delete_compute_image.return_value = False
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'image', 'delete',
-        '--credentials-file', 'tests/creds.json',
-        '--image-name', 'myImageName',
-        '--yes',
-        '--no-color',
-        '--verbose',
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 0
-    assert 'image myImageName not found' in result.output
 
 
 @patch('azure_img_utils.cli.image.AzureImage')

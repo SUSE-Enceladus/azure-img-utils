@@ -161,11 +161,6 @@ def create(
                 config_data.no_color,
                 fg='green'
             )
-        elif not img_name:
-            echo_style(
-                f'unable to create image {image_name}',
-                config_data.no_color
-            )
 
     except Exception as e:
         echo_style(
@@ -213,13 +208,9 @@ def delete(
             resource_group=config_data.resource_group,
             log_level=config_data.log_level
         )
-        deleted = az_img.delete_compute_image(image_name)
-
-        print("DELETED->" + str(deleted))
-        if deleted and context.obj['log_level'] != logging.ERROR:
-            echo_style('image deleted', config_data.no_color, fg='green')
-        elif not deleted:
-            echo_style(f'image {image_name} not found', config_data.no_color)
+        # Result object for this async operation is always None
+        # in Azure SDK.
+        az_img.delete_compute_image(image_name)
 
     except Exception as e:
         echo_style(
