@@ -159,7 +159,7 @@ def get_config(cli_context):
         config_data = azure_img_utils_config(**data)
     except TypeError as e:
         echo_style(
-            f'Found unknow keyword in config file {config_file_path}',
+            f'Found unknown keyword in config file {config_file_path}',
             no_color=True
         )
         echo_style(str(e), no_color=True)
