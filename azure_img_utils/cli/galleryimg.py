@@ -88,7 +88,8 @@ def exists(
             storage_account=config_data.storage_account,
             credentials_file=config_data.credentials_file,
             resource_group=config_data.resource_group,
-            log_level=config_data.log_level
+            log_level=config_data.log_level,
+            log_callback=logger
         )
         exists = az_img.gallery_image_version_exists(
             gallery_name,
@@ -248,7 +249,8 @@ def delete(
             storage_account=config_data.storage_account,
             credentials_file=config_data.credentials_file,
             resource_group=config_data.resource_group,
-            log_level=config_data.log_level
+            log_level=config_data.log_level,
+            log_callback=logger
         )
         az_img.delete_gallery_image_version(
             gallery_name,
