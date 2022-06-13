@@ -97,12 +97,17 @@ authentication, but these are not supported in this CLI tool.
 
 
 ## blob command
+
+Group of commands for blob management.
+
 ### exists subcommand
 
 This subcommand allows the user to check if a blob exists in the storage
 container specified. The subcommand is *azure-img-utils blob exists*.
 
-The *required* parameters for the execution of the command:
+The *required* parameters for the execution of the command (authentication
+ aside):
+=======
 - --storage-account
 - --blob-name
 - --container
@@ -129,7 +134,8 @@ $ azure-img-utils blob exists --help
 This subcommand allows the user to upload a file as a blob to the storage
 container specified. The subcommand is *azure-img-utils blob upload*.
 
-The *required* parameters for the execution of the command:
+The *required* parameters for the execution of the command (authentication
+ aside):
 - --storage-account
 - --blob-name
 - --container
@@ -165,7 +171,8 @@ $ azure-img-utils blob upload --help
 This subcommand allows the user to delete a blob file from the storage
 container specified. The subcommand is *azure-img-utils blob delete*.
 
-The *required* parameters for the execution of the command:
+The *required* parameters for the execution of the command (authentication
+ aside):
 - --storage-account
 - --blob-name
 - --container
@@ -188,6 +195,85 @@ For more information about the blob delete command see the help message:
 
 ```shell
 $ azure-img-utils blob delete --help
+```
+
+## image command
+
+Group of commands for image management.
+
+### exists subcommand
+
+This subcommand allows the user to check if an image exists.
+The subcommand is *azure-img-utils image exists*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --image-name
+
+Example:
+
+```shell
+$ azure-img-utils image exists --image-name myImageName
+```
+
+This command will output *true* or *false* depending on the existance of the
+image.
+
+For more information about the image exists command see the help message:
+
+```shell
+$ azure-img-utils image exists --help
+```
+
+### create subcommand
+
+This subcommand allows the user to create an image based in one blob.
+The subcommand is *azure-img-utils image create*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --blob-name
+- --image-name
+- --container
+- --resource-group
+- --storage-account
+
+Some *optional* parameters for the execution of the command include:
+- --force-replace-image  (defaults to False)
+- --hyper-v-generation   (defaults to 'V1')
+
+Example:
+
+```shell
+$ azure-img-utils image create --blob-name myBlobName \
+                               --image-name myImageName
+```
+
+For more information about the image create command see the help message:
+
+```shell
+$ azure-img-utils image create --help
+```
+
+### delete subcommand
+
+This subcommand allows the user to delete an existing image.
+The subcommand is *azure-img-utils image delete*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --image-name
+
+Example:
+
+```shell
+$ azure-img-utils image delete --image-name myImageName
+```
+
+For more information about the image delete command see the help message:
+
+```shell
+$ azure-img-utils image delete --help
 ```
 
 # API

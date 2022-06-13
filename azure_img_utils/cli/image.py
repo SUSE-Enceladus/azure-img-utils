@@ -35,32 +35,32 @@ from azure_img_utils.azure_image import AzureImage
 
 
 # -----------------------------------------------------------------------------
-# Blob commands function
+# Image commands function
 @click.group()
-def blob():
+def image():
     """
-    Commands for blob management.
+    Commands for image management.
     """
 
 
 # -----------------------------------------------------------------------------
-# blob exists commands function
-@blob.command()
+# image exists command function
+@image.command()
 @click.option(
-    '--blob-name',
+    '--image-name',
     type=click.STRING,
     required=True,
-    help='Name of the blob to check.'
+    help='Name of the image to check.'
 )
 @add_options(shared_options)
 @click.pass_context
 def exists(
     context,
-    blob_name,
+    image_name,
     **kwargs
 ):
     """
-    Checks if a blob exists for the specified container
+    Checks if a image exists
     """
 
     process_shared_options(context.obj, kwargs)
@@ -76,7 +76,7 @@ def exists(
             resource_group=config_data.resource_group,
             log_level=config_data.log_level
         )
-        exists = az_img.image_blob_exists(blob_name)
+        exists = az_img.image_exists(image_name)
 
         if exists:
             echo_style('true', config_data.no_color, fg='green')
@@ -85,7 +85,7 @@ def exists(
 
     except Exception as e:
         echo_style(
-            'Unable to check blob existence',
+            'Unable to check image existence',
             config_data.no_color,
             fg='red'
         )
@@ -94,65 +94,44 @@ def exists(
 
 
 # -----------------------------------------------------------------------------
-# blob upload command function
-@blob.command()
+# image create command function
+@image.command()
 @click.option(
     '--blob-name',
     type=click.STRING,
     required=True,
-    help='Name of the blob to upload.'
+    help='Name of the blob for the image.'
 )
 @click.option(
-    '--image-file',
-    type=click.Path(exists=True),
+    '--image-name',
+    type=click.STRING,
     required=True,
-    help='Path to file to upload as blob.'
+    help='Name of the image to be created.'
 )
 @click.option(
     '--force-replace-image',
     is_flag=True,
     default=False,
-    help='Delete the image prior to upload if it already exists.'
+    help='Delete the image prior to create if it already exists.'
 )
 @click.option(
-    '--page-blob',
-    is_flag=True,
-    default=False,
-    help='The image to upload is of page blob type. '
-)
-@click.option(
-    '--expand-image',
-    is_flag=True,
-    default=False,
-    help='The image to upload should be expanded. '
-)
-@click.option(
-    '--max-workers',
-    type=click.IntRange(min=1),
-    default=None,
-    help='Maximum number of workers allowed for upload. '
-)
-@click.option(
-    '--max-retry-attempts',
-    type=click.IntRange(min=0),
-    default=None,
-    help='Maximum retry attempts for upload. '
+    '--hyper-v-generation',
+    type=click.STRING,
+    default='V1',
+    help='Hypervisor generation for the image. Defaults to "V1".'
 )
 @add_options(shared_options)
 @click.pass_context
-def upload(
+def create(
     context,
     blob_name,
-    image_file,
+    image_name,
     force_replace_image,
-    page_blob,
-    expand_image,
-    max_workers,
-    max_retry_attempts,
+    hyper_v_generation,
     **kwargs
 ):
     """
-    Uploads an file as blob to the specified container
+    Creates an image based on the already uploaded blob.
     """
     process_shared_options(context.obj, kwargs)
     config_data = get_config(context.obj)
@@ -168,26 +147,24 @@ def upload(
             log_level=config_data.log_level,
             log_callback=logger
         )
-        blob_name = az_img.upload_image_blob(
-            image_file,
-            max_workers=max_workers,
-            max_retry_attempts=max_retry_attempts,
-            blob_name=blob_name,
+        img_name = az_img.create_compute_image(
+            blob_name,
+            image_name,
+            config_data.region,
             force_replace_image=force_replace_image,
-            is_page_blob=page_blob,
-            expand_image=expand_image
+            hyper_v_generation=hyper_v_generation
         )
 
-        if blob_name and config_data.log_level != logging.ERROR:
+        if img_name and config_data.log_level != logging.ERROR:
             echo_style(
-                f'blob {blob_name} uploaded',
+                f'image {img_name} created',
                 config_data.no_color,
                 fg='green'
             )
 
     except Exception as e:
         echo_style(
-            'Unable to upload blob',
+            'Unable to create image',
             config_data.no_color,
             fg='red'
         )
@@ -196,27 +173,28 @@ def upload(
 
 
 # -----------------------------------------------------------------------------
-# Blob delete commands function
-@blob.command()
+# image delete command function
+@image.command()
 @click.option(
-    '--blob-name',
+    '--image-name',
     type=click.STRING,
     required=True,
-    help='Name of the blob to check.'
+    help='Name of the image to delete.'
 )
 @add_options(shared_options)
 @click.confirmation_option(
-    help='This command will delete the specified blob. Are you sure?'
+    help='This command will delete the specified image. Are you sure?'
 )
 @click.pass_context
 def delete(
     context,
-    blob_name,
+    image_name,
     **kwargs
 ):
     """
-    Deletes the specified blob in the container
+    Deletes an image if the image exists in the resource group
     """
+
     process_shared_options(context.obj, kwargs)
     config_data = get_config(context.obj)
     logger = logging.getLogger('azure_img_utils')
@@ -228,19 +206,15 @@ def delete(
             storage_account=config_data.storage_account,
             credentials_file=config_data.credentials_file,
             resource_group=config_data.resource_group,
-            log_level=config_data.log_level,
-            log_callback=logger
+            log_level=config_data.log_level
         )
-        deleted = az_img.delete_storage_blob(blob_name)
-
-        if deleted and context.obj['log_level'] != logging.ERROR:
-            echo_style('blob deleted', config_data.no_color, fg='green')
-        elif not deleted:
-            echo_style(f'blob {blob_name} not found', config_data.no_color)
+        # Result object for this async operation is always None
+        # in Azure SDK.
+        az_img.delete_compute_image(image_name)
 
     except Exception as e:
         echo_style(
-            'Unable to delete blob',
+            'Unable to delete image',
             config_data.no_color,
             fg='red'
         )
