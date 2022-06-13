@@ -276,6 +276,99 @@ For more information about the image delete command see the help message:
 $ azure-img-utils image delete --help
 ```
 
+## galleryimg command
+
+Group of commands for gallery image management.
+
+### exists subcommand
+
+This subcommand allows the user to check if an image version exists in a
+ gallery.
+The subcommand is *azure-img-utils galleryimg exists*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --image-name
+- --gallery-name
+- --image-version
+
+Example:
+
+```shell
+$ azure-img-utils galleryimg exists --image-name myImageName \
+                                    --gallery-name myGalleryName \
+                                    --image-version 0.0.1
+```
+
+This command will output *true* or *false* depending on the existance of the
+image version in the gallery.
+
+For more information about the image exists command see the help message:
+
+```shell
+$ azure-img-utils galleryimg exists --help
+```
+
+### create subcommand
+
+This subcommand allows the user to create an image version in a gallery based
+ in one blob.
+The subcommand is *azure-img-utils galleryimg create*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --blob-name
+- --gallery-name
+- --image-name
+- --image-version
+- --resource-group
+
+Some *optional* parameters for the execution of the command include:
+- --force-replace-image  (defaults to False)
+
+Example:
+
+```shell
+$ azure-img-utils galleryimg create --blob-name myBlobName \
+                                    --image-name myImageName \
+                                    --gallery-name myGalleryName \
+                                    --image-version 0.0.1 \
+                                    --resource-group myResourceGroup
+```
+
+For more information about the gallery image create command see the help
+ message:
+
+```shell
+$ azure-img-utils galleryimg create --help
+```
+
+### delete subcommand
+
+This subcommand allows the user to delete an existing version of a gallery
+ image.
+The subcommand is *azure-img-utils galleryimg delete*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --gallery-name
+- --image-name
+- --image-version
+
+Example:
+
+```shell
+$ azure-img-utils galleryimg delete --image-name myImageName \
+                                    --gallery-name myGalleryName \
+                                    --image-version 0.0.1
+```
+
+For more information about the gallery image delete command see the help message:
+
+```shell
+$ azure-img-utils galleryimg delete --help
+
+
 # API
 
 The AzureImage class can be instantiated and used as an API from code.
