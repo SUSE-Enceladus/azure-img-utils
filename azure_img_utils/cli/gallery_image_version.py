@@ -36,18 +36,18 @@ from azure_img_utils.azure_image import AzureImage
 
 # -----------------------------------------------------------------------------
 # Gallery commands function
-@click.group()
-def galleryimg():
+@click.group(name="gallery-image-version")
+def gallery_image_version():
     """
-    Commands for gallery image management.
+    Commands for gallery image version management.
     """
 
 
 # -----------------------------------------------------------------------------
 # exists command function
-@galleryimg.command()
+@gallery_image_version.command()
 @click.option(
-    '--image-name',
+    '--gallery-image-name',
     type=click.STRING,
     required=True,
     help='Name of the gallery image to check.'
@@ -59,7 +59,7 @@ def galleryimg():
     help='Name of the gallery to check image existence.'
 )
 @click.option(
-    '--image-version',
+    '--gallery-image-version',
     type=click.STRING,
     required=True,
     help='Version of the gallery image to check.'
@@ -68,9 +68,9 @@ def galleryimg():
 @click.pass_context
 def exists(
     context,
-    image_name,
+    gallery_image_name,
     gallery_name,
-    image_version,
+    gallery_image_version,
     **kwargs
 ):
     """
@@ -93,8 +93,8 @@ def exists(
         )
         exists = az_img.gallery_image_version_exists(
             gallery_name,
-            image_name,
-            image_version,
+            gallery_image_name,
+            gallery_image_version,
             config_data.resource_group
         )
 
@@ -105,7 +105,7 @@ def exists(
 
     except Exception as e:
         echo_style(
-            'Unable to check gallery image existence',
+            'Unable to check gallery image version existence',
             config_data.no_color,
             fg='red'
         )
@@ -115,7 +115,7 @@ def exists(
 
 # -----------------------------------------------------------------------------
 # gallery image create command function
-@galleryimg.command()
+@gallery_image_version.command()
 @click.option(
     '--blob-name',
     type=click.STRING,
@@ -129,13 +129,13 @@ def exists(
     help='Name of the gallery where the image will be created.'
 )
 @click.option(
-    '--image-name',
+    '--gallery-image-name',
     type=click.STRING,
     required=True,
     help='Name of the gallery image to be created.'
 )
 @click.option(
-    '--image-version',
+    '--gallery-image-version',
     type=click.STRING,
     required=True,
     help='Version of the gallery image to create.'
@@ -152,8 +152,8 @@ def create(
     context,
     blob_name,
     gallery_name,
-    image_name,
-    image_version,
+    gallery_image_name,
+    gallery_image_version,
     force_replace_image,
     **kwargs
 ):
@@ -177,8 +177,8 @@ def create(
         img_name = az_img.create_gallery_image_version(
             blob_name,
             gallery_name,
-            image_name,
-            image_version,
+            gallery_image_name,
+            gallery_image_version,
             config_data.region,
             force_replace_image=force_replace_image,
             gallery_resource_group=config_data.resource_group
@@ -186,7 +186,7 @@ def create(
 
         if img_name and config_data.log_level != logging.ERROR:
             echo_style(
-                f'gallery image {img_name} created',
+                f'gallery image version {img_name} created',
                 config_data.no_color,
                 fg='green'
             )
@@ -203,7 +203,7 @@ def create(
 
 # -----------------------------------------------------------------------------
 # gallery image delete command function
-@galleryimg.command()
+@gallery_image_version.command()
 @click.option(
     '--gallery-name',
     type=click.STRING,
@@ -211,13 +211,13 @@ def create(
     help='Name of the gallery where the image will be deleted.'
 )
 @click.option(
-    '--image-name',
+    '--gallery-image-name',
     type=click.STRING,
     required=True,
     help='Name of the image to delete.'
 )
 @click.option(
-    '--image-version',
+    '--gallery-image-version',
     type=click.STRING,
     required=True,
     help='Version of the gallery image to delete.'
@@ -230,8 +230,8 @@ def create(
 def delete(
     context,
     gallery_name,
-    image_name,
-    image_version,
+    gallery_image_name,
+    gallery_image_version,
     **kwargs
 ):
     """
@@ -254,14 +254,14 @@ def delete(
         )
         az_img.delete_gallery_image_version(
             gallery_name,
-            image_name,
-            image_version,
+            gallery_image_name,
+            gallery_image_version,
             gallery_resource_group=config_data.resource_group
         )
 
     except Exception as e:
         echo_style(
-            'Unable to delete gallery image',
+            'Unable to delete gallery image version',
             config_data.no_color,
             fg='red'
         )
