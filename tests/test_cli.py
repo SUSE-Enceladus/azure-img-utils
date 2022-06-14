@@ -1243,8 +1243,8 @@ def test_cloud_partner_offer_publish_ok(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 0
-    assert "Published cloud partner offer at" in result.output
-    assert myUrl in result.output
+    assert "Published cloud partner offer." in result.output
+    assert "Operation URI: " + myUrl in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1346,4 +1346,104 @@ def test_cloud_partner_offer_publish_exc(azure_image_mock):
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 1
     assert "Unable to publish cloud partner offer" in result.output
+    assert "myException" in result.output
+
+
+# -------------------------------------------------
+# cloud-partner-offer publish tests
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_go_live_ok(azure_image_mock):
+    """Confirm cloud partner offer go-live is ok."""
+
+    myUrl = "https://mytest.com/locationURL"
+    image_class = MagicMock()
+    image_class.go_live_with_offer.return_value = myUrl
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'go-live',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+    assert "Cloud partner offer set as go-live." in result.output
+    assert "Operation URI: " + myUrl in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_go_live_offer_id_not_provided(
+    azure_image_mock
+):
+    """Cloud partner offer go-live nok. --offer-id not provided"""
+
+    myUrl = "https://mytest.com/locationURL"
+    image_class = MagicMock()
+    image_class.go_live_with_offer.return_value = myUrl
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'go-live',
+        '--credentials-file', 'tests/creds.json',
+        '--publisher-id', 'myPublisherId',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--offer-id'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_go_live_publisher_id_not_provided(
+    azure_image_mock
+):
+    """Cloud partner offer go-live nok. --publisher-id not provided"""
+
+    myUrl = "https://mytest.com/locationURL"
+    image_class = MagicMock()
+    image_class.go_live_with_offer.return_value = myUrl
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'go-live',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--publisher-id'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_go_live_exc(azure_image_mock):
+    """Confirm cloud partner offer go_live exception handling is ok."""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.go_live_with_offer.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'go-live',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "Unable to set cloud partner offer as go-live." in result.output
     assert "myException" in result.output

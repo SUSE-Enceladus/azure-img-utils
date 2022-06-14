@@ -44,7 +44,7 @@ def offer():
 
 
 # -----------------------------------------------------------------------------
-# status command function
+# cloud partner offer publish command function
 @offer.command()
 @click.option(
     '--offer-id',
@@ -95,16 +95,17 @@ def publish(
             log_level=config_data.log_level,
             log_callback=logger
         )
-        offer_url = az_img.publish_cloud_partner_offer(
+        operation_uri = az_img.publish_cloud_partner_offer(
             az_img.access_token,
             offer_id,
             publisher_id,
             notification_emails
         )
 
-        if offer_url:
+        if operation_uri:
             echo_style(
-                'Published cloud partner offer at ' + offer_url,
+                'Published cloud partner offer. Operation URI: ' +
+                operation_uri,
                 config_data.no_color,
                 fg='green'
             )
@@ -112,6 +113,71 @@ def publish(
     except Exception as e:
         echo_style(
             'Unable to publish cloud partner offer',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# cloud partner offer go-live command function
+@offer.command(name="go-live")
+@click.option(
+    '--offer-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the cloud partner offer to publish.'
+)
+@click.option(
+    '--publisher-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the publisher to use for the publication.'
+
+)
+@add_options(shared_options)
+@click.pass_context
+def go_live(
+    context,
+    offer_id,
+    publisher_id,
+    **kwargs
+):
+    """
+    Publishes a cloud partner offer as go-live
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        operation_uri = az_img.go_live_with_offer(
+            offer_id,
+            publisher_id
+        )
+
+        if operation_uri:
+            echo_style(
+                'Cloud partner offer set as go-live. Operation URI: ' +
+                operation_uri,
+                config_data.no_color,
+                fg='green'
+            )
+
+    except Exception as e:
+        echo_style(
+            'Unable to set cloud partner offer as go-live',
             config_data.no_color,
             fg='red'
         )

@@ -404,8 +404,8 @@ $ azure-img-utils cloud-partner-offer publish \
         --notification-emails "myMail1@mydomain.com,myMail2@mydomain.com"
 ```
 
-This command will output the URL for the published cloud partner offer if
- successful.
+This command will output the URI for the published cloud partner offer
+ operation if successful.
 
 For more information about the cloud partner offer publish command see the
  help message:
@@ -413,9 +413,37 @@ For more information about the cloud partner offer publish command see the
 ```shell
 $ azure-img-utils cloud-partner-offer publish --help
 
+### go-live subcommand
 
+This subcommand allows the user to set a cloud partner offer as go-live.
 
+The subcommand is *azure-img-utils cloud-partner-offer go-live*.
 
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --offer-id
+- --publisher-id
+
+The result of the subcommand is that all new changes made to the offer are
+ publicly visible.
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer go-live \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId
+```
+
+This command will output the URI for the cloud partner offer go-live operation
+if successful.
+
+For more information about the cloud partner offer go-live command see the
+ help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer go-live --help
+```
 
 # API
 
