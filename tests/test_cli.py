@@ -1218,3 +1218,132 @@ def test_gallery_image_version_delete_nok_exc(azure_image_mock):
     assert result.exit_code == 1
     assert "myException" in result.output
     assert "Unable to delete gallery image version" in result.output
+
+
+# -------------------------------------------------
+# cloud-partner-offer publish tests
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_publish_ok(azure_image_mock):
+    """Confirm cloud partner offer publish is ok."""
+
+    myUrl = "https://mytest.com/locationURL"
+    image_class = MagicMock()
+    image_class.publish_cloud_partner_offer.return_value = myUrl
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'publish',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--notification-emails', '1@mail.com,2@mail.com',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+    assert "Published cloud partner offer at" in result.output
+    assert myUrl in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_publish_offer_id_not_provided(
+    azure_image_mock
+):
+    """Cloud partner offer publish nok. --offer-id not provided"""
+
+    myUrl = "https://mytest.com/locationURL"
+    image_class = MagicMock()
+    image_class.publish_cloud_partner_offer.return_value = myUrl
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'publish',
+        '--credentials-file', 'tests/creds.json',
+        '--publisher-id', 'myPublisherId',
+        '--notification-emails', '1@mail.com,2@mail.com',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--offer-id'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_publish_publisher_id_not_provided(
+    azure_image_mock
+):
+    """Cloud partner offer publish nok. --publisher-id not provided"""
+
+    myUrl = "https://mytest.com/locationURL"
+    image_class = MagicMock()
+    image_class.publish_cloud_partner_offer.return_value = myUrl
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'publish',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--notification-emails', '1@mail.com,2@mail.com',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--publisher-id'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_publish_notification_emails_not_provided(
+    azure_image_mock
+):
+    """Cloud partner offer publish nok. --notification-emails not provided"""
+
+    myUrl = "https://mytest.com/locationURL"
+    image_class = MagicMock()
+    image_class.publish_cloud_partner_offer.return_value = myUrl
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'publish',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--notification-emails'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_publish_exc(azure_image_mock):
+    """Confirm cloud partner offer publish exception handling is ok."""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.publish_cloud_partner_offer.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'publish',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--notification-emails', '1@mail.com,2@mail.com',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "Unable to publish cloud partner offer" in result.output
+    assert "myException" in result.output

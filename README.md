@@ -375,6 +375,48 @@ help message:
 $ azure-img-utils gallery-image-version delete --help
 
 
+## cloud-partner-offer command
+
+Group of commands for cloud partner offer management.
+
+### publish subcommand
+
+This subcommand allows the user to publish a cloud partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer publish*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --offer-id
+- --publisher-id
+- --notification-emails
+
+Note that notification-emails parameter will be ignored for migrated offers
+ and the notifications will be sent to the email address set as Seller
+ contact info section of your Account settings in Partner Center.
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer publish \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId \
+        --notification-emails "myMail1@mydomain.com,myMail2@mydomain.com"
+```
+
+This command will output the URL for the published cloud partner offer if
+ successful.
+
+For more information about the cloud partner offer publish command see the
+ help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer publish --help
+
+
+
+
+
 # API
 
 The AzureImage class can be instantiated and used as an API from code.
