@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import click
+import json
 import logging
 import os
 import sys
@@ -195,3 +196,16 @@ def process_shared_options(context_obj, kwargs):
     context_obj['resource_group'] = kwargs.get('resource_group')
     context_obj['container'] = kwargs.get('container')
     context_obj['storage_account'] = kwargs.get('storage_account')
+
+
+# -----------------------------------------------------------------------------
+# Get dict from json file
+def get_obj_from_json_file(json_file):
+    j_file = os.path.expanduser(json_file)
+
+    myObject = None
+
+    with open(j_file, 'r') as my_json_file:
+        myObject = json.load(my_json_file)
+
+    return myObject

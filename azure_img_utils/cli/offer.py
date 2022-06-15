@@ -27,6 +27,7 @@ import sys
 from azure_img_utils.cli.cli_utils import (
     add_options,
     get_config,
+    get_obj_from_json_file,
     process_shared_options,
     shared_options,
     echo_style
@@ -177,7 +178,73 @@ def go_live(
 
     except Exception as e:
         echo_style(
-            'Unable to set cloud partner offer as go-live',
+            'Unable to set cloud partner offer as go-live.',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# cloud partner offer put-document command function
+@offer.command(name="upload-offer-document")
+@click.option(
+    '--offer-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the cloud partner offer to publish.'
+)
+@click.option(
+    '--publisher-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the publisher to use for the publication.'
+)
+@click.option(
+    '--offer-document-file',
+    type=click.Path(exists=True),
+    required=True,
+    help='File containing the offer document as json.'
+)
+@add_options(shared_options)
+@click.pass_context
+def upload_offer_document(
+    context,
+    offer_id,
+    publisher_id,
+    offer_document_file,
+    **kwargs
+):
+    """
+    Puts a offer json document to a cloud partner offer
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        offer_obj = get_obj_from_json_file(offer_document_file)
+
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        az_img.upload_offer_doc(
+            offer_id,
+            publisher_id,
+            offer_obj
+        )
+
+    except Exception as e:
+        echo_style(
+            'Unable to upload cloud partner offer document.',
             config_data.no_color,
             fg='red'
         )

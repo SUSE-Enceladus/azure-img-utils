@@ -445,6 +445,41 @@ For more information about the cloud partner offer go-live command see the
 $ azure-img-utils cloud-partner-offer go-live --help
 ```
 
+### upload-offer-document subcommand
+
+This subcommand allows the user to upload an offer document to a cloud
+ partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer upload-offer-document*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --offer-id
+- --publisher-id
+- --offer-document-file
+
+The '--offer-document-file' parameter has to contain the path for a text file
+containing the json document for the offer.
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer upload-offer-document \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId \
+        --offer-document-file /path/to/my/documentfile.json
+```
+
+This command will output only if there's any problem uploading the document for
+the offer.
+
+For more information about the cloud partner offer upload-offer-document
+command see the help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer upload-offer-document --help
+```
+
 # API
 
 The AzureImage class can be instantiated and used as an API from code.
