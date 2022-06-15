@@ -314,9 +314,9 @@ def upload_offer_document(
     help='Generation suffix to be used for the image addition'
 )
 @click.option(
-    '--vm-images-keys',
+    '--vm-images-key',
     type=click.STRING,
-    help='SSH keys to be allowed to access the image'
+    help='SSH key to be allowed to access the image'
 )
 @add_options(shared_options)
 @click.pass_context
@@ -332,7 +332,7 @@ def add_image_to_offer(
     blob_url,
     generation_id,
     generation_suffix,
-    vm_images_keys,
+    vm_images_key,
     **kwargs
 ):
     """
@@ -364,12 +364,67 @@ def add_image_to_offer(
             blob_url=blob_url,
             generation_id=generation_id,
             generation_suffix=generation_suffix,
-            vm_images_keys=vm_images_keys
+            vm_images_key=vm_images_key
         )
 
     except Exception as e:
         echo_style(
             'Unable to add image to cloud partner offer.',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# cloud partner offer remove-image-from-offer command function
+@offer.command(name="remove-image-from-offer")
+@click.option(
+    '--image-urn',
+    type=click.STRING,
+    required=True,
+    help='Urn for the image to delete'
+)
+@click.option(
+    '--vm-images-key',
+    type=click.STRING,
+    help='SSH keys to be allowed to access the image'
+)
+@add_options(shared_options)
+@click.pass_context
+def remove_image_from_offer(
+    context,
+    image_urn,
+    vm_images_key,
+    **kwargs
+):
+    """
+    Removes an image from a cloud partner offer
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        az_img.remove_image_from_offer(
+            image_urn,
+            vm_images_key=vm_images_key
+        )
+
+    except Exception as e:
+        echo_style(
+            'Unable to remove image from cloud partner offer.',
             config_data.no_color,
             fg='red'
         )

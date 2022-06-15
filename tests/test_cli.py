@@ -1603,7 +1603,7 @@ def test_cloud_partner_offer_add_image_ok(azure_image_mock):
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1632,7 +1632,7 @@ def test_cloud_partner_offer_add_image_nok_blob_name_missing(azure_image_mock):
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1664,7 +1664,7 @@ def test_cloud_partner_offer_add_image_nok_image_name_missing(
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1696,7 +1696,7 @@ def test_cloud_partner_offer_add_image_nok_image_description_missing(
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1728,7 +1728,7 @@ def test_cloud_partner_offer_add_image_nok_offer_id_missing(
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1760,7 +1760,7 @@ def test_cloud_partner_offer_add_image_nok_publisher_id_missing(
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1792,7 +1792,7 @@ def test_cloud_partner_offer_add_image_nok_label_missing(
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1824,7 +1824,7 @@ def test_cloud_partner_offer_add_image_nok_sku_missing(
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1861,7 +1861,7 @@ def test_cloud_partner_offer_add_image_nok_exc(
         '--blob-url', 'myBlobUrl',
         '--generation-id', 'V1',
         '--generation-suffix', 'mySuffix',
-        '--vm-images-keys', 'myKeys',
+        '--vm-images-key', 'myKey',
         '--no-color'
     ]
 
@@ -1870,3 +1870,75 @@ def test_cloud_partner_offer_add_image_nok_exc(
     assert result.exit_code == 1
     assert "Unable to add image to cloud partner offer." in result.output
     assert "myException" in result.output
+
+
+# -------------------------------------------------
+# cloud-partner-offer remove-image-from-offer tests
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_remove_image_ok(azure_image_mock):
+    """Confirm cloud partner offer remove-image-from-offer is ok."""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'remove-image-from-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--image-urn', 'myImageUrn',
+        '--vm-images-key', 'myKey',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_remove_image_nok_image_urn_missing(
+    azure_image_mock
+):
+    """Confirm cloud partner offer remove-image-from-offer handles
+    params ok. --image-urn missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'remove-image-from-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--vm-images-key', 'myKey',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--image-urn'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_remove_image_nok_exc(azure_image_mock):
+    """Confirm cloud partner offer remove-image-from-offer handles
+    exceptions ok."""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.remove_image_from_offer.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'remove-image-from-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--image-urn', 'myImageUrn',
+        '--vm-images-key', 'myKey',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "myException" in result.output
+    assert "Unable to remove image from cloud partner offer." in result.output

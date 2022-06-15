@@ -525,6 +525,36 @@ command see the help message:
 $ azure-img-utils cloud-partner-offer add-image-to-offer --help
 ```
 
+### remove-image-from-offer subcommand
+
+This subcommand allows the user to remove an image from a cloud partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer remove-image-from-offer*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --image-urn
+
+Some *optional* parameters for the execution of the command include:
+- --vm-images-key
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer remove-image-to-offer \
+        --image-urn myImageUrn
+```
+
+This command will output only if there's any problem removing the image
+ from the offer.
+
+For more information about the cloud partner offer remove-image-from-offer
+command see the help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer remove-image-from-offer --help
+```
+
 # API
 
 The AzureImage class can be instantiated and used as an API from code.
