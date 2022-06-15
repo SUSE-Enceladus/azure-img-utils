@@ -1579,3 +1579,294 @@ def test_cloud_partner_offer_upload_doc_exc(azure_image_mock):
     assert result.exit_code == 1
     assert "Unable to upload cloud partner offer document." in result.output
     assert "myException" in result.output
+
+
+# -------------------------------------------------
+# cloud-partner-offer add-image-to-offer tests
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_ok(azure_image_mock):
+    """Confirm cloud partner offer add-image-to-offer is ok."""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--image-description', 'my image description',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--label', 'myLabel',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_blob_name_missing(azure_image_mock):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    --blob-name missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--image-name', 'myImageName',
+        '--image-description', 'my image description',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--label', 'myLabel',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--blob-name'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_image_name_missing(
+    azure_image_mock
+):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    --image-name missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-description', 'my image description',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--label', 'myLabel',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--image-name'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_image_description_missing(
+    azure_image_mock
+):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    --image-description missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--label', 'myLabel',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--image-description'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_offer_id_missing(
+    azure_image_mock
+):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    --offer-id missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--image-description', 'my image description',
+        '--publisher-id', 'myPublisherId',
+        '--label', 'myLabel',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--offer-id'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_publisher_id_missing(
+    azure_image_mock
+):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    --publisher-id missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--image-description', 'my image description',
+        '--offer-id', 'myOfferId',
+        '--label', 'myLabel',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--publisher-id'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_label_missing(
+    azure_image_mock
+):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    --label missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--image-description', 'my image description',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--label'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_sku_missing(
+    azure_image_mock
+):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    --sku missing"""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--image-description', 'my image description',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--label', 'myLabel',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--sku'" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_image_nok_exc(
+    azure_image_mock
+):
+    """Confirm cloud partner offer add-image-to-offer handles params well.
+    exception"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.add_image_to_offer.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--image-name', 'myImageName',
+        '--image-description', 'my image description',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--label', 'myLabel',
+        '--sku', 'mySku',
+        '--blob-url', 'myBlobUrl',
+        '--generation-id', 'V1',
+        '--generation-suffix', 'mySuffix',
+        '--vm-images-keys', 'myKeys',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "Unable to add image to cloud partner offer." in result.output
+    assert "myException" in result.output

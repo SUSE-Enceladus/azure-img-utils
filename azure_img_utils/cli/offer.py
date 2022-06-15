@@ -187,7 +187,7 @@ def go_live(
 
 
 # -----------------------------------------------------------------------------
-# cloud partner offer put-document command function
+# cloud partner offer upload-offer-document command function
 @offer.command(name="upload-offer-document")
 @click.option(
     '--offer-id',
@@ -245,6 +245,131 @@ def upload_offer_document(
     except Exception as e:
         echo_style(
             'Unable to upload cloud partner offer document.',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# cloud partner offer add-image-to-offer command function
+@offer.command(name="add-image-to-offer")
+@click.option(
+    '--blob-name',
+    type=click.STRING,
+    required=True,
+    help='Name of the blob to be used for the image'
+)
+@click.option(
+    '--image-name',
+    type=click.STRING,
+    required=True,
+    help='Name for the image'
+)
+@click.option(
+    '--image-description',
+    type=click.STRING,
+    required=True,
+    help='Description for the image added to the offer'
+)
+@click.option(
+    '--offer-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the cloud partner offer to use.'
+)
+@click.option(
+    '--publisher-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the publisher to use for the image addition.'
+)
+@click.option(
+    '--label',
+    type=click.STRING,
+    required=True,
+    help='Label to be used for the new image'
+)
+@click.option(
+    '--sku',
+    type=click.STRING,
+    required=True,
+    help='SKU to be used for the image addition'
+)
+@click.option(
+    '--blob-url',
+    type=click.STRING,
+    help='Blob URL to be used. (Optional. A blob url is generated '
+         ' if not provided)'
+)
+@click.option(
+    '--generation-id',
+    type=click.STRING,
+    help='Generation id to be used for the image addition'
+)
+@click.option(
+    '--generation-suffix',
+    type=click.STRING,
+    help='Generation suffix to be used for the image addition'
+)
+@click.option(
+    '--vm-images-keys',
+    type=click.STRING,
+    help='SSH keys to be allowed to access the image'
+)
+@add_options(shared_options)
+@click.pass_context
+def add_image_to_offer(
+    context,
+    blob_name,
+    image_name,
+    image_description,
+    offer_id,
+    publisher_id,
+    label,
+    sku,
+    blob_url,
+    generation_id,
+    generation_suffix,
+    vm_images_keys,
+    **kwargs
+):
+    """
+    Adds an image to a cloud partner offer
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        az_img.add_image_to_offer(
+            blob_name,
+            image_name,
+            image_description,
+            offer_id,
+            publisher_id,
+            label,
+            sku,
+            blob_url=blob_url,
+            generation_id=generation_id,
+            generation_suffix=generation_suffix,
+            vm_images_keys=vm_images_keys
+        )
+
+    except Exception as e:
+        echo_style(
+            'Unable to add image to cloud partner offer.',
             config_data.no_color,
             fg='red'
         )

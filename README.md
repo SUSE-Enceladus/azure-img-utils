@@ -480,6 +480,51 @@ command see the help message:
 $ azure-img-utils cloud-partner-offer upload-offer-document --help
 ```
 
+### add-image-to-offer subcommand
+
+This subcommand allows the user to add an image to a cloud partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer add-image-to-offer*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --blob-name
+- --image-name
+- --image-description
+- --offer-id
+- --publisher-id
+- --label
+- --sku
+
+Some *optional* parameters for the execution of the command include:
+- --blob-url  (A blob-url is generated if not provided)
+- --generation-id
+- --generation-suffix
+- --vm-images-key
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer add-image-to-offer \
+        --blob-name myBlobName \
+        --image-name myImageName \
+        --image-description "My image description" \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId \
+        --label myLabel \
+        --sku mySKU
+```
+
+This command will output only if there's any problem adding the image
+ to the offer.
+
+For more information about the cloud partner offer add-image-to-offer
+command see the help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer add-image-to-offer --help
+```
+
 # API
 
 The AzureImage class can be instantiated and used as an API from code.
