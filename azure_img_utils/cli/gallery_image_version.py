@@ -235,7 +235,7 @@ def delete(
     **kwargs
 ):
     """
-    Deletes an gallery image if the image exists in the gallery
+    Deletes a gallery image if the image exists in the gallery
     """
 
     process_shared_options(context.obj, kwargs)
