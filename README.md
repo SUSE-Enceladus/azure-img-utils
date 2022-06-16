@@ -314,7 +314,6 @@ $ azure-img-utils gallery-image-version exists --help
 
 This subcommand allows the user to create a gallery image version in a gallery based
  on a blob.
-
 The subcommand is *azure-img-utils gallery-image-version create*.
 
 The *required* parameters for the execution of the command (authentication
@@ -373,7 +372,7 @@ help message:
 
 ```shell
 $ azure-img-utils gallery-image-version delete --help
-
+```
 
 ## cloud-partner-offer command
 
@@ -391,7 +390,7 @@ The *required* parameters for the execution of the command (authentication
 - --publisher-id
 - --notification-emails
 
-Note that notification-emails parameter will be ignored for migrated offers
+Note that 'notification-emails' parameter will be ignored for migrated offers
  and the notifications will be sent to the email address set as Seller
  contact info section of your Account settings in Partner Center.
 
