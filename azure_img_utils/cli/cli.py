@@ -24,6 +24,9 @@ import click
 
 from azure_img_utils.cli.blob import blob
 from azure_img_utils.cli.image import image
+from azure_img_utils.cli.gallery_image_version import (
+    gallery_image_version
+)
 
 
 # -----------------------------------------------------------------------------
@@ -62,3 +65,4 @@ def az_img_utils(context):
 
 az_img_utils.add_command(blob)
 az_img_utils.add_command(image)
+az_img_utils.add_command(gallery_image_version)

@@ -77,7 +77,7 @@ def test_auth_provided_credentials_via_credentials_file_exception(
     resource-group missing
     """
 
-    def my_side_eff(*args):
+    def my_side_eff(*args, **kwargs):
         raise Exception('myException')
 
     image_class = MagicMock()
@@ -136,6 +136,32 @@ def test_parameter_precedence(
     assert "container->myContainer" in result.output
     assert "resource_group->my_resource_group" in result.output
     assert "storage_account->my_storage_account" in result.output
+
+
+# -------------------------------------------------
+# unknown keyword in config file
+@patch('azure_img_utils.cli.blob.AzureImage')
+def test_unknown_keyword_in_config(azure_image_mock):
+    """Confirm unknown keyword in config is handled ok"""
+    image_class = MagicMock()
+    image_class.image_blob_exists.return_value = False
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'blob', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--profile', 'unknown_keyword',
+        '--config-dir', 'tests',
+        '--storage-account', 'myStorageAccount',
+        '--blob-name', 'myBlobName',
+        '--container', 'myContainer',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert 'Found unknown keyword in config file' in result.output
 
 
 # -------------------------------------------------
@@ -210,7 +236,7 @@ def test_blob_exists_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
     image_class = MagicMock()
 
-    def my_side_eff(*args):
+    def my_side_eff(*args, **kwargs):
         raise Exception('myException')
 
     image_class.image_blob_exists.side_effect = my_side_eff
@@ -475,7 +501,7 @@ def test_blob_delete_exception(azure_image_mock):
     """Confirm if exception handling is ok"""
     image_class = MagicMock()
 
-    def my_side_eff(a1):
+    def my_side_eff(*args, **kwargs):
         raise Exception('myException')
 
     image_class.delete_storage_blob.side_effect = my_side_eff
@@ -518,7 +544,6 @@ def test_image_exists_ok_false(azure_image_mock):
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
-    print("RESULT " + str(result.output))
     assert result.exit_code == 0
     assert 'false' in result.output
 
@@ -568,7 +593,7 @@ def test_image_exists_nok_image_name_missing(azure_image_mock):
 def test_image_exists_nok_exc(azure_image_mock):
     """image exists test with some exception"""
 
-    def my_side_eff(*args):
+    def my_side_eff(*args, **kwargs):
         raise Exception('myException')
 
     image_class = MagicMock()
@@ -782,3 +807,414 @@ def test_image_delete_image_name_missing():
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
     assert "Missing option '--image-name'" in result.output
+
+
+# -------------------------------------------------
+# gallery image version exists
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_exists_ok_false(azure_image_mock):
+    """Confirm gallery image version exists is ok. Image does not exist."""
+    image_class = MagicMock()
+    image_class.gallery_image_version_exists.return_value = False
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+    assert 'false' in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_exists_ok_true(azure_image_mock):
+    """Confirm gallery image version exists is ok. Image exists."""
+    image_class = MagicMock()
+    image_class.gallery_image_version_exists.return_value = True
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+    assert 'true' in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_exists_nok_image_name_missing(azure_image_mock):
+    """Gallery image version exists test with exception. No
+     --gallery-image-name provided.
+    """
+    image_class = MagicMock()
+    image_class.gallery_image_version_exists.return_value = True
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-image-name'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_exists_nok_gallery_name_missing(
+    azure_image_mock
+):
+    """Gallery image version exists test with exception. No
+     --gallery-name provided
+     """
+    image_class = MagicMock()
+    image_class.gallery_image_version_exists.return_value = True
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-name'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_exists_nok_image_version_missing(
+    azure_image_mock
+):
+    """Gallery image version exists test with exception. No
+     --gallery-image-version provided
+    """
+    image_class = MagicMock()
+    image_class.gallery_image_version_exists.return_value = True
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-image-version'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_exists_nok_exc(azure_image_mock):
+    """Gallery image version exists test with some exception"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.gallery_image_version_exists.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'exists',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "myException" in result.output
+
+
+# -------------------------------------------------
+# gallery image version create
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_create_ok(azure_image_mock):
+    """Confirm gallery image version create is ok."""
+    image_class = MagicMock()
+    image_class.create_gallery_image_version.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    print("RES->"+result.output)
+    assert result.exit_code == 0
+    assert 'gallery image version myImageName created' in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_create_image_name_missing(azure_image_mock):
+    """Gallery image version create test. No --gallery-image-name provided"""
+    image_class = MagicMock()
+    image_class.create_gallery_image_version.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-image-name'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_create_blob_name_missing(azure_image_mock):
+    """Gallery image version create test. No --blob-name provided"""
+    image_class = MagicMock()
+    image_class.create_gallery_image_version.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--blob-name'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_create_gallery_name_missing(azure_image_mock):
+    """Gallery image version create test. No --gallery-name provided"""
+    image_class = MagicMock()
+    image_class.create_gallery_image_version.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-name'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_create_image_version_missing(azure_image_mock):
+    """Gallery image version create test. No --gallery-image-version
+     provided
+    """
+    image_class = MagicMock()
+    image_class.create_gallery_image_version.return_value = 'myImageName'
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--blob-name', 'myBlobName',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-image-version'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_create_nok_exc(azure_image_mock):
+    """Gallery image version create test with some exception"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.create_gallery_image_version.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'create',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--blob-name', 'myBlobName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "myException" in result.output
+
+
+# -------------------------------------------------
+# gallery image version delete
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_delete_ok(azure_image_mock):
+    """Confirm gallery image version delete is ok."""
+    image_class = MagicMock()
+    image_class.delete_gallery_image_version.return_value = None
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'delete',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--yes',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_delete_nok_image_name_missing(azure_image_mock):
+    """Gallery image version delete test. No --gallery-image-name provided"""
+    image_class = MagicMock()
+    image_class.delete_gallery_image_version.return_value = None
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'delete',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--yes',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-image-name'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_delete_nok_gallery_name_missing(
+    azure_image_mock
+):
+    """Gallery image version delete test. No --gallery-name provided"""
+    image_class = MagicMock()
+    image_class.delete_gallery_image_version.return_value = None
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'delete',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-image-version', '0.0.1',
+        '--yes',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-name'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_delete_nok_image_version_missing(
+    azure_image_mock
+):
+    """Gallery image version delete test. No --gallery-image-version provided
+    """
+    image_class = MagicMock()
+    image_class.delete_gallery_image_version.return_value = None
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'delete',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--yes',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option '--gallery-image-version'" in result.output
+
+
+@patch('azure_img_utils.cli.gallery_image_version.AzureImage')
+def test_gallery_image_version_delete_nok_exc(azure_image_mock):
+    """Gallery image version delete test with some exception"""
+
+    def my_side_eff(*args, **kwargs):
+        raise Exception('myException')
+
+    image_class = MagicMock()
+    image_class.delete_gallery_image_version.side_effect = my_side_eff
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'gallery-image-version', 'delete',
+        '--credentials-file', 'tests/creds.json',
+        '--gallery-image-name', 'myImageName',
+        '--gallery-name', 'myGalleryName',
+        '--gallery-image-version', '0.0.1',
+        '--yes',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "myException" in result.output
+    assert "Unable to delete gallery image version" in result.output

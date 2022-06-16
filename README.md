@@ -107,7 +107,6 @@ container specified. The subcommand is *azure-img-utils blob exists*.
 
 The *required* parameters for the execution of the command (authentication
  aside):
-=======
 - --storage-account
 - --blob-name
 - --container
@@ -120,7 +119,7 @@ $ azure-img-utils blob exists --storage-account myStorageAccount \
                               --container myContainerName
 ```
 
-This command will output *true* or *false* depending on the existance of the
+This command will output *true* or *false* depending on the existence of the
 blob.
 
 For more information about the blob exists command see the help message:
@@ -216,7 +215,7 @@ Example:
 $ azure-img-utils image exists --image-name myImageName
 ```
 
-This command will output *true* or *false* depending on the existance of the
+This command will output *true* or *false* depending on the existence of the
 image.
 
 For more information about the image exists command see the help message:
@@ -275,6 +274,106 @@ For more information about the image delete command see the help message:
 ```shell
 $ azure-img-utils image delete --help
 ```
+
+## gallery-image-version command
+
+Group of commands for gallery image version management.
+
+### exists subcommand
+
+This subcommand allows the user to check if a gallery image version exists in a
+ gallery.
+The subcommand is *azure-img-utils gallery-image-version exists*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --gallery-image-name
+- --gallery-name
+- --gallery-image-version
+
+Example:
+
+```shell
+$ azure-img-utils gallery-image-version exists \
+                                        --gallery-image-name myImageName \
+                                        --gallery-name myGalleryName \
+                                        --gallery-image-version 0.0.1
+```
+
+This command will output *true* or *false* depending on the existence of the
+gallery image version in the gallery.
+
+For more information about the gallery image version exists command see the
+ help message:
+
+```shell
+$ azure-img-utils gallery-image-version exists --help
+```
+
+### create subcommand
+
+This subcommand allows the user to create a gallery image version in a gallery based
+ on a blob.
+The subcommand is *azure-img-utils gallery-image-version create*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --blob-name
+- --gallery-name
+- --gallery-image-name
+- --gallery-image-version
+- --resource-group
+
+Some *optional* parameters for the execution of the command include:
+- --force-replace-image  (defaults to False)
+
+Example:
+
+```shell
+$ azure-img-utils gallery-image-version create \
+                                        --blob-name myBlobName \
+                                        --gallery-image-name myImageName \
+                                        --gallery-name myGalleryName \
+                                        --image-version 0.0.1 \
+                                        --resource-group myResourceGroup
+```
+
+For more information about the gallery image version create command see the help
+ message:
+
+```shell
+$ azure-img-utils gallery-image-version create --help
+```
+
+### delete subcommand
+
+This subcommand allows the user to delete an existing gallery image version of
+a gallery image.
+
+The subcommand is *azure-img-utils gallery-image-version delete*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --gallery-name
+- --gallery-image-name
+- --gallery-image-version
+
+Example:
+
+```shell
+$ azure-img-utils gallery-image-version delete \
+                                            --gallery-image-name myImageName \
+                                            --gallery-name myGalleryName \
+                                            --gallery-image-version 0.0.1
+```
+
+For more information about the gallery image version delete command see the
+help message:
+
+```shell
+$ azure-img-utils gallery-image-version delete --help
+```
+
 
 # API
 
