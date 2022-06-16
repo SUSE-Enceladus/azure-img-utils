@@ -313,7 +313,8 @@ $ azure-img-utils gallery-image-version exists --help
 ### create subcommand
 
 This subcommand allows the user to create a gallery image version in a gallery based
- in one blob.
+ on a blob.
+
 The subcommand is *azure-img-utils gallery-image-version create*.
 
 The *required* parameters for the execution of the command (authentication
