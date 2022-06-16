@@ -107,7 +107,6 @@ container specified. The subcommand is *azure-img-utils blob exists*.
 
 The *required* parameters for the execution of the command (authentication
  aside):
-=======
 - --storage-account
 - --blob-name
 - --container
