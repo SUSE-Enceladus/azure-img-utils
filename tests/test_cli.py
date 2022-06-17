@@ -105,8 +105,7 @@ def test_auth_provided_credentials_via_credentials_file_exception(
 def test_parameter_precedence(
     azure_image_mock
 ):
-    """Confirm if authentication parameters are provided all is ok.
-    resource-group missing
+    """Confirm parameter precedence is OK
     """
 
     instance = MagicMock()
@@ -123,10 +122,10 @@ def test_parameter_precedence(
     args = [
         'blob', 'exists',
         '--credentials-file', 'tests/creds.json',
-        '--config-dir', 'tests',
+        '--config-dir', './tests',
         '--profile', 'default2',
+        '--container', 'myContainer',
         '--blob-name', 'myBlobName',
-        '--container', 'myContainer'
     ]
 
     runner = CliRunner()
@@ -1273,56 +1272,6 @@ def test_cloud_partner_offer_publish_offer_id_not_provided(
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
-def test_cloud_partner_offer_publish_publisher_id_not_provided(
-    azure_image_mock
-):
-    """Cloud partner offer publish nok. --publisher-id not provided"""
-
-    myUrl = "https://mytest.com/locationURL"
-    image_class = MagicMock()
-    image_class.publish_cloud_partner_offer.return_value = myUrl
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'cloud-partner-offer', 'publish',
-        '--credentials-file', 'tests/creds.json',
-        '--offer-id', 'myOfferId',
-        '--notification-emails', '1@mail.com,2@mail.com',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--publisher-id'" in result.output
-
-
-@patch('azure_img_utils.cli.offer.AzureImage')
-def test_cloud_partner_offer_publish_notification_emails_not_provided(
-    azure_image_mock
-):
-    """Cloud partner offer publish nok. --notification-emails not provided"""
-
-    myUrl = "https://mytest.com/locationURL"
-    image_class = MagicMock()
-    image_class.publish_cloud_partner_offer.return_value = myUrl
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'cloud-partner-offer', 'publish',
-        '--credentials-file', 'tests/creds.json',
-        '--offer-id', 'myOfferId',
-        '--publisher-id', 'myPublisherId',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--notification-emails'" in result.output
-
-
-@patch('azure_img_utils.cli.offer.AzureImage')
 def test_cloud_partner_offer_publish_exc(azure_image_mock):
     """Confirm cloud partner offer publish exception handling is ok."""
 
@@ -1400,30 +1349,6 @@ def test_cloud_partner_offer_go_live_offer_id_not_provided(
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
-def test_cloud_partner_offer_go_live_publisher_id_not_provided(
-    azure_image_mock
-):
-    """Cloud partner offer go-live nok. --publisher-id not provided"""
-
-    myUrl = "https://mytest.com/locationURL"
-    image_class = MagicMock()
-    image_class.go_live_with_offer.return_value = myUrl
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'cloud-partner-offer', 'go-live',
-        '--credentials-file', 'tests/creds.json',
-        '--offer-id', 'myOfferId',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--publisher-id'" in result.output
-
-
-@patch('azure_img_utils.cli.offer.AzureImage')
 def test_cloud_partner_offer_go_live_exc(azure_image_mock):
     """Confirm cloud partner offer go_live exception handling is ok."""
 
@@ -1496,32 +1421,6 @@ def test_cloud_partner_offer_upload_doc_offer_id_not_provided(
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
     assert "Missing option '--offer-id'" in result.output
-
-
-@patch('azure_img_utils.cli.offer.AzureImage')
-def test_cloud_partner_offer_upload_doc_publisher_id_not_provided(
-    azure_image_mock
-):
-    """Cloud partner offer upload-offer-document nok.
-    --publisher-id not provided
-    """
-
-    image_class = MagicMock()
-    image_class.upload_offer_doc.return_value = None
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'cloud-partner-offer', 'upload-offer-document',
-        '--credentials-file', 'tests/creds.json',
-        '--offer-id', 'myOfferId',
-        '--offer-document-file', 'tests/creds.json',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--publisher-id'" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1736,38 +1635,6 @@ def test_cloud_partner_offer_add_image_nok_offer_id_missing(
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
     assert "Missing option '--offer-id'" in result.output
-
-
-@patch('azure_img_utils.cli.offer.AzureImage')
-def test_cloud_partner_offer_add_image_nok_publisher_id_missing(
-    azure_image_mock
-):
-    """Confirm cloud partner offer add-image-to-offer handles params well.
-    --publisher-id missing"""
-
-    image_class = MagicMock()
-    azure_image_mock.return_value = image_class
-
-    args = [
-        'cloud-partner-offer', 'add-image-to-offer',
-        '--credentials-file', 'tests/creds.json',
-        '--blob-name', 'myBlobName',
-        '--image-name', 'myImageName',
-        '--image-description', 'my image description',
-        '--offer-id', 'myOfferId',
-        '--label', 'myLabel',
-        '--sku', 'mySku',
-        '--blob-url', 'myBlobUrl',
-        '--generation-id', 'V1',
-        '--generation-suffix', 'mySuffix',
-        '--vm-images-key', 'myKey',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 2
-    assert "Missing option '--publisher-id'" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')

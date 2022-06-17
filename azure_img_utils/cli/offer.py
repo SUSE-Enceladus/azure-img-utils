@@ -53,29 +53,11 @@ def offer():
     required=True,
     help='Id of the cloud partner offer to publish.'
 )
-@click.option(
-    '--publisher-id',
-    type=click.STRING,
-    required=True,
-    help='Id of the publisher to use for the publication.'
-
-)
-@click.option(
-    '--notification-emails',
-    type=click.STRING,
-    required=True,
-    help='Comma separated list of emails to be notified.'
-         'For migrated offers this param is ignored and the notifications'
-         ' will be sent to the email address set as Seller contact info '
-         'section of your Account settings in Partner Center'
-)
 @add_options(shared_options)
 @click.pass_context
 def publish(
     context,
     offer_id,
-    publisher_id,
-    notification_emails,
     **kwargs
 ):
     """
@@ -99,8 +81,8 @@ def publish(
         operation_uri = az_img.publish_cloud_partner_offer(
             az_img.access_token,
             offer_id,
-            publisher_id,
-            notification_emails
+            config_data.publisher_id,
+            config_data.notification_emails
         )
 
         if operation_uri:
@@ -130,19 +112,11 @@ def publish(
     required=True,
     help='Id of the cloud partner offer to publish.'
 )
-@click.option(
-    '--publisher-id',
-    type=click.STRING,
-    required=True,
-    help='Id of the publisher to use for the publication.'
-
-)
 @add_options(shared_options)
 @click.pass_context
 def go_live(
     context,
     offer_id,
-    publisher_id,
     **kwargs
 ):
     """
@@ -165,7 +139,7 @@ def go_live(
         )
         operation_uri = az_img.go_live_with_offer(
             offer_id,
-            publisher_id
+            config_data.publisher_id
         )
 
         if operation_uri:
@@ -196,12 +170,6 @@ def go_live(
     help='Id of the cloud partner offer to publish.'
 )
 @click.option(
-    '--publisher-id',
-    type=click.STRING,
-    required=True,
-    help='Id of the publisher to use for the publication.'
-)
-@click.option(
     '--offer-document-file',
     type=click.Path(exists=True),
     required=True,
@@ -212,7 +180,6 @@ def go_live(
 def upload_offer_document(
     context,
     offer_id,
-    publisher_id,
     offer_document_file,
     **kwargs
 ):
@@ -238,7 +205,7 @@ def upload_offer_document(
         )
         az_img.upload_offer_doc(
             offer_id,
-            publisher_id,
+            config_data.publisher_id,
             offer_obj
         )
 
@@ -278,12 +245,6 @@ def upload_offer_document(
     type=click.STRING,
     required=True,
     help='Id of the cloud partner offer to use.'
-)
-@click.option(
-    '--publisher-id',
-    type=click.STRING,
-    required=True,
-    help='Id of the publisher to use for the image addition.'
 )
 @click.option(
     '--label',
@@ -326,7 +287,6 @@ def add_image_to_offer(
     image_name,
     image_description,
     offer_id,
-    publisher_id,
     label,
     sku,
     blob_url,
@@ -358,7 +318,7 @@ def add_image_to_offer(
             image_name,
             image_description,
             offer_id,
-            publisher_id,
+            config_data.publisher_id,
             label,
             sku,
             blob_url=blob_url,
