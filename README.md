@@ -374,6 +374,185 @@ help message:
 $ azure-img-utils gallery-image-version delete --help
 ```
 
+## cloud-partner-offer command
+
+Group of commands for cloud partner offer management.
+
+### publish subcommand
+
+This subcommand allows the user to publish a cloud partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer publish*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --offer-id
+- --publisher-id
+- --notification-emails
+
+Note that 'notification-emails' parameter will be ignored for migrated offers
+ and the notifications will be sent to the email address set as Seller
+ contact info section of your Account settings in Partner Center.
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer publish \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId \
+        --notification-emails "myMail1@mydomain.com,myMail2@mydomain.com"
+```
+
+This command will output the URI for the published cloud partner offer
+ operation if successful.
+
+For more information about the cloud partner offer publish command see the
+ help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer publish --help
+
+### go-live subcommand
+
+This subcommand allows the user to set a cloud partner offer as go-live.
+
+The subcommand is *azure-img-utils cloud-partner-offer go-live*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --offer-id
+- --publisher-id
+
+The result of the subcommand is that all new changes made to the offer are
+ publicly visible.
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer go-live \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId
+```
+
+This command will output the URI for the cloud partner offer go-live operation
+if successful.
+
+For more information about the cloud partner offer go-live command see the
+ help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer go-live --help
+```
+
+### upload-offer-document subcommand
+
+This subcommand allows the user to upload an offer document to a cloud
+ partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer upload-offer-document*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --offer-id
+- --publisher-id
+- --offer-document-file
+
+The '--offer-document-file' parameter has to contain the path for a text file
+containing the json document for the offer.
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer upload-offer-document \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId \
+        --offer-document-file /path/to/my/documentfile.json
+```
+
+This command will output only if there's any problem uploading the document for
+the offer.
+
+For more information about the cloud partner offer upload-offer-document
+command see the help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer upload-offer-document --help
+```
+
+### add-image-to-offer subcommand
+
+This subcommand allows the user to add an image to a cloud partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer add-image-to-offer*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --blob-name
+- --image-name
+- --image-description
+- --offer-id
+- --publisher-id
+- --label
+- --sku
+
+Some *optional* parameters for the execution of the command include:
+- --blob-url  (A blob-url is generated if not provided)
+- --generation-id
+- --generation-suffix
+- --vm-images-key
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer add-image-to-offer \
+        --blob-name myBlobName \
+        --image-name myImageName \
+        --image-description "My image description" \
+        --offer-id myOfferId \
+        --publisher-id myPublisherId \
+        --label myLabel \
+        --sku mySKU
+```
+
+This command will output only if there's any problem adding the image
+ to the offer.
+
+For more information about the cloud partner offer add-image-to-offer
+command see the help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer add-image-to-offer --help
+```
+
+### remove-image-from-offer subcommand
+
+This subcommand allows the user to remove an image from a cloud partner offer.
+
+The subcommand is *azure-img-utils cloud-partner-offer remove-image-from-offer*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --image-urn
+
+Some *optional* parameters for the execution of the command include:
+- --vm-images-key
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer remove-image-to-offer \
+        --image-urn myImageUrn
+```
+
+This command will output only if there's any problem removing the image
+ from the offer.
+
+For more information about the cloud partner offer remove-image-from-offer
+command see the help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer remove-image-from-offer --help
+```
 
 # API
 

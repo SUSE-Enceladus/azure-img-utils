@@ -3,3 +3,4 @@ no_color: True
 container: my_othercontainer
 resource_group: my_resource_group
 storage_account: my_storage_account
+publisher_id: my_publisher_id

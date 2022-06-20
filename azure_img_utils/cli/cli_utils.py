@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import click
+import json
 import logging
 import os
 import sys
@@ -42,6 +43,8 @@ config_defaults = {
     'storage_account': '',
     'container': '',
     'region': '',
+    'publisher_id': '',
+    'notification_emails': '',
 }
 
 azure_img_utils_config = namedtuple(
@@ -114,6 +117,19 @@ shared_options = [
         '--container',
         type=click.STRING,
         help='Container for the blob to check.'
+    ),
+    click.option(
+        '--publisher-id',
+        type=click.STRING,
+        help='Id of the publisher to use for the publication.'
+    ),
+    click.option(
+        '--notification-emails',
+        type=click.STRING,
+        help='Comma separated list of emails to be notified.'
+             'For migrated offers this param is ignored and the notifications'
+             ' will be sent to the email address set as Seller contact info '
+             'section of your Account settings in Partner Center'
     )
 ]
 
@@ -195,3 +211,18 @@ def process_shared_options(context_obj, kwargs):
     context_obj['resource_group'] = kwargs.get('resource_group')
     context_obj['container'] = kwargs.get('container')
     context_obj['storage_account'] = kwargs.get('storage_account')
+    context_obj['publisher_id'] = kwargs.get('publisher_id')
+    context_obj['notification_emails'] = kwargs.get('notification_emails')
+
+
+# -----------------------------------------------------------------------------
+# Get dict from json file
+def get_obj_from_json_file(json_file):
+    j_file = os.path.expanduser(json_file)
+
+    return_object = None
+
+    with open(j_file, 'r') as my_json_file:
+        return_object = json.load(my_json_file)
+
+    return return_object
