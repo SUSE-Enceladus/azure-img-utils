@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import lzma
-
 from functools import singledispatch
 
 from azure.mgmt.storage import StorageManagementClient
@@ -28,31 +26,6 @@ from azure.storage.blob import (
 
 from azure_img_utils.auth import create_sas_token, get_client_from_json
 from azure_img_utils.exceptions import AzureImgUtilsStorageException
-from azure_img_utils.filetype import FileType
-
-
-def delete_blob(
-    blob_service_client,
-    blob: str,
-    container: str
-):
-    """
-    Delete page blob in container.
-    """
-    blob_client = get_blob_client(blob_service_client, blob, container)
-    blob_client.delete_blob()
-
-
-def blob_exists(
-    blob_service_client,
-    blob: str,
-    container: str
-):
-    """
-    Return True if blob exists in container.
-    """
-    blob_client = get_blob_client(blob_service_client, blob, container)
-    return blob_client.exists()
 
 
 def get_blob_url(
@@ -156,59 +129,4 @@ def _(sas_token: str, storage_account: str):
             account_name=storage_account
         ),
         credential=sas_token
-    )
-
-
-def upload_azure_file(
-    blob_name: str,
-    container: str,
-    file_name: str,
-    blob_service_client,
-    max_retry_attempts: int = 5,
-    max_workers: int = 5,
-    is_page_blob: bool = False,
-    expand_image: bool = True
-):
-    """
-    Upload file to Azure storage container.
-
-    Authentication can be an sas token or with storage account
-    keys.
-
-    Blob can be block or page and if the blob is an image tarball
-    it can be expanded during upload.
-    """
-    blob_client = get_blob_client(blob_service_client, blob_name, container)
-
-    if is_page_blob:
-        blob_type = 'PageBlob'
-    else:
-        blob_type = 'BlockBlob'
-
-    system_image_file_type = FileType(file_name)
-    if system_image_file_type.is_xz() and expand_image:
-        open_image = lzma.LZMAFile
-    else:
-        open_image = open
-
-    msg = ''
-    while max_retry_attempts > 0:
-        with open_image(file_name, 'rb') as image_stream:
-            try:
-                blob_client.upload_blob(
-                    image_stream,
-                    blob_type=blob_type,
-                    length=system_image_file_type.get_size(),
-                    max_concurrency=max_workers
-                )
-                return
-            except Exception as error:
-                msg = error
-                max_retry_attempts -= 1
-
-    raise AzureImgUtilsStorageException(
-        'Unable to upload {0}: {1}'.format(
-            file_name,
-            msg
-        )
     )
