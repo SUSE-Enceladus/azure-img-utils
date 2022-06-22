@@ -1,3 +1,4 @@
+import logging
 import pytest
 
 from unittest.mock import MagicMock
@@ -20,7 +21,9 @@ class TestAzureImageStorage(object):
             container='images',
             storage_account='account',
             credentials_file='tests/creds.json',
-            resource_group='group'
+            resource_group='group',
+            log_callback=logging.getLogger('azure_img_utils'),
+            log_level=logging.INFO
         )
 
         # Mock blob service client
@@ -50,14 +53,29 @@ class TestAzureImageStorage(object):
         with pytest.raises(Exception):
             self.image.upload_image_blob('tests/image.raw')
 
+        self.bc.upload_blob.return_value = None
+        self.bc.delete_blob.return_value = None
+
         blob = self.image.upload_image_blob(
             'tests/image.raw',
             force_replace_image=True,
-            max_retry_attempts=5,
-            max_workers=10
+            max_attempts=5,
+            max_workers=10,
+            expand_image=False
         )
 
         assert blob == 'image.raw'
+
+        blob = self.image.upload_image_blob(
+            'tests/example_file.img.xz',
+            force_replace_image=True,
+            max_attempts=5,
+            max_workers=10,
+            expand_image=True,
+            is_page_blob=False
+        )
+
+        assert blob == 'example_file.img.xz'
 
     def test_upload_blob_exception(self):
         self.bc.exists.return_value = False
@@ -78,3 +96,10 @@ class TestAzureImageStorage(object):
 
         with pytest.raises(AzureImgUtilsStorageException, match=msg):
             self.image.upload_image_blob('tests/image.raw')
+
+        msg = 'max_attempts parameter value has to be >0, -1 provided.'
+        with pytest.raises(Exception, match=msg):
+            self.image.upload_image_blob(
+                'tests/image.raw',
+                max_attempts=-1
+            )

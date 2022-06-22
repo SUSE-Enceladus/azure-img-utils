@@ -118,25 +118,25 @@ def exists(
     '--page-blob',
     is_flag=True,
     default=False,
-    help='The image to upload is of page blob type. '
+    help='The image to upload is of page blob type.'
 )
 @click.option(
     '--expand-image',
     is_flag=True,
     default=False,
-    help='The image to upload should be expanded. '
+    help='The image to upload should be expanded.'
 )
 @click.option(
     '--max-workers',
     type=click.IntRange(min=1),
-    default=None,
-    help='Maximum number of workers allowed for upload. '
+    default=5,
+    help='Maximum number of workers allowed for upload.'
 )
 @click.option(
-    '--max-retry-attempts',
-    type=click.IntRange(min=0),
-    default=None,
-    help='Maximum retry attempts for upload. '
+    '--max-attempts',
+    type=click.IntRange(min=1),
+    default=5,
+    help='Maximum number of attempts for upload.'
 )
 @add_options(shared_options)
 @click.pass_context
@@ -148,7 +148,7 @@ def upload(
     page_blob,
     expand_image,
     max_workers,
-    max_retry_attempts,
+    max_attempts,
     **kwargs
 ):
     """
@@ -171,7 +171,7 @@ def upload(
         blob_name = az_img.upload_image_blob(
             image_file,
             max_workers=max_workers,
-            max_retry_attempts=max_retry_attempts,
+            max_attempts=max_attempts,
             blob_name=blob_name,
             force_replace_image=force_replace_image,
             is_page_blob=page_blob,

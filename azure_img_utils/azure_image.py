@@ -22,20 +22,27 @@
 
 import json
 import logging
+import lzma
 import os
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
 
 from azure_img_utils.auth import get_client_from_json, acquire_access_token
-from azure_img_utils.exceptions import AzureImgUtilsException
+
+from azure_img_utils.exceptions import (
+    AzureImgUtilsException,
+    AzureImgUtilsStorageException,
+)
+
+from azure_img_utils.filetype import FileType
+
 from azure_img_utils.storage import (
+    get_blob_client,
     get_blob_service,
     get_blob_url,
-    blob_exists,
-    delete_blob,
-    upload_azure_file
 )
+
 from azure_img_utils.compute import (
     create_image,
     create_gallery_image_definition_version,
@@ -45,6 +52,7 @@ from azure_img_utils.compute import (
     remove_gallery_image_version,
     retrieve_gallery_image_version
 )
+
 from azure_img_utils.cloud_partner import (
     get_cloud_partner_offer_status,
     get_cloud_partner_operation,
@@ -99,20 +107,23 @@ class AzureImage(object):
 
     def image_blob_exists(self, blob_name: str):
         """Return True if image blob exists in the configured container."""
-        return blob_exists(
+        blob_client = get_blob_client(
             self.blob_service_client,
             blob_name,
             self.container
         )
+        return blob_client.exists()
 
     def delete_storage_blob(self, blob_name: str):
         """Delete blob if it exists in the configured container."""
         try:
-            delete_blob(
+            blob_client = get_blob_client(
                 self.blob_service_client,
                 blob_name,
                 self.container
             )
+            blob_client.delete_blob()
+
         except ResourceNotFoundError:
             self.log.debug(
                 f'Blob {blob_name} not found. '
@@ -125,8 +136,8 @@ class AzureImage(object):
     def upload_image_blob(
         self,
         image_file: str,
-        max_workers: int = None,
-        max_retry_attempts: int = None,
+        max_workers: int = 5,
+        max_attempts: int = 5,
         blob_name: str = None,
         force_replace_image: bool = False,
         is_page_blob: bool = True,
@@ -149,32 +160,55 @@ class AzureImage(object):
         elif self.image_blob_exists(blob_name) and force_replace_image:
             self.delete_storage_blob(blob_name)
 
-        kwargs = {
-            'is_page_blob': is_page_blob,
-            'expand_image': expand_image
-        }
-
-        if max_workers:
-            kwargs['max_workers'] = max_workers
-
-        if max_retry_attempts:
-            kwargs['max_retry_attempts'] = max_retry_attempts
+        if max_attempts <= 0:
+            raise Exception(
+                f'max_attempts parameter value has to be >0, '
+                f'{max_attempts} provided.'
+            )
 
         try:
-            upload_azure_file(
-                blob_name,
-                self.container,
-                image_file,
+            blob_client = get_blob_client(
                 self.blob_service_client,
-                **kwargs
+                blob_name,
+                self.container
             )
+
+            if is_page_blob:
+                blob_type = 'PageBlob'
+            else:
+                blob_type = 'BlockBlob'
+
+            system_image_file_type = FileType(image_file)
+            if system_image_file_type.is_xz() and expand_image:
+                open_image = lzma.LZMAFile
+            else:
+                open_image = open
+
+            msg = ''
+            while max_attempts > 0:
+                with open_image(image_file, 'rb') as image_stream:
+                    try:
+                        blob_client.upload_blob(
+                            image_stream,
+                            blob_type=blob_type,
+                            length=system_image_file_type.get_size(),
+                            max_concurrency=max_workers
+                        )
+                        return blob_name
+
+                    except Exception as error:
+                        msg = error
+                        max_attempts -= 1
+
+            raise AzureImgUtilsStorageException(
+                'Unable to upload {0}: {1}'.format(image_file, msg)
+            )
+
         except FileNotFoundError:
             raise AzureImgUtilsException(
                 f'Image file {image_file} not found. Ensure the path to'
                 f' the file is correct.'
             )
-
-        return blob_name
 
     def image_exists(self, image_name: str) -> bool:
         """Return True if image exists, false otherwise."""
