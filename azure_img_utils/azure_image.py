@@ -182,8 +182,7 @@ class AzureImage(object):
                 open_image = open
 
             msg = ''
-            attempts = 1 + max_retry_attempts
-            while attempts > 0:
+            while max_retry_attempts >= 0:
                 with open_image(image_file, 'rb') as image_stream:
                     try:
                         blob_client.upload_blob(
@@ -196,7 +195,7 @@ class AzureImage(object):
 
                     except Exception as error:
                         msg = error
-                        attempts -= 1
+                        max_retry_attempts -= 1
 
             raise AzureImgUtilsStorageException(
                 'Unable to upload {0}: {1}'.format(image_file, msg)
