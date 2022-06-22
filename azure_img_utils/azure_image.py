@@ -137,7 +137,7 @@ class AzureImage(object):
         self,
         image_file: str,
         max_workers: int = 5,
-        max_retry_attempts: int = 5,
+        max_attempts: int = 5,
         blob_name: str = None,
         force_replace_image: bool = False,
         is_page_blob: bool = True,
@@ -160,10 +160,10 @@ class AzureImage(object):
         elif self.image_blob_exists(blob_name) and force_replace_image:
             self.delete_storage_blob(blob_name)
 
-        if max_retry_attempts < 0:
+        if max_attempts <= 0:
             raise Exception(
-                f'max_retry_attempts parameter has to be >=0, '
-                f'{max_retry_attempts} provided.'
+                f'max_attempts parameter value has to be >0, '
+                f'{max_attempts} provided.'
             )
 
         try:
@@ -185,7 +185,7 @@ class AzureImage(object):
                 open_image = open
 
             msg = ''
-            while max_retry_attempts >= 0:
+            while max_attempts > 0:
                 with open_image(image_file, 'rb') as image_stream:
                     try:
                         blob_client.upload_blob(
@@ -198,7 +198,7 @@ class AzureImage(object):
 
                     except Exception as error:
                         msg = error
-                        max_retry_attempts -= 1
+                        max_attempts -= 1
 
             raise AzureImgUtilsStorageException(
                 'Unable to upload {0}: {1}'.format(image_file, msg)

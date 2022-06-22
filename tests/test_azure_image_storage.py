@@ -59,7 +59,7 @@ class TestAzureImageStorage(object):
         blob = self.image.upload_image_blob(
             'tests/image.raw',
             force_replace_image=True,
-            max_retry_attempts=5,
+            max_attempts=5,
             max_workers=10,
             expand_image=False
         )
@@ -69,7 +69,7 @@ class TestAzureImageStorage(object):
         blob = self.image.upload_image_blob(
             'tests/example_file.img.xz',
             force_replace_image=True,
-            max_retry_attempts=5,
+            max_attempts=5,
             max_workers=10,
             expand_image=True,
             is_page_blob=False
@@ -97,9 +97,9 @@ class TestAzureImageStorage(object):
         with pytest.raises(AzureImgUtilsStorageException, match=msg):
             self.image.upload_image_blob('tests/image.raw')
 
-        msg = 'max_retry_attempts parameter has to be >=0, -1 provided.'
+        msg = 'max_attempts parameter value has to be >0, -1 provided.'
         with pytest.raises(Exception, match=msg):
             self.image.upload_image_blob(
                 'tests/image.raw',
-                max_retry_attempts=-1
+                max_attempts=-1
             )
