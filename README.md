@@ -144,8 +144,8 @@ Some *optional* parameters for the execution of the command include:
 - --force-replace-image  (defaults to False)
 - --page-blob            (defaults to False)
 - --expand-image         (defaults to False)
-- --max-workers          (defaults to None(no limit))
-- --max-retry-attempts   (defaults to None(no limit))
+- --max-workers          (defaults to 5(no limit))
+- --max-attempts   (defaults to 5(no limit))
 
 
 Example:

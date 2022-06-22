@@ -272,6 +272,7 @@ def test_blob_upload_ok(azure_image_mock):
         '--storage-account', 'myStorageAccount',
         '--blob-name', 'myBlobName',
         '--container', 'myContainer',
+        '--max-attempts', '3',
         '--image-file', 'tests/image.raw',
         '--no-color'
     ]
