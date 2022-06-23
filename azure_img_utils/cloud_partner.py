@@ -164,36 +164,6 @@ def put_cloud_partner_offer_doc(
     return response
 
 
-def publish_cloud_partner_offer(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str,
-    notification_emails: str
-):
-    """
-    Publish the cloud partner offer and return the operation location.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id,
-        publish=True
-    )
-    headers = get_cloud_partner_api_headers(
-        access_token,
-        content_type='application/json'
-    )
-
-    response = process_request(
-        endpoint,
-        headers,
-        data={'metadata': {'notification-emails': notification_emails}},
-        method='post',
-        json_response=False
-    )
-
-    return response.headers['Location']
-
-
 def process_request(
     endpoint: str,
     headers: dict,

@@ -96,8 +96,9 @@ class TestAzureCloudPartner(object):
         assert '2011.11.11' not in plan[vm_key]
         assert '2011.11.11' not in generations
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_publish_offer(self, mock_process_request):
+
         response = MagicMock(spec=Response)
         response.headers = {'Location': '/uri/to/operation/id'}
         mock_process_request.return_value = response
