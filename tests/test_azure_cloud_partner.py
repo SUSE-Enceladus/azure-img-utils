@@ -106,7 +106,7 @@ class TestAzureCloudPartner(object):
         operation = self.image.publish_offer('sles', 'suse', 'test@email.com')
         assert operation == '/uri/to/operation/id'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_go_live_with_offer(self, mock_process_request):
         response = MagicMock(spec=Response)
         response.headers = {'Location': '/uri/to/operation/id'}

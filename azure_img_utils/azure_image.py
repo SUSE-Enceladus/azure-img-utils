@@ -59,7 +59,6 @@ from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     put_cloud_partner_offer_doc,
     process_request,
-    go_live_with_cloud_partner_offer,
     remove_image_version_from_offer
 )
 
@@ -620,11 +619,24 @@ class AzureImage(object):
 
         Returns the operation uri.
         """
-        return go_live_with_cloud_partner_offer(
-            self.access_token,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
-            publisher_id
+            publisher_id,
+            go_live=True
         )
+        headers = get_cloud_partner_api_headers(
+            self.access_token,
+            content_type='application/json'
+        )
+
+        response = process_request(
+            endpoint,
+            headers,
+            method='post',
+            json_response=False
+        )
+
+        return response.headers['Location']
 
     def get_offer_status(self, offer_id, publisher_id) -> str:
         """

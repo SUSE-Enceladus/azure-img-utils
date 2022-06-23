@@ -28,34 +28,6 @@ from datetime import date, datetime
 from azure_img_utils.exceptions import AzureCloudPartnerException
 
 
-def go_live_with_cloud_partner_offer(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str
-) -> str:
-    """
-    Go live with cloud partner offer and return the operation location.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id,
-        go_live=True
-    )
-    headers = get_cloud_partner_api_headers(
-        access_token,
-        content_type='application/json'
-    )
-
-    response = process_request(
-        endpoint,
-        headers,
-        method='post',
-        json_response=False
-    )
-
-    return response.headers['Location']
-
-
 def get_cloud_partner_endpoint(
     offer_id: str,
     publisher_id: str,
