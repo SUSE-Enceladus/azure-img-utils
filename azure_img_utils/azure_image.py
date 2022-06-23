@@ -44,11 +44,8 @@ from azure_img_utils.storage import (
 )
 
 from azure_img_utils.compute import (
-    create_image,
     create_gallery_image_definition_version,
-    delete_image,
     get_image,
-    image_exists,
     remove_gallery_image_version,
     retrieve_gallery_image_version
 )
@@ -212,7 +209,11 @@ class AzureImage(object):
 
     def image_exists(self, image_name: str) -> bool:
         """Return True if image exists, false otherwise."""
-        return image_exists(self.compute_client, image_name)
+        images = self.compute_client.images.list()
+        for image in images:
+            if image.name == image_name:
+                return True
+        return False
 
     def gallery_image_version_exists(
         self,
@@ -241,11 +242,11 @@ class AzureImage(object):
                 'Resource group is required to delete a compute image'
             )
 
-        delete_image(
-            self.compute_client,
+        async_delete_image = self.compute_client.images.begin_delete(
             self.resource_group,
             image_name
         )
+        async_delete_image.result()
 
     def delete_gallery_image_version(
         self,
@@ -322,6 +323,8 @@ class AzureImage(object):
 
         If image exists and force replace is True delete
         the existing image before creation.
+
+        hyper v generation of V2 is uefi and V1 is legacy bios.
         """
         if not self.container:
             raise AzureImgUtilsException(
@@ -338,30 +341,40 @@ class AzureImage(object):
                 'Storage account is required to create a compute image'
             )
 
-        exists = image_exists(self.compute_client, image_name)
+        exists = self.image_exists(image_name)
 
         if exists and force_replace_image:
-            delete_image(
-                self.compute_client,
-                self.resource_group,
-                image_name
-            )
+            self.delete_compute_image(image_name)
+
         elif exists and not force_replace_image:
             raise AzureImgUtilsException(
                 'Image already exists. To force deletion and re-create '
                 'the image use "force_replace_image=True".'
             )
 
-        return create_image(
-            blob_name,
-            image_name,
-            self.compute_client,
-            self.container,
+        async_create_image = self.compute_client.images.begin_create_or_update(
             self.resource_group,
-            self.storage_account,
-            region,
-            hyper_v_generation
+            image_name,
+            {
+                'location': region,
+                'hyper_v_generation': hyper_v_generation,
+                'storage_profile': {
+                    'os_disk': {
+                        'os_type': 'Linux',
+                        'os_state': 'Generalized',
+                        'caching': 'ReadWrite',
+                        'blob_uri': 'https://{0}.{1}/{2}/{3}'.format(
+                            self.storage_account,
+                            'blob.core.windows.net',
+                            self.container,
+                            blob_name
+                        )
+                    }
+                }
+            }
         )
+        async_create_image.result()
+        return image_name
 
     def create_gallery_image_version(
         self,

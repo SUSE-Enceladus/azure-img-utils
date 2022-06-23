@@ -118,7 +118,8 @@ def exists(
     '--hyper-v-generation',
     type=click.STRING,
     default='V1',
-    help='Hypervisor generation for the image. Defaults to "V1".'
+    help='Hypervisor generation for the image. Defaults to "V1". '
+         '"V2" is for uefi boot  and "V1" for legacy bios.'
 )
 @add_options(shared_options)
 @click.pass_context

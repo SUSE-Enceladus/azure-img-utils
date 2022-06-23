@@ -17,46 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def create_image(
-    blob_name: str,
-    image_name: str,
-    compute_client,
-    container: str,
-    resource_group: str,
-    storage_account: str,
-    region: str,
-    hyper_v_generation: str = 'V1'
-):
-    """
-    Create image in ARM from existing page blob.
-
-    hyper v generation of V2 is uefi and V1 is legacy bios.
-    """
-    async_create_image = compute_client.images.begin_create_or_update(
-        resource_group,
-        image_name, {
-            'location': region,
-            'hyper_v_generation': hyper_v_generation,
-            'storage_profile': {
-                'os_disk': {
-                    'os_type': 'Linux',
-                    'os_state': 'Generalized',
-                    'caching': 'ReadWrite',
-                    'blob_uri': 'https://{0}.{1}/{2}/{3}'.format(
-                        storage_account,
-                        'blob.core.windows.net',
-                        container,
-                        blob_name
-                    )
-                }
-            }
-        }
-    )
-    async_create_image.result()
-
-    return image_name
-
-
 def create_gallery_image_definition_version(
     blob_name: str,
     gallery_name: str,
@@ -114,17 +74,6 @@ def create_gallery_image_definition_version(
     return gallery_image_name
 
 
-def delete_image(compute_client, resource_group: str, image_name: str):
-    """
-    Delete the image from resource group.
-    """
-    async_delete_image = compute_client.images.begin_delete(
-        resource_group,
-        image_name
-    )
-    async_delete_image.result()
-
-
 def remove_gallery_image_version(
     gallery_name: str,
     gallery_image_name: str,
@@ -142,27 +91,6 @@ def remove_gallery_image_version(
         image_version
     )
     async_delete_image.result()
-
-
-def list_images(compute_client):
-    """
-    Returns a list of image names.
-    """
-    images = compute_client.images.list()
-
-    names = []
-    for image in images:
-        names.append(image.name)
-
-    return names
-
-
-def image_exists(compute_client, image_name: str):
-    """
-    Return True if an image with name image_name exists.
-    """
-    images = list_images(compute_client)
-    return image_name in images
 
 
 def get_image(compute_client, image_name: str):

@@ -239,7 +239,8 @@ The *required* parameters for the execution of the command (authentication
 
 Some *optional* parameters for the execution of the command include:
 - --force-replace-image  (defaults to False)
-- --hyper-v-generation   (defaults to 'V1')
+- --hyper-v-generation   (defaults to 'V1'(legacy bios).)
+                         (Use 'V2' for uefi boot.)
 
 Example:
 
