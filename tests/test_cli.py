@@ -1228,7 +1228,7 @@ def test_cloud_partner_offer_publish_ok(azure_image_mock):
 
     myUrl = "https://mytest.com/locationURL"
     image_class = MagicMock()
-    image_class.publish_cloud_partner_offer.return_value = myUrl
+    image_class.publish_offer.return_value = myUrl
     azure_image_mock.return_value = image_class
 
     args = [
@@ -1255,7 +1255,7 @@ def test_cloud_partner_offer_publish_offer_id_not_provided(
 
     myUrl = "https://mytest.com/locationURL"
     image_class = MagicMock()
-    image_class.publish_cloud_partner_offer.return_value = myUrl
+    image_class.publish_offer.return_value = myUrl
     azure_image_mock.return_value = image_class
 
     args = [
@@ -1280,7 +1280,7 @@ def test_cloud_partner_offer_publish_exc(azure_image_mock):
         raise Exception('myException')
 
     image_class = MagicMock()
-    image_class.publish_cloud_partner_offer.side_effect = my_side_eff
+    image_class.publish_offer.side_effect = my_side_eff
     azure_image_mock.return_value = image_class
 
     args = [
