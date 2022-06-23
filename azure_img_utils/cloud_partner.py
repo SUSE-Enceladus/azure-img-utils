@@ -107,35 +107,6 @@ def get_cloud_partner_operation(access_token: str, operation: str) -> dict:
     return response
 
 
-def put_cloud_partner_offer_doc(
-    access_token: str,
-    doc: dict,
-    offer_id: str,
-    publisher_id: str
-):
-    """
-    Put an updated cloud partner offer doc to the API.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id
-    )
-    headers = get_cloud_partner_api_headers(
-        access_token,
-        content_type='application/json',
-        if_match='*'
-    )
-
-    response = process_request(
-        endpoint,
-        headers,
-        data=doc,
-        method='put'
-    )
-
-    return response
-
-
 def process_request(
     endpoint: str,
     headers: dict,

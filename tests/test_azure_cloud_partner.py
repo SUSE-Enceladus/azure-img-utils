@@ -22,12 +22,14 @@ class TestAzureCloudPartner(object):
         doc = self.image.get_offer_doc('sles', 'suse')
         assert doc['offer'] == 'doc'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_upload_offer_doc(self, mock_process_request):
+        mock_process_request.return_value = {'offer': 'doc'}
         doc = {'offer': 'doc'}
         self.image.upload_offer_doc('sles', 'suse', doc)
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
+    # @patch('azure_img_utils.cloud_partner.process_request')
     def test_add_image_to_offer(self, mock_process_request):
         doc = {
             'definition': {

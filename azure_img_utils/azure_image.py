@@ -57,7 +57,6 @@ from azure_img_utils.cloud_partner import (
     get_cloud_partner_operation,
     request_cloud_partner_offer_doc,
     add_image_version_to_offer,
-    put_cloud_partner_offer_doc,
     process_request,
     remove_image_version_from_offer
 )
@@ -467,11 +466,21 @@ class AzureImage(object):
 
         offer_doc is a dictionary defining the offer details.
         """
-        put_cloud_partner_offer_doc(
-            self.access_token,
-            offer_doc,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
             publisher_id
+        )
+        headers = get_cloud_partner_api_headers(
+            self.access_token,
+            content_type='application/json',
+            if_match='*'
+        )
+
+        process_request(
+            endpoint,
+            headers,
+            data=offer_doc,
+            method='put'
         )
 
     def add_image_to_offer(
