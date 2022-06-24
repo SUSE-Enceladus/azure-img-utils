@@ -121,7 +121,7 @@ class TestAzureCloudPartner(object):
         operation = self.image.go_live_with_offer('sles', 'suse')
         assert operation == '/uri/to/operation/id'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_get_offer_status(self, mock_process_request):
         mock_process_request.return_value = {
             'status': 'running',

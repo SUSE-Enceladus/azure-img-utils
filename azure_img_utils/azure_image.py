@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import jmespath
 import json
 import logging
 import lzma
@@ -53,7 +54,6 @@ from azure_img_utils.compute import (
 from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     get_cloud_partner_api_headers,
-    get_cloud_partner_offer_status,
     get_cloud_partner_endpoint,
     get_cloud_partner_operation,
     process_request,
@@ -659,11 +659,30 @@ class AzureImage(object):
         """
         Returns the status of the offer.
         """
-        return get_cloud_partner_offer_status(
-            self.access_token,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
-            publisher_id
+            publisher_id,
+            status=True
         )
+        headers = get_cloud_partner_api_headers(self.access_token)
+
+        response = process_request(
+            endpoint,
+            headers,
+            method='get'
+        )
+
+        status = response.get('status', 'unkown')
+
+        if status == 'running':
+            signoff_status = jmespath.search(
+                "steps[?stepName=='publisher-signoff'].status | [0]",
+                response
+            )
+        if signoff_status == 'waitingForPublisherReview':
+            status = 'waitingForPublisherReview'
+
+        return status
 
     def get_operation(self, operation: str) -> dict:
         """

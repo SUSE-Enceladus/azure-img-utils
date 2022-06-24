@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
-import jmespath
 import json
 import re
 import requests
@@ -158,68 +157,6 @@ def process_request(
         return response.json()
     else:
         return response
-
-
-def request_cloud_partner_offer_doc(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str
-) -> dict:
-    """
-    Request a Cloud Partner Offer doc for the provided publisher and offer.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id
-    )
-    headers = get_cloud_partner_api_headers(access_token)
-
-    response = process_request(
-        endpoint,
-        headers,
-        method='get'
-    )
-
-    return response
-
-
-def get_cloud_partner_offer_status(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str
-) -> dict:
-    """
-    Returns the status of a Cloud Partner Offer based on id and publisher.
-
-    If status is not found "unkown" is returned. If offer is publishing
-    and publisher-signoff step is waitingForPublisherReview then this
-    is the offer status. The offer is waiting for publisher to trigger
-    go-live.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id,
-        status=True
-    )
-    headers = get_cloud_partner_api_headers(access_token)
-
-    response = process_request(
-        endpoint,
-        headers,
-        method='get'
-    )
-
-    status = response.get('status', 'unkown')
-
-    if status == 'running':
-        signoff_status = jmespath.search(
-            "steps[?stepName=='publisher-signoff'].status | [0]",
-            response
-        )
-        if signoff_status == 'waitingForPublisherReview':
-            status = 'waitingForPublisherReview'
-
-    return status
 
 
 def add_image_version_to_offer(
