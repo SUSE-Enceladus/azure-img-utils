@@ -16,7 +16,7 @@ class TestAzureCloudPartner(object):
         # Mock access token
         self.image._access_token = 'supersecret'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_get_offer_doc(self, mock_process_request):
         mock_process_request.return_value = {'offer': 'doc'}
         doc = self.image.get_offer_doc('sles', 'suse')
@@ -29,8 +29,8 @@ class TestAzureCloudPartner(object):
         self.image.upload_offer_doc('sles', 'suse', doc)
 
     @patch('azure_img_utils.azure_image.process_request')
-    # @patch('azure_img_utils.cloud_partner.process_request')
-    def test_add_image_to_offer(self, mock_process_request):
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_add_image_to_offer(self, mock_process_request, mock_preq2):
         doc = {
             'definition': {
                 'plans': [
@@ -43,6 +43,8 @@ class TestAzureCloudPartner(object):
         }
 
         mock_process_request.return_value = doc
+        mock_preq2.return_value = doc
+
         self.image.add_image_to_offer(
             'image.raw',
             'image123-v20111111',
@@ -51,9 +53,9 @@ class TestAzureCloudPartner(object):
             'suse',
             'suse-sles',
             'gen1',
-            'bloburl',
-            'image-gen2',
-            'gen2'
+            blob_url='bloburl',
+            generation_id='image-gen2',
+            generation_suffix='gen2'
         )
 
         vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
@@ -64,8 +66,9 @@ class TestAzureCloudPartner(object):
         assert generation['mediaName'] == 'image123-v20111111-gen2'
         assert generation['showInGui']
 
+    @patch('azure_img_utils.azure_image.process_request')
     @patch('azure_img_utils.cloud_partner.process_request')
-    def test_remove_image_from_offer(self, mock_process_request):
+    def test_remove_image_from_offer(self, mock_process_request, mock_preq2):
         vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
         doc = {
             'definition': {
@@ -89,6 +92,7 @@ class TestAzureCloudPartner(object):
         }
 
         mock_process_request.return_value = doc
+        mock_preq2.return_value = doc
         self.image.remove_image_from_offer('suse:sles:gen1:2011.11.11')
         self.image.remove_image_from_offer('suse:sles:gen2:2011.11.11')
 

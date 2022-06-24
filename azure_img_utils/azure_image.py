@@ -51,12 +51,11 @@ from azure_img_utils.compute import (
 )
 
 from azure_img_utils.cloud_partner import (
+    add_image_version_to_offer,
     get_cloud_partner_api_headers,
     get_cloud_partner_offer_status,
     get_cloud_partner_endpoint,
     get_cloud_partner_operation,
-    request_cloud_partner_offer_doc,
-    add_image_version_to_offer,
     process_request,
     remove_image_version_from_offer
 )
@@ -449,11 +448,19 @@ class AzureImage(object):
         """
         Return the offer doc dictionary for the given offer.
         """
-        return request_cloud_partner_offer_doc(
-            self.access_token,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
             publisher_id
         )
+
+        headers = get_cloud_partner_api_headers(self.access_token)
+
+        response = process_request(
+            endpoint,
+            headers,
+            method='get'
+        )
+        return response
 
     def upload_offer_doc(
         self,
@@ -540,6 +547,7 @@ class AzureImage(object):
             sku,
             **kwargs
         )
+
         self.upload_offer_doc(
             offer_id,
             publisher_id,
