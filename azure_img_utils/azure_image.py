@@ -55,7 +55,6 @@ from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     get_cloud_partner_api_headers,
     get_cloud_partner_endpoint,
-    get_cloud_partner_operation,
     process_request,
     remove_image_version_from_offer
 )
@@ -688,7 +687,17 @@ class AzureImage(object):
         """
         Returns a dictionary status for the given operation.
         """
-        return get_cloud_partner_operation(self.access_token, operation)
+        endpoint = 'https://cloudpartner.azure.com{operation}'.format(
+            operation=operation
+        )
+
+        headers = get_cloud_partner_api_headers(self.access_token)
+        response = process_request(
+            endpoint,
+            headers
+        )
+
+        return response
 
     @property
     def blob_service_client(self):

@@ -89,23 +89,6 @@ def get_cloud_partner_api_headers(
     return headers
 
 
-def get_cloud_partner_operation(access_token: str, operation: str) -> dict:
-    """
-    Get the status of the provided API operation.
-    """
-    endpoint = 'https://cloudpartner.azure.com{operation}'.format(
-        operation=operation
-    )
-
-    headers = get_cloud_partner_api_headers(access_token)
-    response = process_request(
-        endpoint,
-        headers
-    )
-
-    return response
-
-
 def process_request(
     endpoint: str,
     headers: dict,

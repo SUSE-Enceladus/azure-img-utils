@@ -134,7 +134,7 @@ class TestAzureCloudPartner(object):
         status = self.image.get_offer_status('sles', 'suse')
         assert status == 'waitingForPublisherReview'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_get_operation(self, mock_process_request):
         mock_process_request.return_value = {'operation': 'info'}
         operation = self.image.get_operation('/uri/to/operation/id')
