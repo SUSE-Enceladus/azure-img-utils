@@ -546,7 +546,6 @@ class AzureImage(object):
             sku,
             **kwargs
         )
-
         self.upload_offer_doc(
             offer_id,
             publisher_id,
