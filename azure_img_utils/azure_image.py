@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import jmespath
 import json
 import logging
 import lzma
@@ -51,13 +52,10 @@ from azure_img_utils.compute import (
 )
 
 from azure_img_utils.cloud_partner import (
-    get_cloud_partner_offer_status,
-    get_cloud_partner_operation,
-    request_cloud_partner_offer_doc,
     add_image_version_to_offer,
-    put_cloud_partner_offer_doc,
-    publish_cloud_partner_offer,
-    go_live_with_cloud_partner_offer,
+    get_cloud_partner_api_headers,
+    get_cloud_partner_endpoint,
+    process_request,
     remove_image_version_from_offer
 )
 
@@ -449,11 +447,19 @@ class AzureImage(object):
         """
         Return the offer doc dictionary for the given offer.
         """
-        return request_cloud_partner_offer_doc(
-            self.access_token,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
             publisher_id
         )
+
+        headers = get_cloud_partner_api_headers(self.access_token)
+
+        response = process_request(
+            endpoint,
+            headers,
+            method='get'
+        )
+        return response
 
     def upload_offer_doc(
         self,
@@ -466,11 +472,21 @@ class AzureImage(object):
 
         offer_doc is a dictionary defining the offer details.
         """
-        put_cloud_partner_offer_doc(
-            self.access_token,
-            offer_doc,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
             publisher_id
+        )
+        headers = get_cloud_partner_api_headers(
+            self.access_token,
+            content_type='application/json',
+            if_match='*'
+        )
+
+        process_request(
+            endpoint,
+            headers,
+            data=offer_doc,
+            method='put'
         )
 
     def add_image_to_offer(
@@ -585,12 +601,26 @@ class AzureImage(object):
 
         Returns the operation uri.
         """
-        return publish_cloud_partner_offer(
-            self.access_token,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
             publisher_id,
-            notification_emails
+            publish=True
         )
+
+        headers = get_cloud_partner_api_headers(
+            self.access_token,
+            content_type='application/json'
+        )
+
+        response = process_request(
+            endpoint,
+            headers,
+            data={'metadata': {'notification-emails': notification_emails}},
+            method='post',
+            json_response=False
+        )
+
+        return response.headers['Location']
 
     def go_live_with_offer(
         self,
@@ -604,27 +634,69 @@ class AzureImage(object):
 
         Returns the operation uri.
         """
-        return go_live_with_cloud_partner_offer(
-            self.access_token,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
-            publisher_id
+            publisher_id,
+            go_live=True
         )
+        headers = get_cloud_partner_api_headers(
+            self.access_token,
+            content_type='application/json'
+        )
+
+        response = process_request(
+            endpoint,
+            headers,
+            method='post',
+            json_response=False
+        )
+
+        return response.headers['Location']
 
     def get_offer_status(self, offer_id, publisher_id) -> str:
         """
         Returns the status of the offer.
         """
-        return get_cloud_partner_offer_status(
-            self.access_token,
+        endpoint = get_cloud_partner_endpoint(
             offer_id,
-            publisher_id
+            publisher_id,
+            status=True
         )
+        headers = get_cloud_partner_api_headers(self.access_token)
+
+        response = process_request(
+            endpoint,
+            headers,
+            method='get'
+        )
+
+        status = response.get('status', 'unkown')
+
+        if status == 'running':
+            signoff_status = jmespath.search(
+                "steps[?stepName=='publisher-signoff'].status | [0]",
+                response
+            )
+            if signoff_status == 'waitingForPublisherReview':
+                status = 'waitingForPublisherReview'
+
+        return status
 
     def get_operation(self, operation: str) -> dict:
         """
         Returns a dictionary status for the given operation.
         """
-        return get_cloud_partner_operation(self.access_token, operation)
+        endpoint = 'https://cloudpartner.azure.com{operation}'.format(
+            operation=operation
+        )
+
+        headers = get_cloud_partner_api_headers(self.access_token)
+        response = process_request(
+            endpoint,
+            headers
+        )
+
+        return response
 
     @property
     def blob_service_client(self):

@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
-import jmespath
 import json
 import re
 import requests
@@ -26,34 +25,6 @@ import time
 from datetime import date, datetime
 
 from azure_img_utils.exceptions import AzureCloudPartnerException
-
-
-def go_live_with_cloud_partner_offer(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str
-) -> str:
-    """
-    Go live with cloud partner offer and return the operation location.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id,
-        go_live=True
-    )
-    headers = get_cloud_partner_api_headers(
-        access_token,
-        content_type='application/json'
-    )
-
-    response = process_request(
-        endpoint,
-        headers,
-        method='post',
-        json_response=False
-    )
-
-    return response.headers['Location']
 
 
 def get_cloud_partner_endpoint(
@@ -118,82 +89,6 @@ def get_cloud_partner_api_headers(
     return headers
 
 
-def get_cloud_partner_operation(access_token: str, operation: str) -> dict:
-    """
-    Get the status of the provided API operation.
-    """
-    endpoint = 'https://cloudpartner.azure.com{operation}'.format(
-        operation=operation
-    )
-
-    headers = get_cloud_partner_api_headers(access_token)
-    response = process_request(
-        endpoint,
-        headers
-    )
-
-    return response
-
-
-def put_cloud_partner_offer_doc(
-    access_token: str,
-    doc: dict,
-    offer_id: str,
-    publisher_id: str
-):
-    """
-    Put an updated cloud partner offer doc to the API.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id
-    )
-    headers = get_cloud_partner_api_headers(
-        access_token,
-        content_type='application/json',
-        if_match='*'
-    )
-
-    response = process_request(
-        endpoint,
-        headers,
-        data=doc,
-        method='put'
-    )
-
-    return response
-
-
-def publish_cloud_partner_offer(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str,
-    notification_emails: str
-):
-    """
-    Publish the cloud partner offer and return the operation location.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id,
-        publish=True
-    )
-    headers = get_cloud_partner_api_headers(
-        access_token,
-        content_type='application/json'
-    )
-
-    response = process_request(
-        endpoint,
-        headers,
-        data={'metadata': {'notification-emails': notification_emails}},
-        method='post',
-        json_response=False
-    )
-
-    return response.headers['Location']
-
-
 def process_request(
     endpoint: str,
     headers: dict,
@@ -245,68 +140,6 @@ def process_request(
         return response.json()
     else:
         return response
-
-
-def request_cloud_partner_offer_doc(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str
-) -> dict:
-    """
-    Request a Cloud Partner Offer doc for the provided publisher and offer.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id
-    )
-    headers = get_cloud_partner_api_headers(access_token)
-
-    response = process_request(
-        endpoint,
-        headers,
-        method='get'
-    )
-
-    return response
-
-
-def get_cloud_partner_offer_status(
-    access_token: str,
-    offer_id: str,
-    publisher_id: str
-) -> dict:
-    """
-    Returns the status of a Cloud Partner Offer based on id and publisher.
-
-    If status is not found "unkown" is returned. If offer is publishing
-    and publisher-signoff step is waitingForPublisherReview then this
-    is the offer status. The offer is waiting for publisher to trigger
-    go-live.
-    """
-    endpoint = get_cloud_partner_endpoint(
-        offer_id,
-        publisher_id,
-        status=True
-    )
-    headers = get_cloud_partner_api_headers(access_token)
-
-    response = process_request(
-        endpoint,
-        headers,
-        method='get'
-    )
-
-    status = response.get('status', 'unkown')
-
-    if status == 'running':
-        signoff_status = jmespath.search(
-            "steps[?stepName=='publisher-signoff'].status | [0]",
-            response
-        )
-        if signoff_status == 'waitingForPublisherReview':
-            status = 'waitingForPublisherReview'
-
-    return status
 
 
 def add_image_version_to_offer(

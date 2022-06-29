@@ -16,19 +16,21 @@ class TestAzureCloudPartner(object):
         # Mock access token
         self.image._access_token = 'supersecret'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_get_offer_doc(self, mock_process_request):
         mock_process_request.return_value = {'offer': 'doc'}
         doc = self.image.get_offer_doc('sles', 'suse')
         assert doc['offer'] == 'doc'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_upload_offer_doc(self, mock_process_request):
+        mock_process_request.return_value = {'offer': 'doc'}
         doc = {'offer': 'doc'}
         self.image.upload_offer_doc('sles', 'suse', doc)
 
+    @patch('azure_img_utils.azure_image.process_request')
     @patch('azure_img_utils.cloud_partner.process_request')
-    def test_add_image_to_offer(self, mock_process_request):
+    def test_add_image_to_offer(self, mock_process_request, mock_preq2):
         doc = {
             'definition': {
                 'plans': [
@@ -41,6 +43,8 @@ class TestAzureCloudPartner(object):
         }
 
         mock_process_request.return_value = doc
+        mock_preq2.return_value = doc
+
         self.image.add_image_to_offer(
             'image.raw',
             'image123-v20111111',
@@ -49,9 +53,9 @@ class TestAzureCloudPartner(object):
             'suse',
             'suse-sles',
             'gen1',
-            'bloburl',
-            'image-gen2',
-            'gen2'
+            blob_url='bloburl',
+            generation_id='image-gen2',
+            generation_suffix='gen2'
         )
 
         vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
@@ -62,8 +66,9 @@ class TestAzureCloudPartner(object):
         assert generation['mediaName'] == 'image123-v20111111-gen2'
         assert generation['showInGui']
 
+    @patch('azure_img_utils.azure_image.process_request')
     @patch('azure_img_utils.cloud_partner.process_request')
-    def test_remove_image_from_offer(self, mock_process_request):
+    def test_remove_image_from_offer(self, mock_process_request, mock_preq2):
         vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
         doc = {
             'definition': {
@@ -87,6 +92,7 @@ class TestAzureCloudPartner(object):
         }
 
         mock_process_request.return_value = doc
+        mock_preq2.return_value = doc
         self.image.remove_image_from_offer('suse:sles:gen1:2011.11.11')
         self.image.remove_image_from_offer('suse:sles:gen2:2011.11.11')
 
@@ -96,8 +102,9 @@ class TestAzureCloudPartner(object):
         assert '2011.11.11' not in plan[vm_key]
         assert '2011.11.11' not in generations
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_publish_offer(self, mock_process_request):
+
         response = MagicMock(spec=Response)
         response.headers = {'Location': '/uri/to/operation/id'}
         mock_process_request.return_value = response
@@ -105,7 +112,7 @@ class TestAzureCloudPartner(object):
         operation = self.image.publish_offer('sles', 'suse', 'test@email.com')
         assert operation == '/uri/to/operation/id'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_go_live_with_offer(self, mock_process_request):
         response = MagicMock(spec=Response)
         response.headers = {'Location': '/uri/to/operation/id'}
@@ -114,7 +121,7 @@ class TestAzureCloudPartner(object):
         operation = self.image.go_live_with_offer('sles', 'suse')
         assert operation == '/uri/to/operation/id'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_get_offer_status(self, mock_process_request):
         mock_process_request.return_value = {
             'status': 'running',
@@ -127,7 +134,7 @@ class TestAzureCloudPartner(object):
         status = self.image.get_offer_status('sles', 'suse')
         assert status == 'waitingForPublisherReview'
 
-    @patch('azure_img_utils.cloud_partner.process_request')
+    @patch('azure_img_utils.azure_image.process_request')
     def test_get_operation(self, mock_process_request):
         mock_process_request.return_value = {'operation': 'info'}
         operation = self.image.get_operation('/uri/to/operation/id')

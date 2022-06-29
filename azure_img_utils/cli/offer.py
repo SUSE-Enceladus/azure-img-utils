@@ -78,8 +78,7 @@ def publish(
             log_level=config_data.log_level,
             log_callback=logger
         )
-        operation_uri = az_img.publish_cloud_partner_offer(
-            az_img.access_token,
+        operation_uri = az_img.publish_offer(
             offer_id,
             config_data.publisher_id,
             config_data.notification_emails
