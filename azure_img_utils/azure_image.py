@@ -677,8 +677,8 @@ class AzureImage(object):
                 "steps[?stepName=='publisher-signoff'].status | [0]",
                 response
             )
-        if signoff_status == 'waitingForPublisherReview':
-            status = 'waitingForPublisherReview'
+            if signoff_status == 'waitingForPublisherReview':
+                status = 'waitingForPublisherReview'
 
         return status
 

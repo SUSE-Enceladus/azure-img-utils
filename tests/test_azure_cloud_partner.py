@@ -78,6 +78,7 @@ class TestAzureCloudPartner(object):
         assert generation['mediaName'] == 'image123-v20111111-gen2'
         assert generation['showInGui']
 
+<<<<<<< HEAD
         msg = 'No Match found for SKU: NOTgen1. ' \
               'Offer doc not updated properly.'
 
@@ -112,6 +113,8 @@ class TestAzureCloudPartner(object):
                 generation_suffix='gen2'
             )
 
+=======
+>>>>>>> main
     @patch('azure_img_utils.azure_image.process_request')
     @patch('azure_img_utils.cloud_partner.process_request')
     def test_remove_image_from_offer(self, mock_process_request, mock_preq2):
