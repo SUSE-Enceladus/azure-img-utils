@@ -1,3 +1,10 @@
+v1.0.0 (2022-07-06)
+===================
+
+- Raise exception if no credentials provided
+- Add CLI
+- Migrate utility functions to class methods where names overlap
+
 v0.4.1 (2022-05-16)
 ===================
 
