@@ -31,6 +31,7 @@ BuildRequires:  python3-azure-mgmt-storage
 BuildRequires:  python3-azure-storage-blob >= 12.0.0
 BuildRequires:  python3-requests
 BuildRequires:  python3-jmespath
+BuildRequires:  python3-click
 BuildRequires:  python3-pytest
 Requires:       python3-msal
 Requires:       python3-azure-identity
@@ -39,6 +40,7 @@ Requires:       python3-azure-mgmt-storage
 Requires:       python3-azure-storage-blob >= 12.0.0
 Requires:       python3-requests
 Requires:       python3-jmespath
+Requires:       python3-click
 
 %description
 Package that provides utilities for handling images in Azure Cloud.
