@@ -227,7 +227,8 @@ def test_blob_exists_nok_blobname_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--blob-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--blob-name" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -302,7 +303,8 @@ def test_blob_upload_nok_blobname_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--blob-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--blob-name" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -324,7 +326,8 @@ def test_blob_upload_nok_filename_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--image-file'" in result.output
+    assert "Missing option " in result.output
+    assert "--image-file" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -347,7 +350,8 @@ def test_blob_upload_nok_filename_notafile(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Invalid value for '--image-file'" in result.output
+    assert "Invalid value for " in result.output
+    assert "--image-file" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -493,7 +497,8 @@ def test_blob_delete_nok_blobname_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--blob-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--blob-name" in result.output
 
 
 @patch('azure_img_utils.cli.blob.AzureImage')
@@ -586,7 +591,8 @@ def test_image_exists_nok_image_name_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--image-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--image-name" in result.output
 
 
 @patch('azure_img_utils.cli.image.AzureImage')
@@ -653,7 +659,8 @@ def test_image_create_nok_blobname_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--blob-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--blob-name" in result.output
 
 
 @patch('azure_img_utils.cli.image.AzureImage')
@@ -673,7 +680,8 @@ def test_image_create_nok_imagename_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--image-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--image-name" in result.output
 
 
 @patch('azure_img_utils.cli.image.AzureImage')
@@ -806,7 +814,8 @@ def test_image_delete_image_name_missing():
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--image-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--image-name" in result.output
 
 
 # -------------------------------------------------
@@ -875,7 +884,8 @@ def test_gallery_image_version_exists_nok_image_name_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-image-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-image-name" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -900,7 +910,8 @@ def test_gallery_image_version_exists_nok_gallery_name_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-name" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -925,7 +936,8 @@ def test_gallery_image_version_exists_nok_image_version_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-image-version'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-image-version" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -999,7 +1011,8 @@ def test_gallery_image_version_create_image_name_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-image-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-image-name" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -1021,7 +1034,8 @@ def test_gallery_image_version_create_blob_name_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--blob-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--blob-name" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -1043,7 +1057,8 @@ def test_gallery_image_version_create_gallery_name_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-name" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -1067,7 +1082,8 @@ def test_gallery_image_version_create_image_version_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-image-version'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-image-version" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -1140,7 +1156,8 @@ def test_gallery_image_version_delete_nok_image_name_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-image-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-image-name" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -1164,7 +1181,8 @@ def test_gallery_image_version_delete_nok_gallery_name_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-name" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -1189,7 +1207,8 @@ def test_gallery_image_version_delete_nok_image_version_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--gallery-image-version'" in result.output
+    assert "Missing option " in result.output
+    assert "--gallery-image-version" in result.output
 
 
 @patch('azure_img_utils.cli.gallery_image_version.AzureImage')
@@ -1269,7 +1288,8 @@ def test_cloud_partner_offer_publish_offer_id_not_provided(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--offer-id'" in result.output
+    assert "Missing option " in result.output
+    assert "--offer-id" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1346,7 +1366,8 @@ def test_cloud_partner_offer_go_live_offer_id_not_provided(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--offer-id'" in result.output
+    assert "Missing option " in result.output
+    assert "--offer-id" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1421,7 +1442,8 @@ def test_cloud_partner_offer_upload_doc_offer_id_not_provided(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--offer-id'" in result.output
+    assert "Missing option " in result.output
+    assert "--offer-id" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1448,7 +1470,8 @@ def test_cloud_partner_offer_upload_doc_document_file_not_provided(
     result = runner.invoke(az_img_utils, args)
     print("Result"+result.output)
     assert result.exit_code == 2
-    assert "Missing option '--offer-document-file'" in result.output
+    assert "Missing option " in result.output
+    assert "--offer-document-file" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1539,7 +1562,8 @@ def test_cloud_partner_offer_add_image_nok_blob_name_missing(azure_image_mock):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--blob-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--blob-name" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1571,7 +1595,8 @@ def test_cloud_partner_offer_add_image_nok_image_name_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--image-name'" in result.output
+    assert "Missing option " in result.output
+    assert "--image-name" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1603,7 +1628,8 @@ def test_cloud_partner_offer_add_image_nok_image_description_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--image-description'" in result.output
+    assert "Missing option " in result.output
+    assert "--image-description" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1635,7 +1661,8 @@ def test_cloud_partner_offer_add_image_nok_offer_id_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--offer-id'" in result.output
+    assert "Missing option " in result.output
+    assert "--offer-id" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1667,7 +1694,8 @@ def test_cloud_partner_offer_add_image_nok_label_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--label'" in result.output
+    assert "Missing option " in result.output
+    assert "--label" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1699,7 +1727,8 @@ def test_cloud_partner_offer_add_image_nok_sku_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--sku'" in result.output
+    assert "Missing option " in result.output
+    assert "--sku" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1782,7 +1811,8 @@ def test_cloud_partner_offer_remove_image_nok_image_urn_missing(
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 2
-    assert "Missing option '--image-urn'" in result.output
+    assert "Missing option " in result.output
+    assert "--image-urn" in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
