@@ -8,6 +8,7 @@ from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.cloud_partner import deprecate_image_in_offer_doc
 
 from azure_img_utils.exceptions import (
+    AzureImgUtilsException,
     AzureCloudPartnerException
 )
 
@@ -163,6 +164,12 @@ class TestAzureCloudPartner(object):
 
         operation = self.image.publish_offer('sles', 'suse', 'test@email.com')
         assert operation == '/uri/to/operation/id'
+
+    def test_publish_offer_exception(self):
+        msg = 'notification_emails parameter is required for publish'
+
+        with pytest.raises(AzureImgUtilsException, match=msg):
+            self.image.publish_offer('sles', 'suse', '')
 
     @patch('azure_img_utils.azure_image.process_request')
     def test_go_live_with_offer(self, mock_process_request):

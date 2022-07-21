@@ -1319,6 +1319,27 @@ def test_cloud_partner_offer_publish_exc(azure_image_mock):
     assert "myException" in result.output
 
 
+def test_cloud_partner_offer_publish_exc_notif():
+    """Confirm cloud partner offer publish exception handling is ok
+    when notification_emails is not provided.
+    """
+
+    args = [
+        'cloud-partner-offer', 'publish',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 1
+    assert "Unable to publish cloud partner offer" in result.output
+    assert "notification_emails parameter is required for publish" \
+        in result.output
+
+
 # -------------------------------------------------
 # cloud-partner-offer publish tests
 @patch('azure_img_utils.cli.offer.AzureImage')

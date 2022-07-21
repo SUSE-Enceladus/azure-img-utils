@@ -601,6 +601,10 @@ class AzureImage(object):
 
         Returns the operation uri.
         """
+        if not notification_emails:
+            msg = 'notification_emails parameter is required for publish'
+            raise AzureImgUtilsException(msg)
+
         endpoint = get_cloud_partner_endpoint(
             offer_id,
             publisher_id,
