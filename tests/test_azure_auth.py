@@ -15,8 +15,8 @@ class TestAzureAuth(object):
     def setup_class(self):
         pass
 
-    @patch('azure_img_utils.auth.msal.ConfidentialClientApplication')
-    def test_acquire_access_token(self, mock_cclient_app):
+    @patch('azure_img_utils.auth.requests')
+    def test_acquire_access_token(self, mock_requests):
 
         my_credentials = {
             'clientId': 'myClientId',
@@ -26,14 +26,12 @@ class TestAzureAuth(object):
             'tenantId': 'myTenantId'
         }
 
-        my_client = MagicMock()
-
         my_response = {
             'access_token': 'mySecretAccessToken'
         }
-
-        my_client.acquire_token_for_client.return_value = my_response
-        mock_cclient_app.return_value = my_client
+        response = MagicMock()
+        response.json.return_value = my_response
+        mock_requests.post.return_value = response
 
         my_token = acquire_access_token(
             my_credentials,
@@ -43,14 +41,13 @@ class TestAzureAuth(object):
 
         # Error condidion
         my_err_response = {
-            'access_token': 'mySecretAccessToken',
-            'error': 'myCustomError'
+            'error_description': 'myCustomError'
         }
 
-        my_client.acquire_token_for_client.return_value = my_err_response
+        response.json.return_value = my_err_response
 
         msg = 'Unable to authenticate against ' \
-              'https://cloudpartner.azure.com/.default: ' \
+              'myADEndpointUrl/myTenantId/oauth2/v2.0/token: ' \
               'myCustomError'
 
         with pytest.raises(AzureImgUtilsException, match=msg):

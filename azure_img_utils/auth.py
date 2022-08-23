@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import msal
+import requests
 
 from datetime import datetime, timedelta
 
@@ -30,33 +30,33 @@ from azure_img_utils.exceptions import AzureImgUtilsException
 
 def acquire_access_token(credentials: dict, cloud_partner: bool = False):
     """
-    Get an access token from msal library.
+    Get an access token from rest API.
 
     credentials:
       A service account json dictionary.
     """
-    client = msal.ConfidentialClientApplication(
-        client_id=credentials.get('clientId'),
-        client_credential=credentials.get('clientSecret'),
-        authority='/'.join([
-            credentials.get('activeDirectoryEndpointUrl'),
-            credentials.get('tenantId')
-        ])
-    )
+    url = '/'.join([
+        credentials.get('activeDirectoryEndpointUrl'),
+        credentials.get('tenantId'),
+        'oauth2/v2.0/token'
+    ])
+    data = {
+        'client_id': credentials.get('clientId'),
+        'client_secret': credentials.get('clientSecret'),
+        'grant_type': 'client_credentials'
+    }
 
     if cloud_partner:
-        resource = 'https://cloudpartner.azure.com/.default'
+        data['scope'] = 'https://cloudpartner.azure.com/.default'
     else:
-        resource = credentials['managementEndpointUrl'] + '.default'
+        data['scope'] = credentials['managementEndpointUrl'] + '.default'
 
-    response = client.acquire_token_for_client(
-        resource
-    )
+    response = requests.post(url, data=data).json()
 
-    if 'error' in response:
+    if 'error_description' in response:
         raise AzureImgUtilsException(
-            f'Unable to authenticate against {resource}: '
-            f'{response.get("error")}'
+            f'Unable to authenticate against {url}: '
+            f'{response.get("error_description")}'
         )
 
     return response.get('access_token')

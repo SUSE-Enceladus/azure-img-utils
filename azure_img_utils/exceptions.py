@@ -25,6 +25,10 @@ class AzureImgUtilsException(Exception):
     """Generic exception for the azure_img_utils package."""
 
 
+class ResourceNotFoundException(AzureImgUtilsException):
+    """Exception when a resource is not found."""
+
+
 class AzureCloudPartnerException(AzureImgUtilsException):
     """Exception for Azure Cloud Partner processes."""
 
