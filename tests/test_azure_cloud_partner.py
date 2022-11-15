@@ -122,10 +122,16 @@ class TestAzureCloudPartner(object):
                 'plans': [
                     {
                         'planId': 'gen1',
-                        vm_key: {'2011.11.11': {
-                            'mediaName': 'image123-v20111111-gen2',
-                            'showInGui': True
-                        }},
+                        vm_key: {
+                            '2011.11.11': {
+                                'mediaName': 'image123-v20111111',
+                                'showInGui': True
+                            },
+                            '2021.11.11': {
+                                'mediaName': 'image123-v20211111',
+                                'showInGui': True
+                            }
+                        },
                         'diskGenerations': [{
                             'planId': 'gen2',
                             vm_key: {'2011.11.11': {
@@ -141,19 +147,25 @@ class TestAzureCloudPartner(object):
         mock_process_request.return_value = doc
         mock_preq2.return_value = doc
         self.image.remove_image_from_offer('suse:sles:gen1:2011.11.11')
-        self.image.remove_image_from_offer('suse:sles:gen2:2011.11.11')
+
+        msg = 'Unable to remove 2011.11.11 from gen2. ' \
+              'This is the last version in the plan. ' \
+              'Please deprecate the offer or plan instead.'
+
+        with pytest.raises(AzureCloudPartnerException, match=msg):
+            self.image.remove_image_from_offer('suse:sles:gen2:2011.11.11')
 
         plan = doc['definition']['plans'][0]
         generations = plan['diskGenerations'][0][vm_key]
 
         assert '2011.11.11' not in plan[vm_key]
-        assert '2011.11.11' not in generations
+        assert '2011.11.11' in generations
 
-        msg = 'No match found for version: 2011.11.12 and Plan ID: NOTgen1. ' \
+        msg = 'No match found for version: 2011.11.12 and Plan ID: gen1. ' \
               'Offer doc not updated properly.'
 
         with pytest.raises(AzureCloudPartnerException, match=msg):
-            self.image.remove_image_from_offer('suse:sles:NOTgen1:2011.11.12')
+            self.image.remove_image_from_offer('suse:sles:gen1:2011.11.12')
 
     @patch('azure_img_utils.azure_image.process_request')
     def test_publish_offer(self, mock_process_request):
