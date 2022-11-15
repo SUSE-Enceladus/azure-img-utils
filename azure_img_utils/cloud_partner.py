@@ -230,12 +230,26 @@ def remove_image_version_from_offer(
     for doc_sku in doc['definition']['plans']:
         if doc_sku['planId'] == plan_id:
             if image_version in doc_sku[vm_images_key]:
+                if len(doc_sku[vm_images_key].keys()) == 1:
+                    raise AzureCloudPartnerException(
+                        f'Unable to remove {image_version} from {plan_id}. '
+                        'This is the last version in the plan. '
+                        'Please deprecate the offer or plan instead.'
+                    )
+
                 del doc_sku[vm_images_key][image_version]
                 removed = True
 
         for plan in doc_sku['diskGenerations']:
             if plan['planId'] == plan_id:
                 if image_version in plan[vm_images_key]:
+                    if len(doc_sku[vm_images_key].keys()) == 1:
+                        raise AzureCloudPartnerException(
+                            f'Unable to remove {image_version} from {plan_id}'
+                            '. This is the last version in the plan. '
+                            'Please deprecate the offer or plan instead.'
+                        )
+
                     del plan[vm_images_key][image_version]
                     removed = True
 
