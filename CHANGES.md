@@ -1,3 +1,11 @@
+v1.1.0 (2022-11-16)
+===================
+
+- Explicit error if notification emails is not present
+  during publish process
+- Do not delete image version if no other versions exist.
+  Instead raise an exception.
+
 v1.0.2 (2022-07-06)
 ===================
 
