@@ -21,9 +21,9 @@ The requirements for the project can be found in the following repo files:
 To install the package on openSUSE and SLES use the following commands as root:
 
 ```shell
-$ zypper ar http://download.opensuse.org/repositories/Cloud:/Tools/<distribution>
-$ zypper refresh
-$ zypper in python3-azure-img-utils
+# zypper ar https://download.opensuse.org/repositories/Cloud:Tools:CI/<distribution>
+# zypper refresh
+# zypper in python3-azure-img-utils
 ```
 
 To install from PyPI:
