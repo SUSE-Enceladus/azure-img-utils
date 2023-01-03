@@ -77,8 +77,8 @@ Per Azure documentation:
 > An Azure service principal is an identity created for use with applications,
 > hosted services, and automated tools to access Azure resources.
 
-[Here](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal
--azure-cli) you can find how to create a service principal with the azure cli.
+[Here](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli)
+you can find how to create a service principal with the azure cli.
 
 With your subscriptionId, the resourceGroupId and the required permissions, you can
 create the service principal with the following command:
