@@ -25,6 +25,7 @@ import time
 from datetime import date, datetime
 
 from azure_img_utils.exceptions import AzureCloudPartnerException
+from requests.exceptions import HTTPError
 
 
 def get_cloud_partner_endpoint(
@@ -129,7 +130,15 @@ def process_request(
         if response.status_code in (200, 202):
             break
         elif retries <= 0:
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except HTTPError as e:
+                if response.text:
+                    raise HTTPError(
+                        '{} Error Message: {}'.format(str(e), response.text)
+                    )
+                else:
+                    raise e
         else:
             retries -= 1
             sleep = sleep * 2
