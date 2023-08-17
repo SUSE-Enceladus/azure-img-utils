@@ -79,16 +79,14 @@ def publish(
             log_level=config_data.log_level,
             log_callback=logger
         )
-        operation_uri = az_img.publish_offer(
+        operation_id = az_img.publish_offer(
             offer_id,
-            config_data.publisher_id,
-            config_data.notification_emails
         )
 
-        if operation_uri:
+        if operation_id:
             echo_style(
-                'Published cloud partner offer. Operation URI: ' +
-                operation_uri,
+                'Published cloud partner offer. Operation ID: ' +
+                operation_id,
                 config_data.no_color,
                 fg='green'
             )
@@ -137,15 +135,14 @@ def go_live(
             log_level=config_data.log_level,
             log_callback=logger
         )
-        operation_uri = az_img.go_live_with_offer(
+        operation_id = az_img.go_live_with_offer(
             offer_id,
-            config_data.publisher_id
         )
 
-        if operation_uri:
+        if operation_id:
             echo_style(
                 'Cloud partner offer set as go-live. Operation URI: ' +
-                operation_uri,
+                operation_id,
                 config_data.no_color,
                 fg='green'
             )
@@ -205,7 +202,6 @@ def upload_offer_document(
         )
         az_img.upload_offer_doc(
             offer_id,
-            config_data.publisher_id,
             offer_obj
         )
 

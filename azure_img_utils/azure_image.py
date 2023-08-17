@@ -55,13 +55,13 @@ from azure_img_utils.compute import (
 from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     get_cloud_partner_api_headers,
-    get_cloud_partner_endpoint,
+    get_resource_endpoint,
     process_request,
     get_durable_id,
+    INGESTION_API,
     get_offer_submissions,
     deprecate_image_in_offer_doc,
     submit_configure_request,
-    get_resource_endpoint,
     get_technical_details
 )
 
@@ -482,31 +482,16 @@ class AzureImage(object):
 
     def upload_offer_doc(
         self,
-        offer_id: str,
-        publisher_id: str,
         offer_doc: dict
     ):
         """
-        Upload the offer doc for the given offer.
+        Upload the offer doc to partner center.
 
         offer_doc is a dictionary defining the offer details.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id
-        )
-        headers = get_cloud_partner_api_headers(
-            self.access_token,
-            content_type='application/json',
-            if_match='*'
-        )
-
-        process_request(
-            endpoint,
-            headers,
-            data=offer_doc,
-            method='put'
-        )
+        headers = get_cloud_partner_api_headers(self.access_token)
+        job_id = submit_configure_request(headers, offer_doc['resources'])
+        return job_id
 
     def update_resource_in_offer(
         self,
@@ -514,6 +499,7 @@ class AzureImage(object):
     ):
         """
         Update the offer using the provided resource doc.
+
         resource_doc is a dictionary defining the resource details.
         """
         headers = get_cloud_partner_api_headers(self.access_token)
@@ -596,51 +582,33 @@ class AzureImage(object):
 
     def publish_offer(
         self,
-        offer_id: str,
-        publisher_id: str,
-        notification_emails: str
+        offer_id: str
     ) -> str:
         """
         Publish the given offer.
 
-        notification_emails is required to be a comma separated list
-        of emails. This argument is required. However, for migrated
-        offers the emails are ignored. For migrated offers
-        notifications will be sent to the email address set in the
-        Seller contact info section of your Account settings in
-        Partner Center.
-
         Returns the operation uri.
         """
-        if not notification_emails:
-            msg = 'notification_emails parameter is required for publish'
-            raise AzureImgUtilsException(msg)
+        headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = get_durable_id(headers, offer_id)
 
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id,
-            publish=True
-        )
+        resources = [
+            {
+                '$schema': (
+                    'https://schema.mp.microsoft.com/'
+                    'schema/submission/2022-03-01-preview2'
+                ),
+                'product': '/'.join(['product', durable_id]),
+                'target': {'targetType': 'preview'}
+            }
+        ]
 
-        headers = get_cloud_partner_api_headers(
-            self.access_token,
-            content_type='application/json'
-        )
-
-        response = process_request(
-            endpoint,
-            headers,
-            data={'metadata': {'notification-emails': notification_emails}},
-            method='post',
-            json_response=False
-        )
-
-        return response.headers['Location']
+        job_id = submit_configure_request(headers, resources)
+        return job_id
 
     def go_live_with_offer(
         self,
-        offer_id: str,
-        publisher_id: str
+        offer_id: str
     ) -> str:
         """
         Set the offer as go-live.
@@ -649,24 +617,29 @@ class AzureImage(object):
 
         Returns the operation uri.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id,
-            go_live=True
-        )
-        headers = get_cloud_partner_api_headers(
-            self.access_token,
-            content_type='application/json'
+        headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = get_durable_id(headers, offer_id)
+        submissions = get_offer_submissions(durable_id, headers)
+
+        operation_id = jmespath.search(
+            "value[?target.targetType=='preview'] | [0].id",
+            submissions
         )
 
-        response = process_request(
-            endpoint,
-            headers,
-            method='post',
-            json_response=False
-        )
+        resources = [
+            {
+                '$schema': (
+                    'https://schema.mp.microsoft.com/'
+                    'schema/submission/2022-03-01-preview2'
+                ),
+                'product': '/'.join(['product', durable_id]),
+                'id': operation_id,
+                'target': {'targetType': 'live'}
+            }
+        ]
 
-        return response.headers['Location']
+        job_id = submit_configure_request(headers, resources)
+        return job_id
 
     def get_offer_status(self, offer_id: str) -> str:
         """
@@ -731,11 +704,9 @@ class AzureImage(object):
         """
         Returns a dictionary status for the given operation.
         """
-        endpoint = 'https://cloudpartner.azure.com{operation}'.format(
-            operation=operation
-        )
-
         headers = get_cloud_partner_api_headers(self.access_token)
+        endpoint = '/'.join([INGESTION_API, 'configure', operation, 'status'])
+
         response = process_request(
             endpoint,
             headers

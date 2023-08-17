@@ -1245,9 +1245,9 @@ def test_gallery_image_version_delete_nok_exc(azure_image_mock):
 def test_cloud_partner_offer_publish_ok(azure_image_mock):
     """Confirm cloud partner offer publish is ok."""
 
-    myUrl = "https://mytest.com/locationURL"
+    operation_id = '1234567890'
     image_class = MagicMock()
-    image_class.publish_offer.return_value = myUrl
+    image_class.publish_offer.return_value = operation_id
     azure_image_mock.return_value = image_class
 
     args = [
@@ -1255,15 +1255,14 @@ def test_cloud_partner_offer_publish_ok(azure_image_mock):
         '--credentials-file', 'tests/creds.json',
         '--offer-id', 'myOfferId',
         '--publisher-id', 'myPublisherId',
-        '--notification-emails', '1@mail.com,2@mail.com',
         '--no-color'
     ]
 
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 0
-    assert "Published cloud partner offer." in result.output
-    assert "Operation URI: " + myUrl in result.output
+    assert 'Published cloud partner offer.' in result.output
+    assert f'Operation ID: {operation_id}' in result.output
 
 
 @patch('azure_img_utils.cli.offer.AzureImage')
@@ -1317,28 +1316,6 @@ def test_cloud_partner_offer_publish_exc(azure_image_mock):
     assert result.exit_code == 1
     assert "Unable to publish cloud partner offer" in result.output
     assert "myException" in result.output
-
-
-def test_cloud_partner_offer_publish_exc_notif():
-    """Confirm cloud partner offer publish exception handling is ok
-    when notification_emails is not provided.
-    """
-
-    args = [
-        'cloud-partner-offer', 'publish',
-        '--credentials-file', 'tests/creds.json',
-        '--config-dir', './tests',
-        '--offer-id', 'myOfferId',
-        '--publisher-id', 'myPublisherId',
-        '--no-color'
-    ]
-
-    runner = CliRunner()
-    result = runner.invoke(az_img_utils, args)
-    assert result.exit_code == 1
-    assert "Unable to publish cloud partner offer" in result.output
-    assert "notification_emails parameter is required for publish" \
-        in result.output
 
 
 # -------------------------------------------------
@@ -1782,7 +1759,6 @@ def test_cloud_partner_get_offer_doc_ok(azure_image_mock, mock_save_file):
         'cloud-partner-offer', 'get-offer-document',
         '--credentials-file', 'tests/creds.json',
         '--offer-id', 'myOfferId',
-        '--publisher-id', 'myPublisherId',
         '--offer-document-file', 'tests/fake.json',
         '--no-color'
     ]
