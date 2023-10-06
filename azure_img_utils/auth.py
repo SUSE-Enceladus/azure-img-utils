@@ -50,7 +50,7 @@ def acquire_access_token(credentials: dict, cloud_partner: bool = False):
         resource = credentials['managementEndpointUrl'] + '.default'
 
     response = client.acquire_token_for_client(
-        resource
+        [resource]
     )
 
     if 'error' in response:
