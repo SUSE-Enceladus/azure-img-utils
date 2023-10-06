@@ -3,6 +3,7 @@ import pytest
 
 from unittest.mock import MagicMock, patch
 from requests import Response
+from requests.exceptions import HTTPError
 
 from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.cloud_partner import deprecate_image_in_offer_doc
@@ -34,6 +35,35 @@ class TestAzureCloudPartner(object):
         mock_process_request.return_value = {'offer': 'doc'}
         doc = self.image.get_offer_doc('sles', 'suse')
         assert doc['offer'] == 'doc'
+
+    @patch('azure_img_utils.azure_image.process_request')
+    def test_offer_exists(self, mock_process_request):
+        mock_process_request.return_value = {'offer': 'doc'}
+        exists = self.image.offer_exists('sles', 'suse')
+        assert exists
+
+    @patch('azure_img_utils.azure_image.process_request')
+    def test_offer_not_exists(self, mock_process_request):
+        response = MagicMock()
+        response.status_code = 404
+        mock_process_request.side_effect = HTTPError(
+            'Failed',
+            response=response
+        )
+        exists = self.image.offer_exists('sles', 'suse')
+        assert not exists
+
+    @patch('azure_img_utils.azure_image.process_request')
+    def test_offer_exists_error(self, mock_process_request):
+        response = MagicMock()
+        response.status_code = 401
+        mock_process_request.side_effect = HTTPError(
+            'Failed',
+            response=response
+        )
+
+        with pytest.raises(HTTPError):
+            self.image.offer_exists('sles', 'suse')
 
     @patch('azure_img_utils.azure_image.process_request')
     def test_upload_offer_doc(self, mock_process_request):

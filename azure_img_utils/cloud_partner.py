@@ -135,7 +135,8 @@ def process_request(
             except HTTPError as e:
                 if response.text:
                     raise HTTPError(
-                        '{} Error Message: {}'.format(str(e), response.text)
+                        '{} Error Message: {}'.format(str(e), response.text),
+                        response=response
                     )
                 else:
                     raise e
