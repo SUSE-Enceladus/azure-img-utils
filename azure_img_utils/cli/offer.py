@@ -30,7 +30,8 @@ from azure_img_utils.cli.cli_utils import (
     get_obj_from_json_file,
     process_shared_options,
     shared_options,
-    echo_style
+    echo_style,
+    save_json_to_file
 )
 from azure_img_utils.azure_image import AzureImage
 
@@ -384,6 +385,71 @@ def remove_image_from_offer(
     except Exception as e:
         echo_style(
             'Unable to remove image from cloud partner offer.',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# cloud partner offer get-offer-document command function
+@offer.command(name="get-offer-document")
+@click.option(
+    '--offer-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the cloud partner offer to publish.'
+)
+@click.option(
+    '--offer-document-file',
+    type=click.Path(),
+    required=True,
+    help='File where the offer document is saved as json.'
+)
+@click.option(
+    '--retries',
+    type=click.INT,
+    default=0,
+    help='Number of retries in case of error in doc retrieval.'
+)
+@add_options(shared_options)
+@click.pass_context
+def get_offer_document(
+    context,
+    offer_id,
+    offer_document_file,
+    retries,
+    **kwargs
+):
+    """
+    Downloads an offer json document to local file
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        doc = az_img.get_offer_doc(
+            offer_id,
+            config_data.publisher_id,
+            retries=retries
+        )
+
+        save_json_to_file(doc, offer_document_file)
+    except Exception as e:
+        echo_style(
+            'Unable to download cloud partner offer document.',
             config_data.no_color,
             fg='red'
         )

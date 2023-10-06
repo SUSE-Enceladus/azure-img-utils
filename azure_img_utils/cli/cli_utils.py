@@ -226,3 +226,10 @@ def get_obj_from_json_file(json_file):
         return_object = json.load(my_json_file)
 
     return return_object
+
+
+# -----------------------------------------------------------------------------
+# Save json to file
+def save_json_to_file(doc, json_file):
+    with open(os.path.expanduser(json_file), 'w') as f:
+        json.dump(doc, f, indent=2)
