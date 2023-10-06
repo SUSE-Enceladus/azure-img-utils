@@ -1327,6 +1327,7 @@ def test_cloud_partner_offer_publish_exc_notif():
     args = [
         'cloud-partner-offer', 'publish',
         '--credentials-file', 'tests/creds.json',
+        '--config-dir', './tests',
         '--offer-id', 'myOfferId',
         '--publisher-id', 'myPublisherId',
         '--no-color'
