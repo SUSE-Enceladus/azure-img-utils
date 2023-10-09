@@ -26,6 +26,8 @@ import logging
 import lzma
 import os
 
+from requests.exceptions import HTTPError
+
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
 
@@ -438,6 +440,36 @@ class AzureImage(object):
             self.compute_client,
             gallery_resource_group
         )
+
+    def offer_exists(
+        self,
+        offer_id: str,
+        publisher_id: str
+    ) -> dict:
+        """
+        Return boolean result if offer exists for publisher.
+        """
+        endpoint = get_cloud_partner_endpoint(
+            offer_id,
+            publisher_id
+        )
+
+        headers = get_cloud_partner_api_headers(self.access_token)
+
+        try:
+            process_request(
+                endpoint,
+                headers,
+                method='get',
+                retries=0
+            )
+        except HTTPError as error:
+            if error.response.status_code == 404:
+                return False
+            else:
+                raise
+        else:
+            return True
 
     def get_offer_doc(
         self,
