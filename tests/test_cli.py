@@ -1862,3 +1862,30 @@ def test_cloud_partner_offer_remove_image_nok_exc(azure_image_mock):
     assert result.exit_code == 1
     assert "myException" in result.output
     assert "Unable to remove image from cloud partner offer." in result.output
+
+
+# -------------------------------------------------
+# cloud-partner-offer get-offer-document tests
+@patch('azure_img_utils.cli.offer.save_json_to_file')
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_get_offer_doc_ok(azure_image_mock, mock_save_file):
+    """Confirm cloud partner offer get-offer-document is ok."""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    fake_doc = {'this': 'is', 'a': 'fake', 'offer': 'doc'}
+    image_class.get_offer_doc.return_value = fake_doc
+
+    args = [
+        'cloud-partner-offer', 'get-offer-document',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--publisher-id', 'myPublisherId',
+        '--offer-document-file', 'tests/fake.json',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0

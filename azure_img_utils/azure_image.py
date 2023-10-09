@@ -442,7 +442,8 @@ class AzureImage(object):
     def get_offer_doc(
         self,
         offer_id: str,
-        publisher_id: str
+        publisher_id: str,
+        retries: int = 5
     ) -> dict:
         """
         Return the offer doc dictionary for the given offer.
@@ -457,7 +458,8 @@ class AzureImage(object):
         response = process_request(
             endpoint,
             headers,
-            method='get'
+            method='get',
+            retries=retries
         )
         return response
 
