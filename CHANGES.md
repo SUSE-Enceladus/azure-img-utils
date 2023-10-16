@@ -1,3 +1,12 @@
+v1.2.0 (2023-10-16)
+===================
+
+- Includes response body in exception in raise_for_status
+- Pass scopes as a list in API call
+- Add config dir override to fix test failure
+- Add offer exists function
+- Add get-offer-doc command for cli
+
 v1.1.0 (2022-11-16)
 ===================
 
