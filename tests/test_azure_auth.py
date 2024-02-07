@@ -50,7 +50,7 @@ class TestAzureAuth(object):
         my_client.acquire_token_for_client.return_value = my_err_response
 
         msg = 'Unable to authenticate against ' \
-              'https://cloudpartner.azure.com/.default: ' \
+              'https://graph.microsoft.com/.default: ' \
               'myCustomError'
 
         with pytest.raises(AzureImgUtilsException, match=msg):

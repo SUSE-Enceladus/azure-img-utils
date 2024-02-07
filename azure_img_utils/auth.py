@@ -45,7 +45,7 @@ def acquire_access_token(credentials: dict, cloud_partner: bool = False):
     )
 
     if cloud_partner:
-        resource = 'https://cloudpartner.azure.com/.default'
+        resource = 'https://graph.microsoft.com/.default'
     else:
         resource = credentials['managementEndpointUrl'] + '.default'
 
