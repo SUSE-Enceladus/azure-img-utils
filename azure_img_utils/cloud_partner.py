@@ -27,7 +27,7 @@ from datetime import date, datetime
 from azure_img_utils.exceptions import AzureCloudPartnerException
 from requests.exceptions import HTTPError
 
-ingestion_api = 'https://graph.microsoft.com/rp/product-ingestion/'
+INGESTION_API = 'https://graph.microsoft.com/rp/product-ingestion/'
 
 
 def get_cloud_partner_endpoint(
@@ -70,7 +70,7 @@ def get_durable_id(
     headers: dict,
     offer_id: str,
 ) -> str:
-    endpoint = f'{ingestion_api}product?externalid={offer_id}'
+    endpoint = f'{INGESTION_API}product?externalid={offer_id}'
     response = process_request(endpoint, headers)
 
     if not response.get('value'):
@@ -170,7 +170,7 @@ def process_request(
 
 
 def get_offer_submissions(durable_id: str, headers: dict) -> dict:
-    endpoint = f'{ingestion_api}submission/{durable_id}'
+    endpoint = f'{INGESTION_API}submission/{durable_id}'
 
     response = process_request(
         endpoint,
