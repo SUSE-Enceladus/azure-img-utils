@@ -222,18 +222,162 @@ class TestAzureCloudPartner(object):
         operation = self.image.go_live_with_offer('sles', 'suse')
         assert operation == '/uri/to/operation/id'
 
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_get_offer_status(self, mock_process_request):
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_publishing(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
         mock_process_request.return_value = {
-            'status': 'running',
-            'steps': [{
-                'stepName': 'publisher-signoff',
-                'status': 'waitingForPublisherReview'
-            }]
+            'value': [
+                {
+                    'target': {'targetType': 'preview'},
+                    'status': 'running',
+                    'result': 'pending'
+                }
+            ]
         }
 
-        status = self.image.get_offer_status('sles', 'suse')
+        status = self.image.get_offer_status('sles')
+        assert status == 'running'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_publish_failed(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'preview'},
+                    'status': 'completed',
+                    'result': 'failed'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'failed'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_awaiting_review(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'preview'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
         assert status == 'waitingForPublisherReview'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_succeeded(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'succeeded'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_first_go_live(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'running',
+                    'result': 'pending'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'running'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_going_live(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                },
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'running',
+                    'result': 'pending'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'running'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_go_live_failed(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                },
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'failed'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'failed'
 
     @patch('azure_img_utils.azure_image.process_request')
     def test_get_operation(self, mock_process_request):

@@ -58,7 +58,9 @@ from azure_img_utils.cloud_partner import (
     get_cloud_partner_api_headers,
     get_cloud_partner_endpoint,
     process_request,
-    remove_image_version_from_offer
+    remove_image_version_from_offer,
+    get_durable_id,
+    get_offer_submissions
 )
 
 
@@ -691,34 +693,64 @@ class AzureImage(object):
 
         return response.headers['Location']
 
-    def get_offer_status(self, offer_id, publisher_id) -> str:
+    def get_offer_status(self, offer_id: str) -> str:
         """
         Returns the status of the offer.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id,
-            status=True
-        )
         headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = get_durable_id(headers, offer_id)
+        submissions = get_offer_submissions(durable_id, headers)
 
-        response = process_request(
-            endpoint,
-            headers,
-            method='get'
+        prev_ops = jmespath.search(
+            "value[?target.targetType=='preview']"
+            ".{status: status, result: result}",
+            submissions
         )
 
-        status = response.get('status', 'unkown')
+        if prev_ops:
+            operation = prev_ops[0]
+            status = operation.get('status', 'unknown')
+            result = operation.get('result', 'unknown')
 
-        if status == 'running':
-            signoff_status = jmespath.search(
-                "steps[?stepName=='publisher-signoff'].status | [0]",
-                response
-            )
-            if signoff_status == 'waitingForPublisherReview':
-                status = 'waitingForPublisherReview'
+            if status == 'running':
+                # Offer publishing
+                return status
+            elif status == 'completed' and result == 'failed':
+                # Publish failed
+                return result
+            elif status == 'completed' and result == 'succeeded':
+                # Waiting for review
+                return 'waitingForPublisherReview'
 
-        return status
+        live_ops = jmespath.search(
+            "value[?target.targetType=='live']"
+            ".{status: status, result: result}",
+            submissions
+        )
+
+        if live_ops and len(live_ops) == 1:
+            operation = live_ops[0]
+            status = operation.get('status', 'unknown')
+            result = operation.get('result', 'unknown')
+
+            if status == 'completed':
+                return result
+            elif status == 'running':
+                # Initial go live
+                return status
+        elif live_ops and len(live_ops) == 2:
+            for operation in live_ops:
+                status = operation.get('status', 'unknown')
+                result = operation.get('result', 'unknown')
+
+                if status == 'running':
+                    # New version going live
+                    return status
+                elif status == 'completed' and result == 'failed':
+                    # Go live failed
+                    return result
+
+        return 'unkown'
 
     def get_operation(self, operation: str) -> dict:
         """

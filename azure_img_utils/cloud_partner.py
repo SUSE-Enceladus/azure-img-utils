@@ -27,6 +27,8 @@ from datetime import date, datetime
 from azure_img_utils.exceptions import AzureCloudPartnerException
 from requests.exceptions import HTTPError
 
+INGESTION_API = 'https://graph.microsoft.com/rp/product-ingestion/'
+
 
 def get_cloud_partner_endpoint(
     offer_id: str,
@@ -62,6 +64,21 @@ def get_cloud_partner_endpoint(
     )
 
     return endpoint
+
+
+def get_durable_id(
+    headers: dict,
+    offer_id: str,
+) -> str:
+    endpoint = f'{INGESTION_API}product?externalid={offer_id}'
+    response = process_request(endpoint, headers)
+
+    if not response.get('value'):
+        raise AzureCloudPartnerException(
+            f'Offer {offer_id} not found.'
+        )
+
+    return response['value'][0]['id'].replace('product/', '')
 
 
 def get_cloud_partner_api_headers(
@@ -150,6 +167,17 @@ def process_request(
         return response.json()
     else:
         return response
+
+
+def get_offer_submissions(durable_id: str, headers: dict) -> dict:
+    endpoint = f'{INGESTION_API}submission/{durable_id}'
+
+    response = process_request(
+        endpoint,
+        headers
+    )
+
+    return response
 
 
 def add_image_version_to_offer(
