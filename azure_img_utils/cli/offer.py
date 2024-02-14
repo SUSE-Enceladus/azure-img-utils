@@ -413,12 +413,19 @@ def remove_image_from_offer(
     default=0,
     help='Number of retries in case of error in doc retrieval.'
 )
+@click.option(
+    '--target-type',
+    type=click.STRING,
+    default='draft',
+    help='The document type to retrieve. Valid types: draft, preview, live.'
+)
 @add_options(shared_options)
 @click.pass_context
 def get_offer_document(
     context,
     offer_id,
     offer_document_file,
+    target_type,
     retries,
     **kwargs
 ):
@@ -442,7 +449,7 @@ def get_offer_document(
         )
         doc = az_img.get_offer_doc(
             offer_id,
-            config_data.publisher_id,
+            target_type,
             retries=retries
         )
 

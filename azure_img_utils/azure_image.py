@@ -26,8 +26,6 @@ import logging
 import lzma
 import os
 
-from requests.exceptions import HTTPError
-
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
 
@@ -36,6 +34,7 @@ from azure_img_utils.auth import get_client_from_json, acquire_access_token
 from azure_img_utils.exceptions import (
     AzureImgUtilsException,
     AzureImgUtilsStorageException,
+    AzureCloudPartnerException
 )
 
 from azure_img_utils.filetype import FileType
@@ -60,7 +59,8 @@ from azure_img_utils.cloud_partner import (
     process_request,
     remove_image_version_from_offer,
     get_durable_id,
-    get_offer_submissions
+    get_offer_submissions,
+    get_resource_endpoint
 )
 
 
@@ -445,49 +445,30 @@ class AzureImage(object):
 
     def offer_exists(
         self,
-        offer_id: str,
-        publisher_id: str
+        offer_id: str
     ) -> dict:
         """
         Return boolean result if offer exists for publisher.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id
-        )
-
-        headers = get_cloud_partner_api_headers(self.access_token)
-
         try:
-            process_request(
-                endpoint,
-                headers,
-                method='get',
-                retries=0
-            )
-        except HTTPError as error:
-            if error.response.status_code == 404:
-                return False
-            else:
-                raise
+            self.get_offer_doc(offer_id, retries=0)
+        except AzureCloudPartnerException:
+            return False
         else:
             return True
 
     def get_offer_doc(
         self,
         offer_id: str,
-        publisher_id: str,
+        target_type: str = 'draft',
         retries: int = 5
     ) -> dict:
         """
         Return the offer doc dictionary for the given offer.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id
-        )
-
         headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = '/'.join(['product', get_durable_id(headers, offer_id)])
+        endpoint = get_resource_endpoint(durable_id, target_type)
 
         response = process_request(
             endpoint,
