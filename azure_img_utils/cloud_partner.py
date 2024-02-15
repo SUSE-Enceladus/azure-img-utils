@@ -66,6 +66,20 @@ def get_cloud_partner_endpoint(
     return endpoint
 
 
+def get_resource_endpoint(
+    durable_id: str,
+    target_type: str = 'draft'
+) -> str:
+    """
+    Return the endpoint URL to cloud partner API for offer and publisher.
+    """
+    endpoint = (
+        f'{INGESTION_API}/resource-tree/{durable_id}?'
+        f'targetType={target_type}'
+    )
+    return endpoint
+
+
 def get_durable_id(
     headers: dict,
     offer_id: str,
