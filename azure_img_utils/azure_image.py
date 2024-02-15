@@ -57,10 +57,12 @@ from azure_img_utils.cloud_partner import (
     get_cloud_partner_api_headers,
     get_cloud_partner_endpoint,
     process_request,
-    remove_image_version_from_offer,
     get_durable_id,
     get_offer_submissions,
-    get_resource_endpoint
+    deprecate_image_in_offer_doc,
+    submit_configure_request,
+    get_resource_endpoint,
+    get_technical_details
 )
 
 
@@ -506,19 +508,26 @@ class AzureImage(object):
             method='put'
         )
 
+    def update_resource_in_offer(
+        self,
+        resource_doc: dict
+    ):
+        """
+        Update the offer using the provided resource doc.
+        resource_doc is a dictionary defining the resource details.
+        """
+        headers = get_cloud_partner_api_headers(self.access_token)
+        job_id = submit_configure_request(headers, [resource_doc])
+        return job_id
+
     def add_image_to_offer(
         self,
         blob_name: str,
         image_name: str,
-        image_description: str,
         offer_id: str,
-        publisher_id: str,
-        label: str,
         sku: str,
         blob_url: str = None,
-        generation_id: str = None,
-        generation_suffix: str = None,
-        vm_images_key: str = None
+        generation_id: str = None
     ):
         """
         Add a new image version to the given offer.
@@ -544,35 +553,27 @@ class AzureImage(object):
                 start_hours=24
             )
 
-        offer_doc = self.get_offer_doc(offer_id, publisher_id)
+        offer_doc = self.get_offer_doc(offer_id)
+        plan_details = get_technical_details(offer_doc, sku)
 
         kwargs = {
-            'generation_id': generation_id,
-            'cloud_image_name_generation_suffix': generation_suffix
+            'generation_id': generation_id
         }
 
-        if vm_images_key:
-            kwargs['vm_images_key'] = vm_images_key
-
-        offer_doc = add_image_version_to_offer(
-            offer_doc,
+        plan_details = add_image_version_to_offer(
+            plan_details,
             blob_url,
-            image_description,
             image_name,
-            label,
             sku,
             **kwargs
         )
-        self.upload_offer_doc(
-            offer_id,
-            publisher_id,
-            offer_doc
+        self.update_resource_in_offer(
+            plan_details
         )
 
     def remove_image_from_offer(
         self,
-        image_urn: str,
-        vm_images_key: str = None
+        image_urn: str
     ):
         """
         Delete the given image version from the offer.
@@ -582,22 +583,15 @@ class AzureImage(object):
         the offer must be published and set to go-live.
         """
         publisher_id, offer_id, plan_id, image_version = image_urn.split(':')
-        offer_doc = self.get_offer_doc(offer_id, publisher_id)
+        offer_doc = self.get_offer_doc(offer_id)
+        plan_details = get_technical_details(offer_doc, plan_id)
 
-        kwargs = {}
-        if vm_images_key:
-            kwargs['vm_images_key'] = vm_images_key
-
-        offer_doc = remove_image_version_from_offer(
-            offer_doc,
-            image_version,
-            plan_id,
-            **kwargs
+        plan_details = deprecate_image_in_offer_doc(
+            plan_details,
+            image_version
         )
-        self.upload_offer_doc(
-            offer_id,
-            publisher_id,
-            offer_doc
+        self.update_resource_in_offer(
+            plan_details
         )
 
     def publish_offer(
