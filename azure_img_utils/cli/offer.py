@@ -235,22 +235,10 @@ def upload_offer_document(
     help='Name for the image'
 )
 @click.option(
-    '--image-description',
-    type=click.STRING,
-    required=True,
-    help='Description for the image added to the offer'
-)
-@click.option(
     '--offer-id',
     type=click.STRING,
     required=True,
     help='Id of the cloud partner offer to use.'
-)
-@click.option(
-    '--label',
-    type=click.STRING,
-    required=True,
-    help='Label to be used for the new image'
 )
 @click.option(
     '--sku',
@@ -269,30 +257,16 @@ def upload_offer_document(
     type=click.STRING,
     help='Generation id to be used for the image addition'
 )
-@click.option(
-    '--generation-suffix',
-    type=click.STRING,
-    help='Generation suffix to be used for the image addition'
-)
-@click.option(
-    '--vm-images-key',
-    type=click.STRING,
-    help='SSH key to be allowed to access the image'
-)
 @add_options(shared_options)
 @click.pass_context
 def add_image_to_offer(
     context,
     blob_name,
     image_name,
-    image_description,
     offer_id,
-    label,
     sku,
     blob_url,
     generation_id,
-    generation_suffix,
-    vm_images_key,
     **kwargs
 ):
     """
@@ -316,15 +290,11 @@ def add_image_to_offer(
         az_img.add_image_to_offer(
             blob_name,
             image_name,
-            image_description,
             offer_id,
             config_data.publisher_id,
-            label,
             sku,
             blob_url=blob_url,
             generation_id=generation_id,
-            generation_suffix=generation_suffix,
-            vm_images_key=vm_images_key
         )
 
     except Exception as e:
@@ -346,17 +316,11 @@ def add_image_to_offer(
     required=True,
     help='Urn for the image to delete'
 )
-@click.option(
-    '--vm-images-key',
-    type=click.STRING,
-    help='SSH keys to be allowed to access the image'
-)
 @add_options(shared_options)
 @click.pass_context
 def remove_image_from_offer(
     context,
     image_urn,
-    vm_images_key,
     **kwargs
 ):
     """
@@ -379,7 +343,6 @@ def remove_image_from_offer(
         )
         az_img.remove_image_from_offer(
             image_urn,
-            vm_images_key=vm_images_key
         )
 
     except Exception as e:
