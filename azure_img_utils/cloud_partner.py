@@ -32,42 +32,6 @@ PLAN_SCHEMA = 'https://schema.mp.microsoft.com/schema/plan/'
 TECH_CONFIG_SCHEMA = 'virtual-machine-plan-technical-configuration'
 
 
-def get_cloud_partner_endpoint(
-    offer_id: str,
-    publisher_id: str,
-    api_version: str = '2017-10-31',
-    publish: bool = False,
-    go_live: bool = False,
-    status: bool = False
-) -> str:
-    """
-    Return the endpoint URL to cloud partner API for offer and publisher.
-    """
-    endpoint = 'https://cloudpartner.azure.com/api/' \
-               'publishers/{publisher_id}/' \
-               'offers/{offer_id}' \
-               '{method}' \
-               '?api-version={api_version}'
-
-    if publish:
-        method = '/publish'
-    elif go_live:
-        method = '/golive'
-    elif status:
-        method = '/status'
-    else:
-        method = ''
-
-    endpoint = endpoint.format(
-        offer_id=offer_id,
-        publisher_id=publisher_id,
-        method=method,
-        api_version=api_version
-    )
-
-    return endpoint
-
-
 def get_resource_endpoint(
     durable_id: str,
     target_type: str = 'draft'

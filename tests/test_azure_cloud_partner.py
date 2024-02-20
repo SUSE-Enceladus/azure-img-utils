@@ -1,13 +1,11 @@
 import pytest
 
-from unittest.mock import MagicMock, patch
-from requests import Response
+from unittest.mock import patch
 
 from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.cloud_partner import deprecate_image_in_offer_doc
 
 from azure_img_utils.exceptions import (
-    AzureImgUtilsException,
     AzureCloudPartnerException
 )
 
@@ -49,11 +47,14 @@ class TestAzureCloudPartner(object):
         exists = self.image.offer_exists('sles')
         assert not exists
 
-    @patch('azure_img_utils.azure_image.process_request')
+    @patch('azure_img_utils.cloud_partner.process_request')
     def test_upload_offer_doc(self, mock_process_request):
-        mock_process_request.return_value = {'offer': 'doc'}
-        doc = {'offer': 'doc'}
-        self.image.upload_offer_doc('sles', 'suse', doc)
+        response = {'jobId': '123'}
+        mock_process_request.return_value = response
+
+        doc = {'resources': [{'offer': 'doc'}]}
+        resp = self.image.upload_offer_doc(doc)
+        assert resp == '123'
 
     @patch('azure_img_utils.azure_image.submit_configure_request')
     @patch('azure_img_utils.azure_image.process_request')
@@ -126,30 +127,49 @@ class TestAzureCloudPartner(object):
                 generation_id='gen2',
             )
 
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_publish_offer(self, mock_process_request):
-
-        response = MagicMock(spec=Response)
-        response.headers = {'Location': '/uri/to/operation/id'}
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.azure_image.get_offer_submissions')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_publish_offer(
+        self,
+        mock_process_request,
+        mock_get_submissions,
+        mock_get_durable_id
+    ):
+        response = {'jobId': '123'}
         mock_process_request.return_value = response
 
-        operation = self.image.publish_offer('sles', 'suse', 'test@email.com')
-        assert operation == '/uri/to/operation/id'
+        mock_get_durable_id.return_value = '123456789'
+        mock_get_submissions.return_value = {
+            'value': [
+                {'target': {'targetType': 'preview', 'id': '321'}}
+            ]
+        }
 
-    def test_publish_offer_exception(self):
-        msg = 'notification_emails parameter is required for publish'
+        operation = self.image.publish_offer('sles')
+        assert operation == '123'
 
-        with pytest.raises(AzureImgUtilsException, match=msg):
-            self.image.publish_offer('sles', 'suse', '')
-
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_go_live_with_offer(self, mock_process_request):
-        response = MagicMock(spec=Response)
-        response.headers = {'Location': '/uri/to/operation/id'}
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.azure_image.get_offer_submissions')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_go_live_with_offer(
+        self,
+        mock_process_request,
+        mock_get_submissions,
+        mock_get_durable_id
+    ):
+        response = {'jobId': '123'}
         mock_process_request.return_value = response
 
-        operation = self.image.go_live_with_offer('sles', 'suse')
-        assert operation == '/uri/to/operation/id'
+        mock_get_durable_id.return_value = '123456789'
+        mock_get_submissions.return_value = {
+            'value': [
+                {'target': {'targetType': 'preview', 'id': '321'}}
+            ]
+        }
+
+        operation = self.image.go_live_with_offer('sles')
+        assert operation == '123'
 
     @patch('azure_img_utils.azure_image.get_durable_id')
     @patch('azure_img_utils.cloud_partner.process_request')
@@ -311,7 +331,7 @@ class TestAzureCloudPartner(object):
     @patch('azure_img_utils.azure_image.process_request')
     def test_get_operation(self, mock_process_request):
         mock_process_request.return_value = {'operation': 'info'}
-        operation = self.image.get_operation('/uri/to/operation/id')
+        operation = self.image.get_operation('123')
         assert operation['operation'] == 'info'
 
     def test_deprecate_image_in_offer_1(self):
