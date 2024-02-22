@@ -1,3 +1,8 @@
+v2.0.0 (2024-02-22)
+===================
+
+- Migrate cloud partner functions to new Graph API
+
 v1.2.0 (2023-10-16)
 ===================
 
