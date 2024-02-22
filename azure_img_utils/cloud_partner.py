@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import copy
 import json
 import re
 import requests
@@ -27,41 +26,67 @@ from datetime import date, datetime
 from azure_img_utils.exceptions import AzureCloudPartnerException
 from requests.exceptions import HTTPError
 
+INGESTION_API = 'https://graph.microsoft.com/rp/product-ingestion/'
+VM_IMAGES_KEY = 'vmImageVersions'
+PLAN_SCHEMA = 'https://schema.mp.microsoft.com/schema/plan/'
+TECH_CONFIG_SCHEMA = 'virtual-machine-plan-technical-configuration'
 
-def get_cloud_partner_endpoint(
-    offer_id: str,
-    publisher_id: str,
-    api_version: str = '2017-10-31',
-    publish: bool = False,
-    go_live: bool = False,
-    status: bool = False
+
+def get_resource_endpoint(
+    durable_id: str,
+    target_type: str = 'draft'
 ) -> str:
     """
     Return the endpoint URL to cloud partner API for offer and publisher.
     """
-    endpoint = 'https://cloudpartner.azure.com/api/' \
-               'publishers/{publisher_id}/' \
-               'offers/{offer_id}' \
-               '{method}' \
-               '?api-version={api_version}'
-
-    if publish:
-        method = '/publish'
-    elif go_live:
-        method = '/golive'
-    elif status:
-        method = '/status'
-    else:
-        method = ''
-
-    endpoint = endpoint.format(
-        offer_id=offer_id,
-        publisher_id=publisher_id,
-        method=method,
-        api_version=api_version
+    endpoint = (
+        f'{INGESTION_API}/resource-tree/{durable_id}?'
+        f'targetType={target_type}'
     )
-
     return endpoint
+
+
+def get_durable_id(
+    headers: dict,
+    offer_id: str,
+) -> str:
+    endpoint = f'{INGESTION_API}product?externalid={offer_id}'
+    response = process_request(endpoint, headers)
+
+    if not response.get('value'):
+        raise AzureCloudPartnerException(
+            f'Offer {offer_id} not found.'
+        )
+
+    return response['value'][0]['id'].replace('product/', '')
+
+
+def get_technical_details(
+    offer_doc: dict,
+    plan_id: str
+):
+    for resource in offer_doc['resources']:
+        if (
+            resource['$schema'].startswith(PLAN_SCHEMA) and
+            resource['identity']['externalId'] == plan_id
+        ):
+            durable_id = resource['id']
+            break
+    else:
+        raise AzureCloudPartnerException(
+            f'No plan found for id: {plan_id}'
+        )
+
+    for resource in offer_doc['resources']:
+        if (
+            TECH_CONFIG_SCHEMA in resource['$schema'] and
+            resource['plan'] == durable_id
+        ):
+            return resource
+    else:
+        raise AzureCloudPartnerException(
+            f'No technical details found for plan durable id: {durable_id}'
+        )
 
 
 def get_cloud_partner_api_headers(
@@ -152,16 +177,23 @@ def process_request(
         return response
 
 
+def get_offer_submissions(durable_id: str, headers: dict) -> dict:
+    endpoint = f'{INGESTION_API}submission/{durable_id}'
+
+    response = process_request(
+        endpoint,
+        headers
+    )
+
+    return response
+
+
 def add_image_version_to_offer(
     doc: dict,
     blob_url: str,
-    description: str,
     image_name: str,
-    label: str,
     sku: str,
-    vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure',
-    generation_id: str = None,
-    cloud_image_name_generation_suffix: str = None
+    generation_id: str = None
 ) -> dict:
     """
     Update the cloud partner offer doc with a new version of the given sku.
@@ -174,151 +206,99 @@ def add_image_version_to_offer(
     else:
         release_date = date.today()
 
+    version_number = release_date.strftime('%Y.%m.%d')
+
     version = {
-        'osVhdUrl': blob_url,
-        'label': label,
-        'mediaName': image_name,
-        'publishedDate': release_date.strftime("%m/%d/%Y"),
-        'description': description,
-        'showInGui': True,
-        'lunVhdDetails': []
+        'versionNumber': version_number,
+        'vmImages': [],
+        'lifecycleState': 'generallyAvailable'
     }
 
-    for doc_sku in doc['definition']['plans']:
-        if doc_sku['planId'] == sku:
-            release = release_date.strftime("%Y.%m.%d")
+    image_type = get_image_type(sku, doc['skus'])
+    version['vmImages'].append(
+        {
+            'imageType': image_type,
+            'source': {
+                'sourceType': 'sasUri',
+                'osDisk': {
+                    'uri': blob_url
+                },
+                'dataDisks': []
+            }
+        }
+    )
 
-            if vm_images_key not in doc_sku:
-                doc_sku[vm_images_key] = {}
+    if generation_id:
+        image_type = get_image_type(generation_id, doc['skus'])
+        version['vmImages'].append(
+            {
+                'imageType': image_type,
+                'source': {
+                    'sourceType': 'sasUri',
+                    'osDisk': {
+                        'uri': blob_url
+                    },
+                    'dataDisks': []
+                }
+            }
+        )
 
-            doc_sku[vm_images_key][release] = version
+    doc[VM_IMAGES_KEY].append(version)
+    return doc
 
-            if generation_id:
-                for plan in doc_sku['diskGenerations']:
-                    if plan['planId'] == generation_id:
-                        generation_version = copy.deepcopy(version)
-                        generation_version['mediaName'] = '-'.join([
-                            image_name,
-                            cloud_image_name_generation_suffix or generation_id
-                        ])
 
-                        if vm_images_key not in plan:
-                            plan[vm_images_key] = {}
-
-                        plan[vm_images_key][release] = generation_version
-                        break
-                else:
-                    raise AzureCloudPartnerException(
-                        'No Match found for Generation ID: {gen}. '
-                        'Offer doc not updated properly.'.format(
-                            gen=generation_id
-                        )
-                    )
-
-            break
+def get_image_type(
+    plan_id: str,
+    skus: list
+):
+    for sku in skus:
+        if plan_id == sku['skuId']:
+            return sku['imageType']
     else:
         raise AzureCloudPartnerException(
-            'No Match found for SKU: {sku}. '
-            'Offer doc not updated properly.'.format(
-                sku=sku
-            )
+            f'No Match found for SKU: {plan_id}. '
+            'Offer doc not updated properly.'
         )
-
-    return doc
-
-
-def remove_image_version_from_offer(
-    doc: dict,
-    image_version: str,
-    plan_id: str,
-    vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure'
-) -> dict:
-    """
-    Remove the given image version from the cloud partner offer doc.
-    """
-    removed = False
-    for doc_sku in doc['definition']['plans']:
-        if doc_sku['planId'] == plan_id:
-            if image_version in doc_sku[vm_images_key]:
-                if len(doc_sku[vm_images_key].keys()) == 1:
-                    raise AzureCloudPartnerException(
-                        f'Unable to remove {image_version} from {plan_id}. '
-                        'This is the last version in the plan. '
-                        'Please deprecate the offer or plan instead.'
-                    )
-
-                del doc_sku[vm_images_key][image_version]
-                removed = True
-
-        for plan in doc_sku['diskGenerations']:
-            if plan['planId'] == plan_id:
-                if image_version in plan[vm_images_key]:
-                    if len(doc_sku[vm_images_key].keys()) == 1:
-                        raise AzureCloudPartnerException(
-                            f'Unable to remove {image_version} from {plan_id}'
-                            '. This is the last version in the plan. '
-                            'Please deprecate the offer or plan instead.'
-                        )
-
-                    del plan[vm_images_key][image_version]
-                    removed = True
-
-    if not removed:
-        raise AzureCloudPartnerException(
-            'No match found for version: {version} and Plan ID: {plan}.'
-            ' Offer doc not updated properly.'.format(
-                version=image_version,
-                plan=plan_id
-            )
-        )
-
-    return doc
 
 
 def deprecate_image_in_offer_doc(
     doc: dict,
-    image_name: str,
-    sku: str,
-    log_callback,
-    vm_images_key: str = 'microsoft-azure-corevm.vmImagesPublicAzure'
+    image_version: str
 ) -> dict:
     """
-    Deprecate the image in the cloud partner offer doc.
-
-    The image is set to not show in gui.
+    Deprecate the image version in the cloud partner offer doc.
     """
-    matches = re.findall(r'\d{8}', image_name)
-
-    if matches:
-        release_date = datetime.strptime(matches[0], '%Y%m%d').date()
-        release = release_date.strftime("%Y.%m.%d")
-    else:
-        # image name must have a date to generate release key
-        return doc
-
-    for doc_sku in doc['definition']['plans']:
-        if doc_sku['planId'] == sku \
-                and doc_sku.get(vm_images_key) \
-                and doc_sku[vm_images_key].get(release):
-
-            image = doc_sku[vm_images_key][release]
-
-            if image['mediaName'] == image_name:
-                image['showInGui'] = False
-            else:
-                log_callback(
-                    'Deprecation image name, {0} does not match the mediaName '
-                    'attribute, {1}.'.format(
-                        image_name,
-                        image['mediaName']
-                    )
-                )
-
+    for doc_version in doc[VM_IMAGES_KEY]:
+        if image_version == doc_version['versionNumber']:
+            doc_version['lifecycleState'] = 'deprecated'
             break
     else:
         raise AzureCloudPartnerException(
-            f'No Match found for image in the SKU: {sku}. '
+            f'No Match found for the image version: {image_version}. '
             'Offer doc not updated properly.'
         )
 
     return doc
+
+
+def submit_configure_request(
+    headers: dict,
+    resources: list
+):
+    headers['Content-Type'] = 'application/json'
+    endpoint = INGESTION_API + '/configure'
+
+    response = process_request(
+        endpoint,
+        headers,
+        data={
+            '$schema': (
+                'https://schema.mp.microsoft.com/'
+                'schema/configure/2022-03-01-preview2'
+            ),
+            'resources': resources
+        },
+        method='post'
+    )
+
+    return response['jobId']

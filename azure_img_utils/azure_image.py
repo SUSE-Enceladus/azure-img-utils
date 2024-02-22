@@ -26,8 +26,6 @@ import logging
 import lzma
 import os
 
-from requests.exceptions import HTTPError
-
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
 
@@ -36,6 +34,7 @@ from azure_img_utils.auth import get_client_from_json, acquire_access_token
 from azure_img_utils.exceptions import (
     AzureImgUtilsException,
     AzureImgUtilsStorageException,
+    AzureCloudPartnerException
 )
 
 from azure_img_utils.filetype import FileType
@@ -56,9 +55,14 @@ from azure_img_utils.compute import (
 from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     get_cloud_partner_api_headers,
-    get_cloud_partner_endpoint,
+    get_resource_endpoint,
     process_request,
-    remove_image_version_from_offer
+    get_durable_id,
+    INGESTION_API,
+    get_offer_submissions,
+    deprecate_image_in_offer_doc,
+    submit_configure_request,
+    get_technical_details
 )
 
 
@@ -443,49 +447,30 @@ class AzureImage(object):
 
     def offer_exists(
         self,
-        offer_id: str,
-        publisher_id: str
+        offer_id: str
     ) -> dict:
         """
         Return boolean result if offer exists for publisher.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id
-        )
-
-        headers = get_cloud_partner_api_headers(self.access_token)
-
         try:
-            process_request(
-                endpoint,
-                headers,
-                method='get',
-                retries=0
-            )
-        except HTTPError as error:
-            if error.response.status_code == 404:
-                return False
-            else:
-                raise
+            self.get_offer_doc(offer_id, retries=0)
+        except AzureCloudPartnerException:
+            return False
         else:
             return True
 
     def get_offer_doc(
         self,
         offer_id: str,
-        publisher_id: str,
+        target_type: str = 'draft',
         retries: int = 5
     ) -> dict:
         """
         Return the offer doc dictionary for the given offer.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id
-        )
-
         headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = '/'.join(['product', get_durable_id(headers, offer_id)])
+        endpoint = get_resource_endpoint(durable_id, target_type)
 
         response = process_request(
             endpoint,
@@ -497,45 +482,38 @@ class AzureImage(object):
 
     def upload_offer_doc(
         self,
-        offer_id: str,
-        publisher_id: str,
         offer_doc: dict
     ):
         """
-        Upload the offer doc for the given offer.
+        Upload the offer doc to partner center.
 
         offer_doc is a dictionary defining the offer details.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id
-        )
-        headers = get_cloud_partner_api_headers(
-            self.access_token,
-            content_type='application/json',
-            if_match='*'
-        )
+        headers = get_cloud_partner_api_headers(self.access_token)
+        job_id = submit_configure_request(headers, offer_doc['resources'])
+        return job_id
 
-        process_request(
-            endpoint,
-            headers,
-            data=offer_doc,
-            method='put'
-        )
+    def update_resource_in_offer(
+        self,
+        resource_doc: dict
+    ):
+        """
+        Update the offer using the provided resource doc.
+
+        resource_doc is a dictionary defining the resource details.
+        """
+        headers = get_cloud_partner_api_headers(self.access_token)
+        job_id = submit_configure_request(headers, [resource_doc])
+        return job_id
 
     def add_image_to_offer(
         self,
         blob_name: str,
         image_name: str,
-        image_description: str,
         offer_id: str,
-        publisher_id: str,
-        label: str,
         sku: str,
         blob_url: str = None,
-        generation_id: str = None,
-        generation_suffix: str = None,
-        vm_images_key: str = None
+        generation_id: str = None
     ):
         """
         Add a new image version to the given offer.
@@ -561,35 +539,27 @@ class AzureImage(object):
                 start_hours=24
             )
 
-        offer_doc = self.get_offer_doc(offer_id, publisher_id)
+        offer_doc = self.get_offer_doc(offer_id)
+        plan_details = get_technical_details(offer_doc, sku)
 
         kwargs = {
-            'generation_id': generation_id,
-            'cloud_image_name_generation_suffix': generation_suffix
+            'generation_id': generation_id
         }
 
-        if vm_images_key:
-            kwargs['vm_images_key'] = vm_images_key
-
-        offer_doc = add_image_version_to_offer(
-            offer_doc,
+        plan_details = add_image_version_to_offer(
+            plan_details,
             blob_url,
-            image_description,
             image_name,
-            label,
             sku,
             **kwargs
         )
-        self.upload_offer_doc(
-            offer_id,
-            publisher_id,
-            offer_doc
+        self.update_resource_in_offer(
+            plan_details
         )
 
     def remove_image_from_offer(
         self,
-        image_urn: str,
-        vm_images_key: str = None
+        image_urn: str
     ):
         """
         Delete the given image version from the offer.
@@ -599,71 +569,46 @@ class AzureImage(object):
         the offer must be published and set to go-live.
         """
         publisher_id, offer_id, plan_id, image_version = image_urn.split(':')
-        offer_doc = self.get_offer_doc(offer_id, publisher_id)
+        offer_doc = self.get_offer_doc(offer_id)
+        plan_details = get_technical_details(offer_doc, plan_id)
 
-        kwargs = {}
-        if vm_images_key:
-            kwargs['vm_images_key'] = vm_images_key
-
-        offer_doc = remove_image_version_from_offer(
-            offer_doc,
-            image_version,
-            plan_id,
-            **kwargs
+        plan_details = deprecate_image_in_offer_doc(
+            plan_details,
+            image_version
         )
-        self.upload_offer_doc(
-            offer_id,
-            publisher_id,
-            offer_doc
+        self.update_resource_in_offer(
+            plan_details
         )
 
     def publish_offer(
         self,
-        offer_id: str,
-        publisher_id: str,
-        notification_emails: str
+        offer_id: str
     ) -> str:
         """
         Publish the given offer.
 
-        notification_emails is required to be a comma separated list
-        of emails. This argument is required. However, for migrated
-        offers the emails are ignored. For migrated offers
-        notifications will be sent to the email address set in the
-        Seller contact info section of your Account settings in
-        Partner Center.
-
         Returns the operation uri.
         """
-        if not notification_emails:
-            msg = 'notification_emails parameter is required for publish'
-            raise AzureImgUtilsException(msg)
+        headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = get_durable_id(headers, offer_id)
 
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id,
-            publish=True
-        )
+        resources = [
+            {
+                '$schema': (
+                    'https://schema.mp.microsoft.com/'
+                    'schema/submission/2022-03-01-preview2'
+                ),
+                'product': '/'.join(['product', durable_id]),
+                'target': {'targetType': 'preview'}
+            }
+        ]
 
-        headers = get_cloud_partner_api_headers(
-            self.access_token,
-            content_type='application/json'
-        )
-
-        response = process_request(
-            endpoint,
-            headers,
-            data={'metadata': {'notification-emails': notification_emails}},
-            method='post',
-            json_response=False
-        )
-
-        return response.headers['Location']
+        job_id = submit_configure_request(headers, resources)
+        return job_id
 
     def go_live_with_offer(
         self,
-        offer_id: str,
-        publisher_id: str
+        offer_id: str
     ) -> str:
         """
         Set the offer as go-live.
@@ -672,63 +617,96 @@ class AzureImage(object):
 
         Returns the operation uri.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id,
-            go_live=True
-        )
-        headers = get_cloud_partner_api_headers(
-            self.access_token,
-            content_type='application/json'
-        )
+        headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = get_durable_id(headers, offer_id)
+        submissions = get_offer_submissions(durable_id, headers)
 
-        response = process_request(
-            endpoint,
-            headers,
-            method='post',
-            json_response=False
+        operation_id = jmespath.search(
+            "value[?target.targetType=='preview'] | [0].id",
+            submissions
         )
 
-        return response.headers['Location']
+        resources = [
+            {
+                '$schema': (
+                    'https://schema.mp.microsoft.com/'
+                    'schema/submission/2022-03-01-preview2'
+                ),
+                'product': '/'.join(['product', durable_id]),
+                'id': operation_id,
+                'target': {'targetType': 'live'}
+            }
+        ]
 
-    def get_offer_status(self, offer_id, publisher_id) -> str:
+        job_id = submit_configure_request(headers, resources)
+        return job_id
+
+    def get_offer_status(self, offer_id: str) -> str:
         """
         Returns the status of the offer.
         """
-        endpoint = get_cloud_partner_endpoint(
-            offer_id,
-            publisher_id,
-            status=True
-        )
         headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = get_durable_id(headers, offer_id)
+        submissions = get_offer_submissions(durable_id, headers)
 
-        response = process_request(
-            endpoint,
-            headers,
-            method='get'
+        prev_ops = jmespath.search(
+            "value[?target.targetType=='preview']"
+            ".{status: status, result: result}",
+            submissions
         )
 
-        status = response.get('status', 'unkown')
+        if prev_ops:
+            operation = prev_ops[0]
+            status = operation.get('status', 'unknown')
+            result = operation.get('result', 'unknown')
 
-        if status == 'running':
-            signoff_status = jmespath.search(
-                "steps[?stepName=='publisher-signoff'].status | [0]",
-                response
-            )
-            if signoff_status == 'waitingForPublisherReview':
-                status = 'waitingForPublisherReview'
+            if status == 'running':
+                # Offer publishing
+                return status
+            elif status == 'completed' and result == 'failed':
+                # Publish failed
+                return result
+            elif status == 'completed' and result == 'succeeded':
+                # Waiting for review
+                return 'waitingForPublisherReview'
 
-        return status
+        live_ops = jmespath.search(
+            "value[?target.targetType=='live']"
+            ".{status: status, result: result}",
+            submissions
+        )
+
+        if live_ops and len(live_ops) == 1:
+            operation = live_ops[0]
+            status = operation.get('status', 'unknown')
+            result = operation.get('result', 'unknown')
+
+            if status == 'completed':
+                return result
+            elif status == 'running':
+                # Initial go live
+                return status
+        elif live_ops and len(live_ops) == 2:
+            for operation in live_ops:
+                status = operation.get('status', 'unknown')
+                result = operation.get('result', 'unknown')
+
+                if status == 'running':
+                    # New version going live
+                    return status
+                elif status == 'completed' and result == 'failed':
+                    # Go live failed
+                    return result
+
+        return 'unkown'
 
     def get_operation(self, operation: str) -> dict:
         """
         Returns a dictionary status for the given operation.
         """
-        endpoint = 'https://cloudpartner.azure.com{operation}'.format(
-            operation=operation
-        )
-
         headers = get_cloud_partner_api_headers(self.access_token)
+        endpoint = '/'.join([INGESTION_API, 'configure', operation, 'status'])
+
         response = process_request(
             endpoint,
             headers

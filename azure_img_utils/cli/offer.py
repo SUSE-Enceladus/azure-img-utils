@@ -79,16 +79,14 @@ def publish(
             log_level=config_data.log_level,
             log_callback=logger
         )
-        operation_uri = az_img.publish_offer(
+        operation_id = az_img.publish_offer(
             offer_id,
-            config_data.publisher_id,
-            config_data.notification_emails
         )
 
-        if operation_uri:
+        if operation_id:
             echo_style(
-                'Published cloud partner offer. Operation URI: ' +
-                operation_uri,
+                'Published cloud partner offer. Operation ID: ' +
+                operation_id,
                 config_data.no_color,
                 fg='green'
             )
@@ -137,15 +135,14 @@ def go_live(
             log_level=config_data.log_level,
             log_callback=logger
         )
-        operation_uri = az_img.go_live_with_offer(
+        operation_id = az_img.go_live_with_offer(
             offer_id,
-            config_data.publisher_id
         )
 
-        if operation_uri:
+        if operation_id:
             echo_style(
                 'Cloud partner offer set as go-live. Operation URI: ' +
-                operation_uri,
+                operation_id,
                 config_data.no_color,
                 fg='green'
             )
@@ -205,7 +202,6 @@ def upload_offer_document(
         )
         az_img.upload_offer_doc(
             offer_id,
-            config_data.publisher_id,
             offer_obj
         )
 
@@ -235,22 +231,10 @@ def upload_offer_document(
     help='Name for the image'
 )
 @click.option(
-    '--image-description',
-    type=click.STRING,
-    required=True,
-    help='Description for the image added to the offer'
-)
-@click.option(
     '--offer-id',
     type=click.STRING,
     required=True,
     help='Id of the cloud partner offer to use.'
-)
-@click.option(
-    '--label',
-    type=click.STRING,
-    required=True,
-    help='Label to be used for the new image'
 )
 @click.option(
     '--sku',
@@ -269,30 +253,16 @@ def upload_offer_document(
     type=click.STRING,
     help='Generation id to be used for the image addition'
 )
-@click.option(
-    '--generation-suffix',
-    type=click.STRING,
-    help='Generation suffix to be used for the image addition'
-)
-@click.option(
-    '--vm-images-key',
-    type=click.STRING,
-    help='SSH key to be allowed to access the image'
-)
 @add_options(shared_options)
 @click.pass_context
 def add_image_to_offer(
     context,
     blob_name,
     image_name,
-    image_description,
     offer_id,
-    label,
     sku,
     blob_url,
     generation_id,
-    generation_suffix,
-    vm_images_key,
     **kwargs
 ):
     """
@@ -316,15 +286,11 @@ def add_image_to_offer(
         az_img.add_image_to_offer(
             blob_name,
             image_name,
-            image_description,
             offer_id,
             config_data.publisher_id,
-            label,
             sku,
             blob_url=blob_url,
             generation_id=generation_id,
-            generation_suffix=generation_suffix,
-            vm_images_key=vm_images_key
         )
 
     except Exception as e:
@@ -346,17 +312,11 @@ def add_image_to_offer(
     required=True,
     help='Urn for the image to delete'
 )
-@click.option(
-    '--vm-images-key',
-    type=click.STRING,
-    help='SSH keys to be allowed to access the image'
-)
 @add_options(shared_options)
 @click.pass_context
 def remove_image_from_offer(
     context,
     image_urn,
-    vm_images_key,
     **kwargs
 ):
     """
@@ -379,7 +339,6 @@ def remove_image_from_offer(
         )
         az_img.remove_image_from_offer(
             image_urn,
-            vm_images_key=vm_images_key
         )
 
     except Exception as e:
@@ -413,12 +372,19 @@ def remove_image_from_offer(
     default=0,
     help='Number of retries in case of error in doc retrieval.'
 )
+@click.option(
+    '--target-type',
+    type=click.STRING,
+    default='draft',
+    help='The document type to retrieve. Valid types: draft, preview, live.'
+)
 @add_options(shared_options)
 @click.pass_context
 def get_offer_document(
     context,
     offer_id,
     offer_document_file,
+    target_type,
     retries,
     **kwargs
 ):
@@ -442,7 +408,7 @@ def get_offer_document(
         )
         doc = az_img.get_offer_doc(
             offer_id,
-            config_data.publisher_id,
+            target_type,
             retries=retries
         )
 

@@ -1,15 +1,11 @@
-import logging
 import pytest
 
-from unittest.mock import MagicMock, patch
-from requests import Response
-from requests.exceptions import HTTPError
+from unittest.mock import patch
 
 from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.cloud_partner import deprecate_image_in_offer_doc
 
 from azure_img_utils.exceptions import (
-    AzureImgUtilsException,
     AzureCloudPartnerException
 )
 
@@ -30,321 +26,404 @@ class TestAzureCloudPartner(object):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
+    @patch('azure_img_utils.azure_image.get_durable_id')
     @patch('azure_img_utils.azure_image.process_request')
-    def test_get_offer_doc(self, mock_process_request):
+    def test_get_offer_doc(self, mock_process_request, mock_get_durable_id):
         mock_process_request.return_value = {'offer': 'doc'}
-        doc = self.image.get_offer_doc('sles', 'suse')
+        mock_get_durable_id.return_value = '123456789'
+        doc = self.image.get_offer_doc('sles')
         assert doc['offer'] == 'doc'
 
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_offer_exists(self, mock_process_request):
-        mock_process_request.return_value = {'offer': 'doc'}
-        exists = self.image.offer_exists('sles', 'suse')
+    @patch.object(AzureImage, 'get_offer_doc')
+    def test_offer_exists(self, mock_get_offer):
+        exists = self.image.offer_exists('sles')
         assert exists
 
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_offer_not_exists(self, mock_process_request):
-        response = MagicMock()
-        response.status_code = 404
-        mock_process_request.side_effect = HTTPError(
-            'Failed',
-            response=response
+    @patch.object(AzureImage, 'get_offer_doc')
+    def test_offer_not_exists(self, mock_get_offer):
+        mock_get_offer.side_effect = AzureCloudPartnerException(
+            'Failed'
         )
-        exists = self.image.offer_exists('sles', 'suse')
+        exists = self.image.offer_exists('sles')
         assert not exists
 
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_offer_exists_error(self, mock_process_request):
-        response = MagicMock()
-        response.status_code = 401
-        mock_process_request.side_effect = HTTPError(
-            'Failed',
-            response=response
-        )
-
-        with pytest.raises(HTTPError):
-            self.image.offer_exists('sles', 'suse')
-
-    @patch('azure_img_utils.azure_image.process_request')
+    @patch('azure_img_utils.cloud_partner.process_request')
     def test_upload_offer_doc(self, mock_process_request):
-        mock_process_request.return_value = {'offer': 'doc'}
-        doc = {'offer': 'doc'}
-        self.image.upload_offer_doc('sles', 'suse', doc)
-
-    @patch('azure_img_utils.azure_image.process_request')
-    @patch('azure_img_utils.cloud_partner.process_request')
-    def test_add_image_to_offer(self, mock_process_request, mock_preq2):
-        doc = {
-            'definition': {
-                'plans': [
-                    {
-                        'planId': 'gen1',
-                        'diskGenerations': [{'planId': 'image-gen2'}]
-                    }
-                ]
-            }
-        }
-
-        mock_process_request.return_value = doc
-        mock_preq2.return_value = doc
-
-        self.image.add_image_to_offer(
-            'image.raw',
-            'image123-v20111111',
-            'This is a great image!',
-            'sles',
-            'suse',
-            'suse-sles',
-            'gen1',
-            blob_url='bloburl',
-            generation_id='image-gen2',
-            generation_suffix='gen2'
-        )
-
-        vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
-        plan = doc['definition']['plans'][0]
-        generation = plan['diskGenerations'][0][vm_key]['2011.11.11']
-
-        assert plan['planId'] == 'gen1'
-        assert generation['mediaName'] == 'image123-v20111111-gen2'
-        assert generation['showInGui']
-
-        msg = 'No Match found for SKU: NOTgen1. ' \
-              'Offer doc not updated properly.'
-
-        with pytest.raises(AzureCloudPartnerException, match=msg):
-            self.image.add_image_to_offer(
-                'image.raw',
-                'image123-v20111111',
-                'This is a great image!',
-                'sles',
-                'suse',
-                'suse-sles',
-                'NOTgen1',
-                blob_url='bloburl',
-                generation_id='image-gen2',
-                generation_suffix='gen2'
-            )
-
-        msg = 'No Match found for Generation ID: NOTimage-gen2. ' \
-              'Offer doc not updated properly.'
-
-        with pytest.raises(AzureCloudPartnerException, match=msg):
-            self.image.add_image_to_offer(
-                'image.raw',
-                'image123-v20111111',
-                'This is a great image!',
-                'sles',
-                'suse',
-                'suse-sles',
-                'gen1',
-                blob_url='bloburl',
-                generation_id='NOTimage-gen2',
-                generation_suffix='gen2'
-            )
-
-    @patch('azure_img_utils.azure_image.process_request')
-    @patch('azure_img_utils.cloud_partner.process_request')
-    def test_remove_image_from_offer(self, mock_process_request, mock_preq2):
-        vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
-        doc = {
-            'definition': {
-                'plans': [
-                    {
-                        'planId': 'gen1',
-                        vm_key: {
-                            '2011.11.11': {
-                                'mediaName': 'image123-v20111111',
-                                'showInGui': True
-                            },
-                            '2021.11.11': {
-                                'mediaName': 'image123-v20211111',
-                                'showInGui': True
-                            }
-                        },
-                        'diskGenerations': [{
-                            'planId': 'gen2',
-                            vm_key: {'2011.11.11': {
-                                'mediaName': 'image123-v20111111-gen2',
-                                'showInGui': True
-                            }}
-                        }]
-                    }
-                ]
-            }
-        }
-
-        mock_process_request.return_value = doc
-        mock_preq2.return_value = doc
-        self.image.remove_image_from_offer('suse:sles:gen1:2011.11.11')
-
-        msg = 'Unable to remove 2011.11.11 from gen2. ' \
-              'This is the last version in the plan. ' \
-              'Please deprecate the offer or plan instead.'
-
-        with pytest.raises(AzureCloudPartnerException, match=msg):
-            self.image.remove_image_from_offer('suse:sles:gen2:2011.11.11')
-
-        plan = doc['definition']['plans'][0]
-        generations = plan['diskGenerations'][0][vm_key]
-
-        assert '2011.11.11' not in plan[vm_key]
-        assert '2011.11.11' in generations
-
-        msg = 'No match found for version: 2011.11.12 and Plan ID: gen1. ' \
-              'Offer doc not updated properly.'
-
-        with pytest.raises(AzureCloudPartnerException, match=msg):
-            self.image.remove_image_from_offer('suse:sles:gen1:2011.11.12')
-
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_publish_offer(self, mock_process_request):
-
-        response = MagicMock(spec=Response)
-        response.headers = {'Location': '/uri/to/operation/id'}
+        response = {'jobId': '123'}
         mock_process_request.return_value = response
 
-        operation = self.image.publish_offer('sles', 'suse', 'test@email.com')
-        assert operation == '/uri/to/operation/id'
+        doc = {'resources': [{'offer': 'doc'}]}
+        resp = self.image.upload_offer_doc(doc)
+        assert resp == '123'
 
-    def test_publish_offer_exception(self):
-        msg = 'notification_emails parameter is required for publish'
-
-        with pytest.raises(AzureImgUtilsException, match=msg):
-            self.image.publish_offer('sles', 'suse', '')
-
+    @patch('azure_img_utils.azure_image.submit_configure_request')
     @patch('azure_img_utils.azure_image.process_request')
-    def test_go_live_with_offer(self, mock_process_request):
-        response = MagicMock(spec=Response)
-        response.headers = {'Location': '/uri/to/operation/id'}
-        mock_process_request.return_value = response
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_add_image_to_offer(
+        self,
+        mock_process_request,
+        mock_preq2,
+        mock_sub_config_req
+    ):
+        doc = {
+            'resources': [
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/'
+                        'virtual-machine-plan-technical-configuration/'
+                        '2022-03-01-preview5'
+                    ),
+                    'plan': 'plan/1234/4321',
+                    'skus': [{
+                        'imageType': 'x64Gen1',
+                        'skuId': 'gen1'
+                    }],
+                    'vmImageVersions': []
+                },
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/plan/'
+                        '2022-03-01-preview2'
+                    ),
+                    'id': 'plan/1234/4321',
+                    'identity': {
+                        'externalId': 'gen1'
+                    },
+                }
+            ]
+        }
 
-        operation = self.image.go_live_with_offer('sles', 'suse')
-        assert operation == '/uri/to/operation/id'
-
-    @patch('azure_img_utils.azure_image.process_request')
-    def test_get_offer_status(self, mock_process_request):
         mock_process_request.return_value = {
-            'status': 'running',
-            'steps': [{
-                'stepName': 'publisher-signoff',
-                'status': 'waitingForPublisherReview'
+            'value': [{
+                'id': 'product/123456789'
             }]
         }
+        mock_preq2.return_value = doc
+        mock_sub_config_req.return_value = '123'
 
-        status = self.image.get_offer_status('sles', 'suse')
+        self.image.add_image_to_offer(
+            'blob.vhd',
+            'image123-v20111111',
+            'sles',
+            'gen1',
+            blob_url='bloburl'
+        )
+
+        plan = doc['resources'][0]['vmImageVersions'][0]
+
+        assert plan['versionNumber'] == '2011.11.11'
+        assert plan['lifecycleState'] == 'generallyAvailable'
+
+        msg = 'No Match found for SKU: gen2. ' \
+              'Offer doc not updated properly.'
+
+        with pytest.raises(AzureCloudPartnerException, match=msg):
+            self.image.add_image_to_offer(
+                'blob.vhd',
+                'image123-v20111112',
+                'sles',
+                'gen1',
+                blob_url='bloburl',
+                generation_id='gen2',
+            )
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.azure_image.get_offer_submissions')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_publish_offer(
+        self,
+        mock_process_request,
+        mock_get_submissions,
+        mock_get_durable_id
+    ):
+        response = {'jobId': '123'}
+        mock_process_request.return_value = response
+
+        mock_get_durable_id.return_value = '123456789'
+        mock_get_submissions.return_value = {
+            'value': [
+                {'target': {'targetType': 'preview', 'id': '321'}}
+            ]
+        }
+
+        operation = self.image.publish_offer('sles')
+        assert operation == '123'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.azure_image.get_offer_submissions')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_go_live_with_offer(
+        self,
+        mock_process_request,
+        mock_get_submissions,
+        mock_get_durable_id
+    ):
+        response = {'jobId': '123'}
+        mock_process_request.return_value = response
+
+        mock_get_durable_id.return_value = '123456789'
+        mock_get_submissions.return_value = {
+            'value': [
+                {'target': {'targetType': 'preview', 'id': '321'}}
+            ]
+        }
+
+        operation = self.image.go_live_with_offer('sles')
+        assert operation == '123'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_publishing(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'preview'},
+                    'status': 'running',
+                    'result': 'pending'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'running'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_publish_failed(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'preview'},
+                    'status': 'completed',
+                    'result': 'failed'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'failed'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_awaiting_review(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'preview'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
         assert status == 'waitingForPublisherReview'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_succeeded(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'succeeded'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_first_go_live(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'running',
+                    'result': 'pending'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'running'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_going_live(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                },
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'running',
+                    'result': 'pending'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'running'
+
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_offer_status_go_live_failed(
+        self,
+        mock_process_request,
+        mock_get_durable_id
+    ):
+        mock_get_durable_id.return_value = '123456789'
+        mock_process_request.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'succeeded'
+                },
+                {
+                    'target': {'targetType': 'live'},
+                    'status': 'completed',
+                    'result': 'failed'
+                }
+            ]
+        }
+
+        status = self.image.get_offer_status('sles')
+        assert status == 'failed'
 
     @patch('azure_img_utils.azure_image.process_request')
     def test_get_operation(self, mock_process_request):
         mock_process_request.return_value = {'operation': 'info'}
-        operation = self.image.get_operation('/uri/to/operation/id')
+        operation = self.image.get_operation('123')
         assert operation['operation'] == 'info'
 
     def test_deprecate_image_in_offer_1(self):
-        vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
         doc = {
-            'definition': {
-                'plans': [
-                    {
-                        'planId': 'gen1',
-                        vm_key: {'2011.11.11': {
-                            'mediaName': 'image123-v20111111-gen2',
-                            'showInGui': True
-                        }},
-                        'diskGenerations': [{
-                            'planId': 'gen2',
-                            vm_key: {'2011.11.11': {
-                                'mediaName': 'image123-v20111111-gen2',
-                                'showInGui': True
-                            }}
-                        }]
-                    }
-                ]
-            }
+            'vmImageVersions': [{
+                'versionNumber': '2011.11.11',
+                'lifecycleState': 'generallyAvailable',
+            }]
         }
 
         my_response = deprecate_image_in_offer_doc(
             doc,
-            'image123-v20111111-gen2',
-            'gen1',
-            logging.getLogger('azure_img_utils'),
-            vm_images_key=vm_key
+            '2011.11.11',
         )
 
-        image = my_response['definition']['plans'][0][vm_key]['2011.11.11']
+        image = my_response['vmImageVersions'][0]
 
-        assert image['showInGui'] is False
-
-    def test_deprecate_image_in_offer_2(self):
-        vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
-        simple_doc = {
-            'myKey': 'myValue'
-        }
-
-        my_response = deprecate_image_in_offer_doc(
-            simple_doc,
-            'image123-vNOT8DIGITS-gen2',
-            'gen1',
-            logging.getLogger('azure_img_utils').info,
-            vm_images_key=vm_key
-        )
-
-        assert my_response['myKey'] == simple_doc['myKey']
-
-    def test_deprecate_image_in_offer_3(self):
-        vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
-        doc = {
-            'definition': {
-                'plans': [
-                    {
-                        'planId': 'gen1',
-                        vm_key: {'2011.11.11': {
-                            'mediaName': 'image123-v20111111-gen2',
-                            'showInGui': True
-                        }},
-                        'diskGenerations': [{
-                            'planId': 'gen2',
-                            vm_key: {'2011.11.11': {
-                                'mediaName': 'image123-v20111111-gen2',
-                                'showInGui': True
-                            }}
-                        }]
-                    }
-                ]
-            }
-        }
-
-        # msg = 'No match found for version: 2011.11.12 and Plan ID: NOTgen1. '
-        #      'Offer doc not updated properly.'
-        with self._caplog.at_level(logging.INFO):
-            deprecate_image_in_offer_doc(
-                doc,
-                'image123-v20111111-gen3',
-                'gen1',
-                logging.getLogger('azure_img_utils').info,
-                vm_images_key=vm_key
-            )
-
-            msg = 'Deprecation image name, image123-v20111111-gen3 does not ' \
-                  'match the mediaName attribute, image123-v20111111-gen2.'
-            assert msg in self._caplog.text
+        assert image['lifecycleState'] == 'deprecated'
 
     def test_deprecate_image_in_offer_4(self):
-        vm_key = 'microsoft-azure-corevm.vmImagesPublicAzure'
         doc = {
-            'definition': {
-                'plans': []
-            }
+            'vmImageVersions': []
         }
 
-        msg = 'No Match found for image in the SKU: gen1. ' \
+        msg = 'No Match found for the image version: 2011.11.11. ' \
               'Offer doc not updated properly.'
         with pytest.raises(AzureCloudPartnerException, match=msg):
             deprecate_image_in_offer_doc(
                 doc,
-                'image123-v20111111-gen2',
-                'gen1',
-                logging.getLogger('azure_img_utils'),
-                vm_images_key=vm_key
+                '2011.11.11',
             )
+
+    @patch('azure_img_utils.azure_image.submit_configure_request')
+    @patch.object(AzureImage, 'get_offer_doc')
+    def test_remove_image_from_offer(
+        self,
+        mock_get_offer,
+        mock_sub_config_req
+    ):
+        doc = {
+            'resources': [
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/'
+                        'virtual-machine-plan-technical-configuration/'
+                        '2022-03-01-preview5'
+                    ),
+                    'plan': 'plan/1234/4321',
+                    'skus': [{
+                        'imageType': 'x64Gen1',
+                        'skuId': 'gen1'
+                    }],
+                    'vmImageVersions': [
+                        {
+                            'versionNumber': '2011.11.11',
+                            'vmImages': [
+                                {
+                                    'imageType': 'x64Gen1',
+                                    'source': {
+                                        'sourceType': 'sasUri',
+                                        'osDisk': {
+                                            'uri': 'bloburl'
+                                        },
+                                        'dataDisks': []
+                                    }
+                                }
+                            ],
+                            'lifecycleState': 'generallyAvailable'
+                        }
+                    ]
+                },
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/plan/'
+                        '2022-03-01-preview2'
+                    ),
+                    'id': 'plan/1234/4321',
+                    'identity': {
+                        'externalId': 'gen1'
+                    },
+                }
+            ]
+        }
+
+        mock_get_offer.return_value = doc
+        mock_sub_config_req.return_value = '123'
+
+        self.image.remove_image_from_offer(
+            'suse:sles:gen1:2011.11.11',
+        )
+
+        plan = doc['resources'][0]['vmImageVersions'][0]
+
+        assert plan['versionNumber'] == '2011.11.11'
+        assert plan['lifecycleState'] == 'deprecated'
