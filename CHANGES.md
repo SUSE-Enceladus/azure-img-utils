@@ -1,3 +1,8 @@
+v2.0.1 (2024-02-22)
+===================
+
+- Fix readme to match cloud partner function changes
+
 v2.0.0 (2024-02-22)
 ===================
 
