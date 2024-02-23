@@ -388,23 +388,15 @@ The subcommand is *azure-img-utils cloud-partner-offer publish*.
 The *required* parameters for the execution of the command (authentication
  aside):
 - --offer-id
-- --publisher-id
-- --notification-emails
-
-Note that 'notification-emails' parameter will be ignored for migrated offers
- and the notifications will be sent to the email address set as Seller
- contact info section of your Account settings in Partner Center.
 
 Example:
 
 ```shell
 $ azure-img-utils cloud-partner-offer publish \
-        --offer-id myOfferId \
-        --publisher-id myPublisherId \
-        --notification-emails "myMail1@mydomain.com,myMail2@mydomain.com"
+        --offer-id myOfferId
 ```
 
-This command will output the URI for the published cloud partner offer
+This command will output the job id for the published cloud partner offer
  operation if successful.
 
 For more information about the cloud partner offer publish command see the
@@ -422,7 +414,6 @@ The subcommand is *azure-img-utils cloud-partner-offer go-live*.
 The *required* parameters for the execution of the command (authentication
  aside):
 - --offer-id
-- --publisher-id
 
 The result of the subcommand is that all new changes made to the offer are
  publicly visible.
@@ -431,8 +422,7 @@ Example:
 
 ```shell
 $ azure-img-utils cloud-partner-offer go-live \
-        --offer-id myOfferId \
-        --publisher-id myPublisherId
+        --offer-id myOfferId
 ```
 
 This command will output the URI for the cloud partner offer go-live operation
@@ -455,7 +445,6 @@ The subcommand is *azure-img-utils cloud-partner-offer upload-offer-document*.
 The *required* parameters for the execution of the command (authentication
  aside):
 - --offer-id
-- --publisher-id
 - --offer-document-file
 
 The '--offer-document-file' parameter has to contain the path for a text file
@@ -466,7 +455,6 @@ Example:
 ```shell
 $ azure-img-utils cloud-partner-offer upload-offer-document \
         --offer-id myOfferId \
-        --publisher-id myPublisherId \
         --offer-document-file /path/to/my/documentfile.json
 ```
 
@@ -490,17 +478,12 @@ The *required* parameters for the execution of the command (authentication
  aside):
 - --blob-name
 - --image-name
-- --image-description
 - --offer-id
-- --publisher-id
-- --label
 - --sku
 
 Some *optional* parameters for the execution of the command include:
 - --blob-url  (A blob-url is generated if not provided)
 - --generation-id
-- --generation-suffix
-- --vm-images-key
 
 Example:
 
@@ -508,10 +491,7 @@ Example:
 $ azure-img-utils cloud-partner-offer add-image-to-offer \
         --blob-name myBlobName \
         --image-name myImageName \
-        --image-description "My image description" \
         --offer-id myOfferId \
-        --publisher-id myPublisherId \
-        --label myLabel \
         --sku mySKU
 ```
 
@@ -534,9 +514,6 @@ The subcommand is *azure-img-utils cloud-partner-offer remove-image-from-offer*.
 The *required* parameters for the execution of the command (authentication
  aside):
 - --image-urn
-
-Some *optional* parameters for the execution of the command include:
-- --vm-images-key
 
 Example:
 
@@ -693,8 +670,7 @@ image_name = azure_image.create_gallery_image_version(
 ### Get offer doc dictionary
 ```python
 offer_doc = azure_image.get_offer_doc(
-    "my_offer_id",
-    "my_publisher_id"
+    "my_offer_id"
 )
 ```
 
@@ -702,7 +678,6 @@ offer_doc = azure_image.get_offer_doc(
 ```python
 azure_image.upload_offer_doc(
     "my_offer_id",
-    "my_publisher_id"
     my_offer_doc_dict
 )
 ```
@@ -712,45 +687,36 @@ azure_image.upload_offer_doc(
 azure_image.add_image_to_offer(
     "my_blob_name",
     "my_image_name",
-    "my image description...",
     "my_offer_id",
-    "my_publisher_id",
-    "my_label",
     "my_sku",
     blob_url="https://my.blob.url",
-    generation_id="my_generation_id",
-    generation_suffix="my_generation_suffix",
-    vm_images_key="my_images_key"
+    generation_id="my_generation_id"
 )
 ```
 
 ### Remove image from offer
 ```python
-azure_image.add_image_to_offer("my_image_urn")
+azure_image.remove_image_from_offer("my_image_urn")
 ```
 
 ### Publish offer
 ```python
 operation_uri = azure_image.publish_offer(
-    "my_offer_id",
-    "my_publisher_id",
-    "my_notification_emaili1@whatever.com,my_not_email2@somedomain.com'
+    "my_offer_id"
 )
 ```
 
 ### Go live with offer
 ```python
 operation_uri = azure_image.go_live_with_offer(
-    "my_offer_id",
-    "my_publisher_id",
+    "my_offer_id"
 )
 ```
 
 ### Get offer status
 ```python
 offer_status = azure_image.get_offer_status(
-    "my_offer_id",
-    "my_publisher_id",
+    "my_offer_id"
 )
 ```
 
