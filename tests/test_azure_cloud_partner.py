@@ -1,12 +1,13 @@
 import pytest
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.cloud_partner import deprecate_image_in_offer_doc
 
 from azure_img_utils.exceptions import (
-    AzureCloudPartnerException
+    AzureCloudPartnerException,
+    AzureImgUtilsException
 )
 
 
@@ -47,15 +48,26 @@ class TestAzureCloudPartner(object):
         exists = self.image.offer_exists('sles')
         assert not exists
 
+    @patch.object(AzureImage, 'wait_on_operation')
     @patch('azure_img_utils.cloud_partner.process_request')
-    def test_upload_offer_doc(self, mock_process_request):
+    def test_upload_offer_doc(
+        self,
+        mock_process_request,
+        mock_wait_on_operation
+    ):
         response = {'jobId': '123'}
         mock_process_request.return_value = response
+
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
 
         doc = {'resources': [{'offer': 'doc'}]}
         resp = self.image.upload_offer_doc(doc)
         assert resp == '123'
 
+    @patch.object(AzureImage, 'wait_on_operation')
     @patch('azure_img_utils.azure_image.submit_configure_request')
     @patch('azure_img_utils.azure_image.process_request')
     @patch('azure_img_utils.cloud_partner.process_request')
@@ -63,8 +75,14 @@ class TestAzureCloudPartner(object):
         self,
         mock_process_request,
         mock_preq2,
-        mock_sub_config_req
+        mock_sub_config_req,
+        mock_wait_on_operation
     ):
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
+
         doc = {
             'resources': [
                 {
@@ -127,6 +145,7 @@ class TestAzureCloudPartner(object):
                 generation_id='gen2',
             )
 
+    @patch.object(AzureImage, 'wait_on_operation')
     @patch('azure_img_utils.azure_image.get_durable_id')
     @patch('azure_img_utils.azure_image.get_offer_submissions')
     @patch('azure_img_utils.cloud_partner.process_request')
@@ -134,7 +153,8 @@ class TestAzureCloudPartner(object):
         self,
         mock_process_request,
         mock_get_submissions,
-        mock_get_durable_id
+        mock_get_durable_id,
+        mock_wait_on_operation
     ):
         response = {'jobId': '123'}
         mock_process_request.return_value = response
@@ -146,9 +166,15 @@ class TestAzureCloudPartner(object):
             ]
         }
 
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
+
         operation = self.image.publish_offer('sles')
         assert operation == '123'
 
+    @patch.object(AzureImage, 'wait_on_operation')
     @patch('azure_img_utils.azure_image.get_durable_id')
     @patch('azure_img_utils.azure_image.get_offer_submissions')
     @patch('azure_img_utils.cloud_partner.process_request')
@@ -156,7 +182,8 @@ class TestAzureCloudPartner(object):
         self,
         mock_process_request,
         mock_get_submissions,
-        mock_get_durable_id
+        mock_get_durable_id,
+        mock_wait_on_operation
     ):
         response = {'jobId': '123'}
         mock_process_request.return_value = response
@@ -166,6 +193,11 @@ class TestAzureCloudPartner(object):
             'value': [
                 {'target': {'targetType': 'preview', 'id': '321'}}
             ]
+        }
+
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
         }
 
         operation = self.image.go_live_with_offer('sles')
@@ -364,13 +396,20 @@ class TestAzureCloudPartner(object):
                 '2011.11.11',
             )
 
+    @patch.object(AzureImage, 'wait_on_operation')
     @patch('azure_img_utils.azure_image.submit_configure_request')
     @patch.object(AzureImage, 'get_offer_doc')
     def test_remove_image_from_offer(
         self,
         mock_get_offer,
-        mock_sub_config_req
+        mock_sub_config_req,
+        mock_wait_on_operation
     ):
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
+
         doc = {
             'resources': [
                 {
@@ -427,3 +466,34 @@ class TestAzureCloudPartner(object):
 
         assert plan['versionNumber'] == '2011.11.11'
         assert plan['lifecycleState'] == 'deprecated'
+
+    @patch('azure_img_utils.azure_image.time')
+    @patch('azure_img_utils.azure_image.process_request')
+    def test_wait_on_operation(self, mock_process_request, mock_sleep):
+        mock_process_request.side_effect = [
+            {
+                'jobStatus': 'running'
+            },
+            {
+                'jobStatus': 'completed',
+                'jobResult': 'succeeded'
+            }
+        ]
+        operation = self.image.wait_on_operation('123')
+        assert operation['jobResult'] == 'succeeded'
+
+    @patch.object(AzureImage, 'wait_on_operation')
+    @patch('azure_img_utils.azure_image.submit_configure_request')
+    def test_submit_request(
+        self,
+        mock_submit_request,
+        mock_wait_on_operation
+    ):
+        mock_submit_request.return_value = '123'
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'failed'
+        }
+
+        with pytest.raises(AzureImgUtilsException):
+            self.image.submit_request(Mock())

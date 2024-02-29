@@ -25,6 +25,7 @@ import json
 import logging
 import lzma
 import os
+import time
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
@@ -480,6 +481,29 @@ class AzureImage(object):
         )
         return response
 
+    def submit_request(
+        self,
+        resource
+    ):
+        """
+        Submit a configuration request and wait for operation to finish
+
+        If the operation fails raise an exception.
+        """
+        headers = get_cloud_partner_api_headers(self.access_token)
+        job_id = submit_configure_request(headers, resource)
+
+        operation = self.wait_on_operation(job_id)
+
+        if operation.get('jobResult') == 'failed':
+            msg = 'Failed to update resource: '
+            for error in operation.get('errors', []):
+                msg += error.get('message', '')
+                msg += ' '
+            raise AzureImgUtilsException(msg)
+
+        return job_id
+
     def upload_offer_doc(
         self,
         offer_doc: dict
@@ -489,8 +513,7 @@ class AzureImage(object):
 
         offer_doc is a dictionary defining the offer details.
         """
-        headers = get_cloud_partner_api_headers(self.access_token)
-        job_id = submit_configure_request(headers, offer_doc['resources'])
+        job_id = self.submit_request(offer_doc['resources'])
         return job_id
 
     def update_resource_in_offer(
@@ -502,8 +525,7 @@ class AzureImage(object):
 
         resource_doc is a dictionary defining the resource details.
         """
-        headers = get_cloud_partner_api_headers(self.access_token)
-        job_id = submit_configure_request(headers, [resource_doc])
+        job_id = self.submit_request([resource_doc])
         return job_id
 
     def add_image_to_offer(
@@ -603,7 +625,7 @@ class AzureImage(object):
             }
         ]
 
-        job_id = submit_configure_request(headers, resources)
+        job_id = self.submit_request(resources)
         return job_id
 
     def go_live_with_offer(
@@ -638,7 +660,7 @@ class AzureImage(object):
             }
         ]
 
-        job_id = submit_configure_request(headers, resources)
+        job_id = self.submit_request(resources)
         return job_id
 
     def get_offer_status(self, offer_id: str) -> str:
@@ -699,6 +721,19 @@ class AzureImage(object):
                     return result
 
         return 'unkown'
+
+    def wait_on_operation(self, operation_id: str) -> dict:
+        """
+        Wait until the operation finishes then return the dictionary status
+        """
+        while True:
+            operation = self.get_operation(operation_id)
+
+            status = operation.get('jobStatus', 'unknown')
+            if status in ('completed', 'unkown'):
+                return operation
+
+            time.sleep(1)
 
     def get_operation(self, operation: str) -> dict:
         """
