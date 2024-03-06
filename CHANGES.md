@@ -1,3 +1,8 @@
+v2.1.0 (2024-03-06)
+===================
+
+- Add waiter method to get status for async operations
+
 v2.0.1 (2024-02-22)
 ===================
 
