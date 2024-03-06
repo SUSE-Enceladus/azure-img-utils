@@ -722,18 +722,33 @@ class AzureImage(object):
 
         return 'unkown'
 
-    def wait_on_operation(self, operation_id: str) -> dict:
+    def wait_on_operation(
+        self,
+        operation_id: str,
+        timeout: int = 600
+    ) -> dict:
         """
         Wait until the operation finishes then return the dictionary status
         """
-        while True:
+        time_left = timeout
+        wait = 1
+
+        while time_left > 0:
             operation = self.get_operation(operation_id)
 
             status = operation.get('jobStatus', 'unknown')
             if status in ('completed', 'unkown'):
                 return operation
 
-            time.sleep(1)
+            sleep_time = min(wait, time_left)
+            time.sleep(sleep_time)
+            time_left -= sleep_time
+            wait *= 2
+
+        raise AzureImgUtilsException(
+            f'Timeout waiting for operation {operation_id} to finish. '
+            f'Current status is {status}.'
+        )
 
     def get_operation(self, operation: str) -> dict:
         """
