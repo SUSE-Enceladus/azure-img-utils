@@ -483,7 +483,8 @@ class AzureImage(object):
 
     def submit_request(
         self,
-        resource
+        resource,
+        wait: bool = True
     ):
         """
         Submit a configuration request and wait for operation to finish
@@ -493,14 +494,15 @@ class AzureImage(object):
         headers = get_cloud_partner_api_headers(self.access_token)
         job_id = submit_configure_request(headers, resource)
 
-        operation = self.wait_on_operation(job_id)
+        if wait:
+            operation = self.wait_on_operation(job_id)
 
-        if operation.get('jobResult') == 'failed':
-            msg = 'Failed to update resource: '
-            for error in operation.get('errors', []):
-                msg += error.get('message', '')
-                msg += ' '
-            raise AzureImgUtilsException(msg)
+            if operation.get('jobResult') == 'failed':
+                msg = 'Failed to update resource: '
+                for error in operation.get('errors', []):
+                    msg += error.get('message', '')
+                    msg += ' '
+                raise AzureImgUtilsException(msg)
 
         return job_id
 
@@ -625,7 +627,7 @@ class AzureImage(object):
             }
         ]
 
-        job_id = self.submit_request(resources)
+        job_id = self.submit_request(resources, wait=False)
         return job_id
 
     def go_live_with_offer(
@@ -660,7 +662,7 @@ class AzureImage(object):
             }
         ]
 
-        job_id = self.submit_request(resources)
+        job_id = self.submit_request(resources, wait=False)
         return job_id
 
     def get_offer_status(self, offer_id: str) -> str:
