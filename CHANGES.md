@@ -1,3 +1,9 @@
+v2.2.0 (2024-03-08)
+===================
+
+- Add optional wait arg to submit_request
+- Do not wait on publish or go live operations
+
 v2.1.0 (2024-03-06)
 ===================
 
