@@ -1,5 +1,5 @@
 #
-# spec file for package python3-azure-img-utils
+# spec file for package python-azure-img-utils
 #
 # Copyright (c) 2021 SUSE LLC
 #
@@ -15,8 +15,9 @@
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
-
-Name:           python3-azure-img-utils
+%{?sle15_python_module_pythons}
+%global skip_python2 1
+Name:           python-azure-img-utils
 Version:        2.2.0
 Release:        0
 Summary:        Package that provides utilities for handling images in Azure Cloud
@@ -24,43 +25,49 @@ License:        GPL-3.0-or-later
 URL:            https://github.com/SUSE-Enceladus/azure-img-utils
 Source:         https://files.pythonhosted.org/packages/source/a/azure-img-utils/azure-img-utils-%{version}.tar.gz
 BuildRequires:  python-rpm-macros
-BuildRequires:  python3-msal
-BuildRequires:  python3-azure-identity
-BuildRequires:  python3-azure-mgmt-compute >= 26.1.0
-BuildRequires:  python3-azure-mgmt-storage
-BuildRequires:  python3-azure-storage-blob >= 12.2.0
-BuildRequires:  python3-requests
-BuildRequires:  python3-jmespath
-BuildRequires:  python3-click
-BuildRequires:  python3-pytest
-Requires:       python3-msal
-Requires:       python3-azure-identity
-Requires:       python3-azure-mgmt-compute >= 26.1.0
-Requires:       python3-azure-mgmt-storage
-Requires:       python3-azure-storage-blob >= 12.2.0
-Requires:       python3-requests
-Requires:       python3-jmespath
-Requires:       python3-click
+BuildRequires:  %{python_module msal}
+BuildRequires:  %{python_module azure-identity}
+BuildRequires:  %{python_module azure-mgmt-compute >= 26.1.0}
+BuildRequires:  %{python_module azure-mgmt-storage}
+BuildRequires:  %{python_module azure-storage-blob >= 12.0.1}
+BuildRequires:  %{python_module requests}
+BuildRequires:  %{python_module jmespath}
+BuildRequires:  %{python_module click}
+BuildRequires:  %{python_module pytest}
+BuildRequires:  %{python_module PyYAML}
+BuildRequires:  %{python_module pip}
+BuildRequires:  %{python_module wheel}
+Requires:       python-msal
+Requires:       python-azure-identity
+Requires:       python-azure-mgmt-compute >= 26.1.0
+Requires:       python-azure-mgmt-storage
+Requires:       python-azure-storage-blob >= 12.0.1
+Requires:       python-requests
+Requires:       python-jmespath
+Requires:       python-click
+Requires:       python-PyYAML
+%python_subpackages
 
 %description
 Package that provides utilities for handling images in Azure Cloud.
 
 %prep
-%setup -q -n azure-img-utils-%{version}
+%autosetup -n azure-img-utils-%{version}
 
 %build
-python3 setup.py build
+%pyproject_wheel
 
 %install
-python3 setup.py install --prefix=%{_prefix} --root=%{buildroot}
+%pyproject_install
 
 %check
-python3 -m pytest -k "not test_cli"
+%pytest -k "not test_cli"
 
-%files
+%files %{python_files}
 %license LICENSE
 %doc CHANGES.md README.md
-%{python3_sitelib}/*
+%{python_sitelib}/*
 %{_bindir}/azure-img-utils
 
 %changelog
+
