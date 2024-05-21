@@ -2,4 +2,4 @@ workflow:
   steps:
     - branch_package:
         source_project: Cloud:Tools:CI
-        source_package: python3-azure-img-utils
+        source_package: python-azure-img-utils
