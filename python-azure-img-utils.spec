@@ -17,6 +17,13 @@
 
 %{?sle15_python_module_pythons}
 %global skip_python2 1
+
+%if 0%{?suse_version} > 1500
+%bcond_without libalternatives
+%else
+%bcond_with libalternatives
+%endif
+
 Name:           python-azure-img-utils
 Version:        2.2.0
 Release:        0
@@ -46,6 +53,16 @@ Requires:       python-requests
 Requires:       python-jmespath
 Requires:       python-click
 Requires:       python-PyYAML
+%if %{with libalternatives}
+BuildRequires:  alts
+Requires:       alts
+%else
+Requires(post): update-alternatives
+Requires(postun): update-alternatives
+%endif
+
+Provides:       python3-azure-img-utils = %{version}
+Obsoletes:      python3-azure-img-utils < %{version}
 %python_subpackages
 
 %description
@@ -59,15 +76,25 @@ Package that provides utilities for handling images in Azure Cloud.
 
 %install
 %pyproject_install
+%python_clone -a %{buildroot}%{_bindir}/azure-img-utils
 
 %check
 %pytest -k "not test_cli"
+
+%pre
+%python_libalternatives_reset_alternative azure-img-utils
+
+%post
+%{python_install_alternative azure-img-utils}
+
+%postun
+%{python_uninstall_alternative azure-img-utils}
 
 %files %{python_files}
 %license LICENSE
 %doc CHANGES.md README.md
 %{python_sitelib}/*
-%{_bindir}/azure-img-utils
+%python_alternative %{_bindir}/azure-img-utils
 
 %changelog
 
