@@ -404,6 +404,7 @@ For more information about the cloud partner offer publish command see the
 
 ```shell
 $ azure-img-utils cloud-partner-offer publish --help
+```
 
 ### go-live subcommand
 
