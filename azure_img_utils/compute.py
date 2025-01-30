@@ -50,10 +50,10 @@ def create_gallery_image_definition_version(
         'storage_profile': {
             'os_disk_image': {
                 'source': {
-                    'id': f'/subscriptions/{subscription_id}/'
-                          f'resourceGroups/{resource_group}/'
-                          'providers/Microsoft.Storage/'
-                          f'storageAccounts/{storage_account}',
+                    'storageAccountId': f'/subscriptions/{subscription_id}/'
+                                        f'resourceGroups/{resource_group}/'
+                                        'providers/Microsoft.Storage/'
+                                        f'storageAccounts/{storage_account}',
                     'uri': f'https://{storage_account}.blob.core.windows.net/'
                            f'{container}/{blob_name}'
                 },
