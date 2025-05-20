@@ -1,3 +1,9 @@
+v2.4.0 (2025-05-20)
+===================
+
+- Migrate to new arg name for image creation
+- Build for one version of python
+
 v2.3.0 (2024-05-23)
 ===================
 
