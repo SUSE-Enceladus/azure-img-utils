@@ -30,6 +30,7 @@ INGESTION_API = 'https://graph.microsoft.com/rp/product-ingestion/'
 VM_IMAGES_KEY = 'vmImageVersions'
 PLAN_SCHEMA = 'https://schema.mp.microsoft.com/schema/plan/'
 TECH_CONFIG_SCHEMA = 'virtual-machine-plan-technical-configuration'
+CONTAINER_TECH_CONFIG_SCHEMA = 'container-plan-technical-configuration'
 
 
 def get_resource_endpoint(
@@ -63,7 +64,8 @@ def get_durable_id(
 
 def get_technical_details(
     offer_doc: dict,
-    plan_id: str
+    plan_id: str,
+    container_offer: bool = False
 ):
     for resource in offer_doc['resources']:
         if (
@@ -77,9 +79,14 @@ def get_technical_details(
             f'No plan found for id: {plan_id}'
         )
 
+    if container_offer:
+        tech_details_config_schema = CONTAINER_TECH_CONFIG_SCHEMA
+    else:
+        tech_details_config_schema = TECH_CONFIG_SCHEMA
+
     for resource in offer_doc['resources']:
         if (
-            TECH_CONFIG_SCHEMA in resource['$schema'] and
+            tech_details_config_schema in resource['$schema'] and
             resource['plan'] == durable_id
         ):
             return resource

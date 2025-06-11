@@ -3,7 +3,10 @@ import pytest
 from unittest.mock import patch, Mock
 
 from azure_img_utils.azure_image import AzureImage
-from azure_img_utils.cloud_partner import deprecate_image_in_offer_doc
+from azure_img_utils.cloud_partner import (
+    deprecate_image_in_offer_doc,
+    get_technical_details
+)
 
 from azure_img_utils.exceptions import (
     AzureCloudPartnerException,
@@ -497,3 +500,86 @@ class TestAzureCloudPartner(object):
 
         with pytest.raises(AzureImgUtilsException):
             self.image.submit_request(Mock())
+
+    def test_get_technical_details(self):
+        # VMs successful case
+        doc = {
+            'resources': [
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/'
+                        'virtual-machine-plan-technical-configuration/'
+                        '2022-03-01-preview5'
+                    ),
+                    'plan': 'plan/1234/4321',
+                    'skus': [{
+                        'imageType': 'x64Gen1',
+                        'skuId': 'gen1'
+                    }],
+                    'vmImageVersions': []
+                },
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/plan/'
+                        '2022-03-01-preview2'
+                    ),
+                    'id': 'plan/1234/4321',
+                    'identity': {
+                        'externalId': 'gen1'
+                    },
+                }
+            ]
+        }
+
+        result = get_technical_details(doc, 'gen1')
+        assert result['plan'] == 'plan/1234/4321'
+
+        # VM unsuccessful case. Not plan found
+        with pytest.raises(AzureCloudPartnerException) as error:
+            get_technical_details(doc, 'gen2')
+        assert 'No plan found for id: gen2' in str(error)
+
+        # VM unsuccessful case. Not technical details found
+        doc['resources'][0]['plan'] = 'different_plan'
+        with pytest.raises(AzureCloudPartnerException) as error:
+            get_technical_details(doc, 'gen1')
+        assert (
+            'No technical details found for plan durable id: plan/1234/4321'
+        ) in str(error)
+
+        # Container based product successful case
+
+        container_doc = {
+            'resources': [
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/'
+                        'container-plan-technical-configuration/'
+                        '2022-03-01-preview5'
+                    ),
+                    'plan': 'plan/9876/6789',
+                    'skus': [{
+                        'imageType': 'x64Gen1',
+                        'skuId': 'gen1'
+                    }],
+                    'vmImageVersions': []
+                },
+
+                {
+                  "$schema": (
+                    "https://schema.mp.microsoft.com/schema/plan"
+                    "/2022-03-01-preview3"
+                  ),
+                  "id": "plan/9876/6789",
+                  "identity": {
+                    "externalId": "payg"
+                  }
+                },
+            ]
+        }
+        result = get_technical_details(
+            container_doc,
+            'payg',
+            container_offer=True
+        )
+        assert result['plan'] == 'plan/9876/6789'
