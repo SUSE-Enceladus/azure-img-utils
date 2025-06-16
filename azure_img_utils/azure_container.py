@@ -41,7 +41,7 @@ from azure_img_utils.cloud_partner import (
 
 class AzureContainer(object):
     """
-    Provides methods for handling compute images in Azure.
+    Provides methods for handling Azure container based products in Azure.
     """
 
     def __init__(
