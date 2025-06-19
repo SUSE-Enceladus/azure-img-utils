@@ -20,10 +20,10 @@ class TestAzureCcontainer(object):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
-    @patch('azure_img_utils.azure_container.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.get_durable_id')
     @patch('azure_img_utils.azure_container.acquire_access_token')
-    @patch('azure_img_utils.azure_container.get_resource_endpoint')
-    @patch('azure_img_utils.azure_container.process_request')
+    @patch('azure_img_utils.cloud_partner.get_resource_endpoint')
+    @patch('azure_img_utils.cloud_partner.process_request')
     def test_offer_exists(
         self,
         mock_process_request,

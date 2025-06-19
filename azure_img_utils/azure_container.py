@@ -32,10 +32,7 @@ from azure_img_utils.exceptions import (
 )
 
 from azure_img_utils.cloud_partner import (
-    get_cloud_partner_api_headers,
-    get_resource_endpoint,
-    process_request,
-    get_durable_id
+    get_offer_doc
 )
 
 
@@ -92,16 +89,12 @@ class AzureContainer(object):
         """
         Return the offer doc dictionary for the given offer.
         """
-        headers = get_cloud_partner_api_headers(self.access_token)
-        durable_id = '/'.join(['product', get_durable_id(headers, offer_id)])
-        endpoint = get_resource_endpoint(durable_id, target_type)
-        response = process_request(
-            endpoint,
-            headers,
-            method='get',
-            retries=retries
+        return get_offer_doc(
+            self.access_token,
+            offer_id,
+            target_type,
+            retries
         )
-        return response
 
     @property
     def credentials(self):
