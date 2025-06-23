@@ -23,7 +23,10 @@ import time
 
 from datetime import date, datetime
 
-from azure_img_utils.exceptions import AzureCloudPartnerException
+from azure_img_utils.exceptions import (
+    AzureImgUtilsException,
+    AzureCloudPartnerException
+)
 from requests.exceptions import HTTPError
 
 INGESTION_API = 'https://graph.microsoft.com/rp/product-ingestion/'
@@ -330,3 +333,71 @@ def get_offer_doc(
         retries=retries
     )
     return response
+
+
+def submit_request(
+    access_token,
+    resource,
+    wait: bool = True
+):
+    """
+    Submit a configuration request and wait for operation to finish
+    If the operation fails raise an exception.
+    """
+    headers = get_cloud_partner_api_headers(access_token)
+    job_id = submit_configure_request(headers, resource)
+
+    if wait:
+        operation = wait_on_operation(job_id)
+
+        if operation.get('jobResult') == 'failed':
+            msg = 'Failed to update resource: '
+            for error in operation.get('errors', []):
+                msg += error.get('message', '')
+                msg += ' '
+            raise AzureImgUtilsException(msg)
+
+    return job_id
+
+
+def get_operation(access_token: str, operation: str) -> dict:
+    """
+    Returns a dictionary status for the given operation.
+    """
+    headers = get_cloud_partner_api_headers(access_token)
+    endpoint = '/'.join([INGESTION_API, 'configure', operation, 'status'])
+
+    response = process_request(
+        endpoint,
+        headers
+    )
+    return response
+
+
+def wait_on_operation(
+    access_token: str,
+    operation_id: str,
+    timeout: int = 600
+) -> dict:
+    """
+    Wait until the operation finishes then return the dictionary status
+    """
+    time_left = timeout
+    wait = 1
+
+    while time_left > 0:
+        operation = get_operation(access_token, operation_id)
+
+        status = operation.get('jobStatus', 'unknown')
+        if status in ('completed', 'unkown'):
+            return operation
+
+        sleep_time = min(wait, time_left)
+        time.sleep(sleep_time)
+        time_left -= sleep_time
+        wait *= 2
+
+    raise AzureImgUtilsException(
+        f'Timeout waiting for operation {operation_id} to finish. '
+        f'Current status is {status}.'
+    )
