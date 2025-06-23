@@ -30,8 +30,8 @@ class TestAzureCloudPartner(object):
     def inject_fixtures(self, caplog):
         self._caplog = caplog
 
-    @patch('azure_img_utils.azure_image.get_durable_id')
-    @patch('azure_img_utils.azure_image.process_request')
+    @patch('azure_img_utils.cloud_partner.get_durable_id')
+    @patch('azure_img_utils.cloud_partner.process_request')
     def test_get_offer_doc(self, mock_process_request, mock_get_durable_id):
         mock_process_request.return_value = {'offer': 'doc'}
         mock_get_durable_id.return_value = '123456789'
@@ -72,12 +72,12 @@ class TestAzureCloudPartner(object):
 
     @patch.object(AzureImage, 'wait_on_operation')
     @patch('azure_img_utils.azure_image.submit_configure_request')
-    @patch('azure_img_utils.azure_image.process_request')
+    @patch('azure_img_utils.azure_image.get_offer_doc')
     @patch('azure_img_utils.cloud_partner.process_request')
     def test_add_image_to_offer(
         self,
         mock_process_request,
-        mock_preq2,
+        mock_get_offer,
         mock_sub_config_req,
         mock_wait_on_operation
     ):
@@ -119,7 +119,7 @@ class TestAzureCloudPartner(object):
                 'id': 'product/123456789'
             }]
         }
-        mock_preq2.return_value = doc
+        mock_get_offer.return_value = doc
         mock_sub_config_req.return_value = '123'
 
         self.image.add_image_to_offer(

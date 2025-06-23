@@ -309,3 +309,24 @@ def submit_configure_request(
     )
 
     return response['jobId']
+
+
+def get_offer_doc(
+    access_token: str,
+    offer_id: str,
+    target_type: str = 'draft',
+    retries: int = 5
+) -> dict:
+    """
+    Returns the offer doc dictionary for the given offer.
+    """
+    headers = get_cloud_partner_api_headers(access_token)
+    durable_id = '/'.join(['product', get_durable_id(headers, offer_id)])
+    endpoint = get_resource_endpoint(durable_id, target_type)
+    response = process_request(
+        endpoint,
+        headers,
+        method='get',
+        retries=retries
+    )
+    return response

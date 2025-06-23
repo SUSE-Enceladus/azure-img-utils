@@ -56,14 +56,14 @@ from azure_img_utils.compute import (
 from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     get_cloud_partner_api_headers,
-    get_resource_endpoint,
     process_request,
     get_durable_id,
     INGESTION_API,
     get_offer_submissions,
     deprecate_image_in_offer_doc,
     submit_configure_request,
-    get_technical_details
+    get_technical_details,
+    get_offer_doc
 )
 
 
@@ -469,17 +469,12 @@ class AzureImage(object):
         """
         Return the offer doc dictionary for the given offer.
         """
-        headers = get_cloud_partner_api_headers(self.access_token)
-        durable_id = '/'.join(['product', get_durable_id(headers, offer_id)])
-        endpoint = get_resource_endpoint(durable_id, target_type)
-
-        response = process_request(
-            endpoint,
-            headers,
-            method='get',
-            retries=retries
+        return get_offer_doc(
+            self.access_token,
+            offer_id,
+            target_type,
+            retries
         )
-        return response
 
     def submit_request(
         self,
