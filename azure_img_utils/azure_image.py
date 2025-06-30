@@ -56,9 +56,7 @@ from azure_img_utils.compute import (
 from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     get_cloud_partner_api_headers,
-    process_request,
     get_durable_id,
-    INGESTION_API,
     get_offer_submissions,
     deprecate_image_in_offer_doc,
     submit_configure_request,
