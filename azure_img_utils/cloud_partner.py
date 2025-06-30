@@ -330,3 +330,17 @@ def get_offer_doc(
         retries=retries
     )
     return response
+
+
+def get_operation(access_token: str, operation: str) -> dict:
+    """
+    Returns a dictionary status for the given operation.
+    """
+    headers = get_cloud_partner_api_headers(access_token)
+    endpoint = '/'.join([INGESTION_API, 'configure', operation, 'status'])
+
+    response = process_request(
+        endpoint,
+        headers
+    )
+    return response
