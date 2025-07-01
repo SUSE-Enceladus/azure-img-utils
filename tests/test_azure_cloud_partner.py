@@ -371,9 +371,9 @@ class TestAzureCloudPartner(object):
         status = self.image.get_offer_status('sles')
         assert status == 'failed'
 
-    @patch('azure_img_utils.azure_image.get_operation')
-    def test_get_operation(self, mock_get_operation):
-        mock_get_operation.return_value = {'operation': 'info'}
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_get_operation(self, mock_process_request):
+        mock_process_request.return_value = {'operation': 'info'}
         operation = self.image.get_operation('123')
         assert operation['operation'] == 'info'
 
