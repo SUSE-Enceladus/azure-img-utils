@@ -25,7 +25,6 @@ import json
 import logging
 import lzma
 import os
-import time
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.compute import ComputeManagementClient
@@ -59,9 +58,9 @@ from azure_img_utils.cloud_partner import (
     get_durable_id,
     get_offer_submissions,
     deprecate_image_in_offer_doc,
-    submit_configure_request,
     get_technical_details,
     get_offer_doc,
+    submit_request,
     get_operation
 )
 
@@ -485,20 +484,7 @@ class AzureImage(object):
 
         If the operation fails raise an exception.
         """
-        headers = get_cloud_partner_api_headers(self.access_token)
-        job_id = submit_configure_request(headers, resource)
-
-        if wait:
-            operation = self.wait_on_operation(job_id)
-
-            if operation.get('jobResult') == 'failed':
-                msg = 'Failed to update resource: '
-                for error in operation.get('errors', []):
-                    msg += error.get('message', '')
-                    msg += ' '
-                raise AzureImgUtilsException(msg)
-
-        return job_id
+        return submit_request(self.access_token, resource, wait)
 
     def upload_offer_doc(
         self,
@@ -717,34 +703,6 @@ class AzureImage(object):
                     return result
 
         return 'unkown'
-
-    def wait_on_operation(
-        self,
-        operation_id: str,
-        timeout: int = 600
-    ) -> dict:
-        """
-        Wait until the operation finishes then return the dictionary status
-        """
-        time_left = timeout
-        wait = 1
-
-        while time_left > 0:
-            operation = self.get_operation(operation_id)
-
-            status = operation.get('jobStatus', 'unknown')
-            if status in ('completed', 'unkown'):
-                return operation
-
-            sleep_time = min(wait, time_left)
-            time.sleep(sleep_time)
-            time_left -= sleep_time
-            wait *= 2
-
-        raise AzureImgUtilsException(
-            f'Timeout waiting for operation {operation_id} to finish. '
-            f'Current status is {status}.'
-        )
 
     def get_operation(self, operation: str) -> dict:
         """
