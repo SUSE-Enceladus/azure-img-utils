@@ -32,7 +32,8 @@ from azure_img_utils.exceptions import (
 )
 
 from azure_img_utils.cloud_partner import (
-    get_offer_doc
+    get_offer_doc,
+    get_operation
 )
 
 
@@ -146,3 +147,9 @@ class AzureContainer(object):
             )
 
         return self._access_token
+
+    def get_operation(self, operation: str) -> dict:
+        """
+        Returns a dictionary status for the given operation.
+        """
+        return get_operation(self.access_token, operation)

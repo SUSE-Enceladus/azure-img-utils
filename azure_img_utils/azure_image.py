@@ -56,14 +56,13 @@ from azure_img_utils.compute import (
 from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
     get_cloud_partner_api_headers,
-    process_request,
     get_durable_id,
-    INGESTION_API,
     get_offer_submissions,
     deprecate_image_in_offer_doc,
     submit_configure_request,
     get_technical_details,
-    get_offer_doc
+    get_offer_doc,
+    get_operation
 )
 
 
@@ -751,15 +750,7 @@ class AzureImage(object):
         """
         Returns a dictionary status for the given operation.
         """
-        headers = get_cloud_partner_api_headers(self.access_token)
-        endpoint = '/'.join([INGESTION_API, 'configure', operation, 'status'])
-
-        response = process_request(
-            endpoint,
-            headers
-        )
-
-        return response
+        return get_operation(self.access_token, operation)
 
     @property
     def blob_service_client(self):
