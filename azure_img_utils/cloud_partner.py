@@ -31,6 +31,7 @@ from requests.exceptions import HTTPError
 
 INGESTION_API = 'https://graph.microsoft.com/rp/product-ingestion/'
 VM_IMAGES_KEY = 'vmImageVersions'
+CNAB_REFERENCES_KEY = 'cnabReferences'
 PLAN_SCHEMA = 'https://schema.mp.microsoft.com/schema/plan/'
 TECH_CONFIG_SCHEMA = 'virtual-machine-plan-technical-configuration'
 CONTAINER_TECH_CONFIG_SCHEMA = 'container-plan-technical-configuration'
@@ -401,3 +402,37 @@ def wait_on_operation(
         f'Timeout waiting for operation {operation_id} to finish. '
         f'Current status is {status}.'
     )
+
+
+def add_cnab_version_to_offer(
+    doc: dict,
+    tag: str,
+    digest: str,
+    tenant_id: str = None,
+    subscription_id: str = None,
+    resource_group_name: str = None,
+    registry_name: str = None,
+    repository_name: str = None,
+
+) -> dict:
+    """
+    Update the cloud partner offer doc with a new version of the given sku.
+    """
+    cnab_reference = doc['cnabReferences'][0].copy()
+
+    cnab_reference['tag'] = tag
+    cnab_reference['digest'] = digest
+
+    if tenant_id:
+        cnab_reference['tenantId'] = tenant_id
+    if subscription_id:
+        cnab_reference['subscriptionId'] = subscription_id
+    if resource_group_name:
+        cnab_reference['resourceGroupName'] = resource_group_name
+    if registry_name:
+        cnab_reference['registryName'] = registry_name
+    if repository_name:
+        cnab_reference['repositoryName'] = repository_name
+
+    doc[CNAB_REFERENCES_KEY].append(cnab_reference)
+    return doc
