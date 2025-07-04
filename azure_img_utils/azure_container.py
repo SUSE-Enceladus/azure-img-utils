@@ -33,7 +33,8 @@ from azure_img_utils.exceptions import (
 
 from azure_img_utils.cloud_partner import (
     get_offer_doc,
-    get_operation
+    get_operation,
+    submit_request
 )
 
 
@@ -153,3 +154,21 @@ class AzureContainer(object):
         Returns a dictionary status for the given operation.
         """
         return get_operation(self.access_token, operation)
+
+    def update_resource_in_offer(self, resource_doc: dict):
+        """
+        Updates the offer using the provided resource doc.
+
+        resource_doc is a dictionary defining the resource details.
+        """
+        job_id = submit_request(self.access_token, [resource_doc])
+        return job_id
+
+    def upload_offer_doc(self, offer_doc: dict):
+        """
+        Upload the offer doc to partner center.
+
+        offer_doc is a dictionary defining the offer details.
+        """
+        job_id = submit_request(self.access_token, offer_doc['resources'])
+        return job_id

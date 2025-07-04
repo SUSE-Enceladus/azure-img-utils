@@ -114,3 +114,56 @@ class TestAzureCcontainer(object):
         assert azure_container.credentials['clientId'] == \
             '12345678-1234-1234-1234-012345678910'
         assert azure_container.credentials_file == 'tests/creds.json'
+
+    @patch('azure_img_utils.cloud_partner.wait_on_operation')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_upload_offer_doc(
+        self,
+        mock_process_request,
+        mock_wait_on_operation
+    ):
+        azure_container = AzureContainer(
+            credentials_file='tests/creds.json',
+        )
+
+        azure_container._access_token = 'dummy_access_token'
+
+        response = {'jobId': '123'}
+        mock_process_request.return_value = response
+
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
+
+        doc = {'resources': [{'offer': 'doc'}]}
+        resp = azure_container.upload_offer_doc(doc)
+        assert resp == '123'
+
+    @patch('azure_img_utils.cloud_partner.wait_on_operation')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_update_resource_in_offer(
+        self,
+        mock_process_request,
+        mock_wait_on_operation
+    ):
+        azure_container = AzureContainer(
+            credentials_file='tests/creds.json',
+        )
+
+        azure_container._access_token = 'dummy_access_token'
+
+        response = {'jobId': '123'}
+        mock_process_request.return_value = response
+
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
+
+        resource_doc = {
+            'dummy_key_1': 'dummy_value_1',
+            'dummy_key_2': 'dummy_value_2'
+        }
+        resp = azure_container.update_resource_in_offer(resource_doc)
+        assert resp == '123'
