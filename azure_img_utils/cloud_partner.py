@@ -418,37 +418,23 @@ def add_cnab_version_to_offer(
     """
     Update the cloud partner offer doc with a new version of the given sku.
     """
-    cnab_reference = {}
+
+    default_cnab = doc[CNAB_REFERENCES_KEY][0]
+    cnab_reference = {**default_cnab}
 
     cnab_reference['tag'] = tag
     cnab_reference['digest'] = digest
 
-    default_cnab = doc[CNAB_REFERENCES_KEY][0]
-
     if tenant_id:
         cnab_reference['tenantId'] = tenant_id
-    else:
-        cnab_reference['tenantId'] = default_cnab['tenantId']
-
     if subscription_id:
         cnab_reference['subscriptionId'] = subscription_id
-    else:
-        cnab_reference['subscriptionId'] = default_cnab['subscriptionId']
-
     if resource_group_name:
         cnab_reference['resourceGroupName'] = resource_group_name
-    else:
-        cnab_reference['resourceGroupName'] = default_cnab['resourceGroupName']
-
     if registry_name:
         cnab_reference['registryName'] = registry_name
-    else:
-        cnab_reference['registryName'] = default_cnab['registryName']
-
     if repository_name:
         cnab_reference['repositoryName'] = repository_name
-    else:
-        cnab_reference['repositoryName'] = default_cnab['repositoryName']
 
     doc[CNAB_REFERENCES_KEY].append(cnab_reference)
     return doc
