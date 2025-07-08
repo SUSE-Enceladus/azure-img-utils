@@ -418,7 +418,9 @@ def add_cnab_version_to_offer(
     """
     Update the cloud partner offer doc with a new version of the given sku.
     """
-    cnab_reference = doc['cnabReferences'][0].copy()
+
+    default_cnab = doc[CNAB_REFERENCES_KEY][0]
+    cnab_reference = {**default_cnab}
 
     cnab_reference['tag'] = tag
     cnab_reference['digest'] = digest
