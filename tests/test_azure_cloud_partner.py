@@ -7,7 +7,8 @@ from azure_img_utils.cloud_partner import (
     deprecate_image_in_offer_doc,
     get_technical_details,
     wait_on_operation,
-    submit_request
+    submit_request,
+    add_cnab_version_to_offer
 )
 
 from azure_img_utils.exceptions import (
@@ -591,3 +592,83 @@ class TestAzureCloudPartner(object):
             container_offer=True
         )
         assert result['plan'] == 'plan/9876/6789'
+
+    def test_add_cnab_version_to_offer(self):
+
+        doc = {
+            "$schema": "https://schema.mp.microsoft.com/schema/container-plan-technical-configuration/2022-03-01-preview3",  # NOQA
+            "id": "container-plan-technical-configuration/d6605881-da06-4fb5-a326-1bd8b0843437/c9257046-f7bf-44df-8f4c-a78bc0814958",  # NOQA
+            "product": "product/d6605881-da06-4fb5-a326-1bd8b0843437",
+            "plan": "plan/d6605881-da06-4fb5-a326-1bd8b0843437/c9257046-f7bf-44df-8f4c-a78bc0814958",  # NOQA
+            "payloadType": "cnab",
+            "clusterExtensionType": "suse.neuvector-prime-llc",
+            "cnabReferences": []
+        }
+        cnab_reference = {
+            "tenantId": "c977ffe0-e8f3-4d6f-ab49-e03bbc3287b1",
+            "subscriptionId": "b297ab83-361f-424f-804c-0c44fa26e903",
+            "resourceGroupName": "suse-llc-marketplace-containers",
+            "registryName": "susellcforazuremarketplace",
+            "repositoryName": "suse.neuvector-prime-llc",
+            "tag": "50202.1.202310252",
+            "digest": "sha256:48ea065b1f85323111c970b27d5641fc54942dd8b6bb8ed87f4220f238ceb57d"  # NOQA
+        }
+        new_tag = 'YYYY.MM.DD001'
+        new_digest = 'sha256:xxxxxxx...'
+
+        test_doc = doc.copy()
+        test_doc['cnabReferences'] = []
+        test_doc['cnabReferences'].append(cnab_reference.copy())
+
+        updated_doc = add_cnab_version_to_offer(
+            test_doc,
+            tag=new_tag,
+            digest=new_digest
+        )
+
+        assert updated_doc['cnabReferences'][1]['tenantId'] == \
+            cnab_reference['tenantId']
+        assert updated_doc['cnabReferences'][1]['subscriptionId'] == \
+            cnab_reference['subscriptionId']
+        assert updated_doc['cnabReferences'][1]['resourceGroupName'] == \
+            cnab_reference['resourceGroupName']
+        assert updated_doc['cnabReferences'][1]['registryName'] == \
+            cnab_reference['registryName']
+        assert updated_doc['cnabReferences'][1]['repositoryName'] == \
+            cnab_reference['repositoryName']
+        assert updated_doc['cnabReferences'][1]['tag'] == new_tag
+        assert updated_doc['cnabReferences'][1]['digest'] == new_digest
+
+        # Complete overwrite case
+        new_tenant_id = 'test_new_tenant_id'
+        new_subscription_id = 'test_new_subscription_id'
+        new_resource_group_name = 'test_new_resource_group_name'
+        new_repository_name = 'test_new_repository_name'
+        new_registry_name = 'test_new_registry_name'
+
+        test_doc = doc.copy()
+        test_doc['cnabReferences'] = []
+        test_doc['cnabReferences'].append(cnab_reference.copy())
+
+        updated_doc = add_cnab_version_to_offer(
+            test_doc,
+            tag=new_tag,
+            digest=new_digest,
+            tenant_id=new_tenant_id,
+            subscription_id=new_subscription_id,
+            resource_group_name=new_resource_group_name,
+            registry_name=new_registry_name,
+            repository_name=new_repository_name
+        )
+
+        assert updated_doc['cnabReferences'][1]['tenantId'] == new_tenant_id
+        assert updated_doc['cnabReferences'][1]['subscriptionId'] == \
+            new_subscription_id
+        assert updated_doc['cnabReferences'][1]['resourceGroupName'] == \
+            new_resource_group_name
+        assert updated_doc['cnabReferences'][1]['registryName'] == \
+            new_registry_name
+        assert updated_doc['cnabReferences'][1]['repositoryName'] == \
+            new_repository_name
+        assert updated_doc['cnabReferences'][1]['tag'] == new_tag
+        assert updated_doc['cnabReferences'][1]['digest'] == new_digest
