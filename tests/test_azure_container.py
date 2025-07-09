@@ -3,18 +3,13 @@ import pytest
 from unittest.mock import patch, Mock
 
 from azure_img_utils.azure_container import AzureContainer
-# from azure_img_utils.cloud_partner import (
-#     deprecate_image_in_offer_doc,
-#     get_technical_details
-# )
-
 from azure_img_utils.exceptions import (
     AzureCloudPartnerException,
     AzureImgUtilsException
 )
 
 
-class TestAzureCcontainer(object):
+class TestAzureContainer(object):
 
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
