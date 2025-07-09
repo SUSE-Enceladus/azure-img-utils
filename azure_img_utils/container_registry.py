@@ -22,7 +22,7 @@ from azure.containerregistry import ContainerRegistryClient
 def get_list_of_available_cnab_tags(
     acr_client: ContainerRegistryClient,
     repository_name: str
-) -> []:
+) -> list:
     """
     Lists the available versions of the cnab tags in the provided container
     registry.
@@ -39,7 +39,7 @@ def cnab_tag_is_available(
     tag: str
 ) -> bool:
     """
-    Returns True if th provided tag is available in the registry/repository
+    Returns True if the provided tag is available in the registry/repository
     name provided
     """
     if tag in get_list_of_available_cnab_tags(
