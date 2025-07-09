@@ -22,11 +22,13 @@ import requests
 import time
 
 from datetime import date, datetime
+from azure.containerregistry import ContainerRegistryClient
 
 from azure_img_utils.exceptions import (
     AzureImgUtilsException,
     AzureCloudPartnerException
 )
+from azure_img_utils.container_registry import get_digest_for_tag
 from requests.exceptions import HTTPError
 
 INGESTION_API = 'https://graph.microsoft.com/rp/product-ingestion/'
@@ -407,13 +409,13 @@ def wait_on_operation(
 def add_cnab_version_to_offer(
     doc: dict,
     tag: str,
-    digest: str,
+    digest: str = None,
     tenant_id: str = None,
     subscription_id: str = None,
     resource_group_name: str = None,
     registry_name: str = None,
     repository_name: str = None,
-
+    acr_client: ContainerRegistryClient = None
 ) -> dict:
     """
     Update the cloud partner offer doc with a new version of the given sku.
@@ -423,7 +425,14 @@ def add_cnab_version_to_offer(
     cnab_reference = {**default_cnab}
 
     cnab_reference['tag'] = tag
-    cnab_reference['digest'] = digest
+    if digest:
+        cnab_reference['digest'] = digest
+    elif acr_client and repository_name:
+        cnab_reference['digest'] = get_digest_for_tag(
+            acr_client,
+            repository_name,
+            tag
+        )
 
     if tenant_id:
         cnab_reference['tenantId'] = tenant_id

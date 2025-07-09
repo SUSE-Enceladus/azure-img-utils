@@ -1,6 +1,6 @@
 import pytest
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 
 from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.cloud_partner import (
@@ -672,3 +672,35 @@ class TestAzureCloudPartner(object):
             new_repository_name
         assert updated_doc['cnabReferences'][1]['tag'] == new_tag
         assert updated_doc['cnabReferences'][1]['digest'] == new_digest
+
+        # Omitting tag
+        test_doc = doc.copy()
+        test_doc['cnabReferences'] = []
+        test_doc['cnabReferences'].append(cnab_reference.copy())
+
+        acr_client_mock = MagicMock()
+
+        with (
+            patch('azure_img_utils.cloud_partner.get_digest_for_tag') as get_digest_mock # NOQA
+        ):
+            get_digest_mock.return_value = 'sha256:123123123'
+            updated_doc = add_cnab_version_to_offer(
+                test_doc,
+                tag=new_tag,
+                acr_client=acr_client_mock,
+                repository_name=cnab_reference['repositoryName']
+            )
+
+            assert updated_doc['cnabReferences'][1]['tenantId'] == \
+                cnab_reference['tenantId']
+            assert updated_doc['cnabReferences'][1]['subscriptionId'] == \
+                cnab_reference['subscriptionId']
+            assert updated_doc['cnabReferences'][1]['resourceGroupName'] == \
+                cnab_reference['resourceGroupName']
+            assert updated_doc['cnabReferences'][1]['registryName'] == \
+                cnab_reference['registryName']
+            assert updated_doc['cnabReferences'][1]['repositoryName'] == \
+                cnab_reference['repositoryName']
+            assert updated_doc['cnabReferences'][1]['tag'] == new_tag
+            assert updated_doc['cnabReferences'][1]['digest'] == \
+                'sha256:123123123'
