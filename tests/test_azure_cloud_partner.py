@@ -680,9 +680,9 @@ class TestAzureCloudPartner(object):
 
         acr_client_mock = MagicMock()
 
-        with (
-            patch('azure_img_utils.cloud_partner.get_digest_for_tag') as get_digest_mock # NOQA
-        ):
+        with patch(
+            'azure_img_utils.cloud_partner.get_digest_for_tag'
+        ) as get_digest_mock:
             get_digest_mock.return_value = 'sha256:123123123'
             updated_doc = add_cnab_version_to_offer(
                 test_doc,
