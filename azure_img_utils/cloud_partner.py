@@ -406,7 +406,7 @@ def wait_on_operation(
     )
 
 
-def add_cnab_version_to_offer(
+def adds_cnab_version_to_offer(
     doc: dict,
     tag: str,
     digest: str = None,

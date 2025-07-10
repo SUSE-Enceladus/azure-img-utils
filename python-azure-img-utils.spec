@@ -33,6 +33,7 @@ Source:         https://files.pythonhosted.org/packages/source/a/azure-img-utils
 BuildRequires:  python-rpm-macros
 BuildRequires:  fdupes
 BuildRequires:  %{pythons}-msal
+BuildRequires:  %{pythons}-azure-containerregistry
 BuildRequires:  %{pythons}-azure-identity
 BuildRequires:  %{pythons}-azure-mgmt-compute >= 26.1.0
 BuildRequires:  %{pythons}-azure-mgmt-storage
@@ -45,6 +46,7 @@ BuildRequires:  %{pythons}-PyYAML
 BuildRequires:  %{pythons}-pip
 BuildRequires:  %{pythons}-wheel
 Requires:       %{pythons}-msal
+Requires:       %{pythons}-azure-containerregistry
 Requires:       %{pythons}-azure-identity
 Requires:       %{pythons}-azure-mgmt-compute >= 26.1.0
 Requires:       %{pythons}-azure-mgmt-storage

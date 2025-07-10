@@ -33,7 +33,7 @@ from azure_img_utils.exceptions import (
 )
 
 from azure_img_utils.cloud_partner import (
-    add_cnab_version_to_offer,
+    adds_cnab_version_to_offer,
     get_offer_doc,
     get_operation,
     get_technical_details,
@@ -208,7 +208,7 @@ class AzureContainer(object):
         The offer is pulled from the partner center, updated with the
         new cnab version and re-uploaded. To make the new cnab available
         the offer must be published and set to go-live.
-    """
+        """
         offer_doc = self.get_offer_doc(offer_id)
         plan_details = get_technical_details(
             offer_doc,
@@ -216,7 +216,7 @@ class AzureContainer(object):
             container_offer=True
         )
 
-        updated_plan_details = add_cnab_version_to_offer(
+        updated_plan_details = adds_cnab_version_to_offer(
             plan_details,
             tag,
             registry_name=registry_name,
