@@ -8,7 +8,7 @@ from azure_img_utils.cloud_partner import (
     get_technical_details,
     wait_on_operation,
     submit_request,
-    adds_cnab_version_to_offer
+    add_cnab_version_to_offer
 )
 
 from azure_img_utils.exceptions import (
@@ -593,7 +593,7 @@ class TestAzureCloudPartner(object):
         )
         assert result['plan'] == 'plan/9876/6789'
 
-    def test_adds_cnab_version_to_offer(self):
+    def test_add_cnab_version_to_offer(self):
 
         doc = {
             "$schema": "https://schema.mp.microsoft.com/schema/container-plan-technical-configuration/2022-03-01-preview3",  # NOQA
@@ -620,7 +620,7 @@ class TestAzureCloudPartner(object):
         test_doc['cnabReferences'] = []
         test_doc['cnabReferences'].append(cnab_reference.copy())
 
-        updated_doc = adds_cnab_version_to_offer(
+        updated_doc = add_cnab_version_to_offer(
             test_doc,
             tag=new_tag,
             digest=new_digest
@@ -650,7 +650,7 @@ class TestAzureCloudPartner(object):
         test_doc['cnabReferences'] = []
         test_doc['cnabReferences'].append(cnab_reference.copy())
 
-        updated_doc = adds_cnab_version_to_offer(
+        updated_doc = add_cnab_version_to_offer(
             test_doc,
             tag=new_tag,
             digest=new_digest,
@@ -684,7 +684,7 @@ class TestAzureCloudPartner(object):
             'azure_img_utils.cloud_partner.get_digest_for_tag'
         ) as get_digest_mock:
             get_digest_mock.return_value = 'sha256:123123123'
-            updated_doc = adds_cnab_version_to_offer(
+            updated_doc = add_cnab_version_to_offer(
                 test_doc,
                 tag=new_tag,
                 acr_client=acr_client_mock,

@@ -32,13 +32,7 @@ from azure_img_utils.exceptions import (
     AzureImgUtilsException
 )
 
-from azure_img_utils.cloud_partner import (
-    adds_cnab_version_to_offer,
-    get_offer_doc,
-    get_operation,
-    get_technical_details,
-    submit_request
-)
+import azure_img_utils.cloud_partner as cloud_partner
 
 
 class AzureContainer(object):
@@ -95,7 +89,7 @@ class AzureContainer(object):
         """
         Return the offer doc dictionary for the given offer.
         """
-        return get_offer_doc(
+        return cloud_partner.get_offer_doc(
             self.access_token,
             offer_id,
             target_type,
@@ -158,7 +152,7 @@ class AzureContainer(object):
         """
         Returns a dictionary status for the given operation.
         """
-        return get_operation(self.access_token, operation)
+        return cloud_partner.get_operation(self.access_token, operation)
 
     def update_resource_in_offer(self, resource_doc: dict):
         """
@@ -166,7 +160,9 @@ class AzureContainer(object):
 
         resource_doc is a dictionary defining the resource details.
         """
-        job_id = submit_request(self.access_token, [resource_doc])
+        job_id = cloud_partner.submit_request(
+            self.access_token, [resource_doc]
+        )
         return job_id
 
     def upload_offer_doc(self, offer_doc: dict):
@@ -175,7 +171,9 @@ class AzureContainer(object):
 
         offer_doc is a dictionary defining the offer details.
         """
-        job_id = submit_request(self.access_token, offer_doc['resources'])
+        job_id = cloud_partner.submit_request(
+            self.access_token, offer_doc['resources']
+        )
         return job_id
 
     @property
@@ -210,13 +208,13 @@ class AzureContainer(object):
         the offer must be published and set to go-live.
         """
         offer_doc = self.get_offer_doc(offer_id)
-        plan_details = get_technical_details(
+        plan_details = cloud_partner.get_technical_details(
             offer_doc,
             sku,
             container_offer=True
         )
 
-        updated_plan_details = adds_cnab_version_to_offer(
+        updated_plan_details = cloud_partner.add_cnab_version_to_offer(
             plan_details,
             tag,
             registry_name=registry_name,

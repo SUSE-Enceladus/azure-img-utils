@@ -165,9 +165,9 @@ class TestAzureContainer(object):
         assert resp == '123'
 
     @patch('azure_img_utils.azure_container.get_client_from_json')
-    @patch('azure_img_utils.azure_container.get_offer_doc')
+    @patch('azure_img_utils.azure_container.cloud_partner.get_offer_doc')
     @patch('azure_img_utils.cloud_partner.get_digest_for_tag')
-    @patch('azure_img_utils.azure_container.submit_request')
+    @patch('azure_img_utils.azure_container.cloud_partner.submit_request')
     def test_add_cnab_version_to_offer(
         self,
         mock_submit_request,
