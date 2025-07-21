@@ -32,7 +32,7 @@ from azure_img_utils.exceptions import (
     AzureImgUtilsException
 )
 
-import azure_img_utils.cloud_partner as cloud_partner
+from azure_img_utils import cloud_partner
 
 
 class AzureContainer(object):
