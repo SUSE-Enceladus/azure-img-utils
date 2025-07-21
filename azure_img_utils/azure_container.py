@@ -24,18 +24,15 @@ import json
 import logging
 import os
 
-from azure_img_utils.auth import acquire_access_token
+from azure.containerregistry import ContainerRegistryClient
 
+from azure_img_utils.auth import get_client_from_json, acquire_access_token
 from azure_img_utils.exceptions import (
     AzureCloudPartnerException,
     AzureImgUtilsException
 )
 
-from azure_img_utils.cloud_partner import (
-    get_offer_doc,
-    get_operation,
-    submit_request
-)
+from azure_img_utils import cloud_partner
 
 
 class AzureContainer(object):
@@ -56,6 +53,7 @@ class AzureContainer(object):
         self._credentials = credentials
         self._credentials_file = credentials_file
         self._access_token = None
+        self._acr_client = None
 
         if log_callback:
             self.log = log_callback
@@ -91,7 +89,7 @@ class AzureContainer(object):
         """
         Return the offer doc dictionary for the given offer.
         """
-        return get_offer_doc(
+        return cloud_partner.get_offer_doc(
             self.access_token,
             offer_id,
             target_type,
@@ -126,6 +124,7 @@ class AzureContainer(object):
         Invalidates the blob service and compute clients.
         """
         self._credentials = creds
+        self._acr_client = None
 
     @property
     def credentials_file(self):
@@ -153,7 +152,7 @@ class AzureContainer(object):
         """
         Returns a dictionary status for the given operation.
         """
-        return get_operation(self.access_token, operation)
+        return cloud_partner.get_operation(self.access_token, operation)
 
     def update_resource_in_offer(self, resource_doc: dict):
         """
@@ -161,7 +160,9 @@ class AzureContainer(object):
 
         resource_doc is a dictionary defining the resource details.
         """
-        job_id = submit_request(self.access_token, [resource_doc])
+        job_id = cloud_partner.submit_request(
+            self.access_token, [resource_doc]
+        )
         return job_id
 
     def upload_offer_doc(self, offer_doc: dict):
@@ -170,5 +171,56 @@ class AzureContainer(object):
 
         offer_doc is a dictionary defining the offer details.
         """
-        job_id = submit_request(self.access_token, offer_doc['resources'])
+        job_id = cloud_partner.submit_request(
+            self.access_token, offer_doc['resources']
+        )
         return job_id
+
+    @property
+    def acr_client(self):
+        """
+        Lazy Azure container registry client attribute
+
+        If acr client is not set create a new client from credentials.
+        """
+        if not self._acr_client:
+            self._acr_client = get_client_from_json(
+                ContainerRegistryClient,
+                self.credentials
+            )
+
+        return self._acr_client
+
+    def add_cnab_version_to_offer(
+        self,
+        registry_name: str,
+        repository_name: str,
+        tag: str,
+        offer_id: str,
+        sku: str,
+        acr_client: ContainerRegistryClient
+    ):
+        """
+        Adds a new cnab version to the given offer.
+
+        The offer is pulled from the partner center, updated with the
+        new cnab version and re-uploaded. To make the new cnab available
+        the offer must be published and set to go-live.
+        """
+        offer_doc = self.get_offer_doc(offer_id)
+        plan_details = cloud_partner.get_technical_details(
+            offer_doc,
+            sku,
+            container_offer=True
+        )
+
+        updated_plan_details = cloud_partner.add_cnab_version_to_offer(
+            plan_details,
+            tag,
+            registry_name=registry_name,
+            repository_name=repository_name,
+            acr_client=self.acr_client
+        )
+        self.update_resource_in_offer(
+            updated_plan_details
+        )
