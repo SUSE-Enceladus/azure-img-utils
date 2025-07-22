@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import jmespath
 import json
 import logging
 import os
@@ -224,3 +225,76 @@ class AzureContainer(object):
         self.update_resource_in_offer(
             updated_plan_details
         )
+
+    def publish_offer(
+        self,
+        offer_id: str
+    ) -> str:
+        """
+        Publish the given offer.
+
+        Returns the operation uri.
+        """
+        headers = cloud_partner.get_cloud_partner_api_headers(
+            self.access_token
+        )
+        durable_id = cloud_partner.get_durable_id(headers, offer_id)
+
+        resources = [
+            {
+                '$schema': (
+                    'https://schema.mp.microsoft.com/'
+                    'schema/submission/2022-03-01-preview2'
+                ),
+                'product': '/'.join(['product', durable_id]),
+                'target': {'targetType': 'preview'}
+            }
+        ]
+
+        job_id = cloud_partner.submit_request(
+            self.access_token,
+            resources,
+            wait=False
+        )
+        return job_id
+
+    def go_live_with_offer(
+        self,
+        offer_id: str
+    ) -> str:
+        """
+        Set the offer as go-live.
+
+        This makes all new changes to the offer publicly visible.
+
+        Returns the operation uri.
+        """
+        headers = cloud_partner.get_cloud_partner_api_headers(
+            self.access_token
+        )
+        durable_id = cloud_partner.get_durable_id(headers, offer_id)
+        submissions = cloud_partner.get_offer_submissions(durable_id, headers)
+
+        operation_id = jmespath.search(
+            "value[?target.targetType=='preview'] | [0].id",
+            submissions
+        )
+
+        resources = [
+            {
+                '$schema': (
+                    'https://schema.mp.microsoft.com/'
+                    'schema/submission/2022-03-01-preview2'
+                ),
+                'product': '/'.join(['product', durable_id]),
+                'id': operation_id,
+                'target': {'targetType': 'live'}
+            }
+        ]
+
+        job_id = cloud_partner.submit_request(
+            self.access_token,
+            resources,
+            wait=False
+        )
+        return job_id

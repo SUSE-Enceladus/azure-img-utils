@@ -174,7 +174,10 @@ class TestAzureCloudPartner(object):
         mock_get_durable_id.return_value = '123456789'
         mock_get_submissions.return_value = {
             'value': [
-                {'target': {'targetType': 'preview', 'id': '321'}}
+                {
+                    'target': {'targetType': 'preview'},
+                    'id': '321'
+                }
             ]
         }
 
@@ -203,7 +206,10 @@ class TestAzureCloudPartner(object):
         mock_get_durable_id.return_value = '123456789'
         mock_get_submissions.return_value = {
             'value': [
-                {'target': {'targetType': 'preview', 'id': '321'}}
+                {
+                    'target': {'targetType': 'preview'},
+                    'id': '321'
+                }
             ]
         }
 
