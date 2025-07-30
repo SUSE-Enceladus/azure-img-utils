@@ -287,3 +287,99 @@ class TestAzureContainer(object):
                 }
             ]
         )
+
+    @patch('azure_img_utils.cloud_partner.get_durable_id')
+    @patch('azure_img_utils.azure_container.cloud_partner.submit_request')
+    def test_publish_offer(
+        self,
+        mock_submit_request,
+        mock_get_durable_id
+    ):
+
+        mock_get_durable_id.return_value = 'test_durable_id'
+        mock_submit_request.return_value = 'test_job_id'
+
+        azure_container = AzureContainer(
+            credentials_file='tests/creds.json',
+        )
+        azure_container._access_token = 'my_test_access_token'
+
+        azure_container.publish_offer(
+            offer_id='test_offer_id'
+        )
+
+        mock_submit_request.assert_called_with(
+            'my_test_access_token',
+            [
+                {
+                    '$schema': 'https://schema.mp.microsoft.com/schema/submission/2022-03-01-preview2',  # NOQA
+                    'product': 'product/test_durable_id',
+                    'target': {'targetType': 'preview'}
+                }
+            ],
+            wait=False
+        )
+        mock_get_durable_id.assert_called_with(
+            {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer my_test_access_token'
+            },
+            'test_offer_id'
+        )
+
+    @patch(
+        'azure_img_utils.azure_container.cloud_partner.get_offer_submissions'
+    )
+    @patch('azure_img_utils.cloud_partner.get_durable_id')
+    @patch('azure_img_utils.azure_container.cloud_partner.submit_request')
+    def test_go_live_with_offer(
+        self,
+        mock_submit_request,
+        mock_get_durable_id,
+        mock_get_offer_submissions
+    ):
+        mock_get_offer_submissions.return_value = {
+            'value': [
+                {
+                    'target': {'targetType': 'preview'},
+                    'id': '321'
+                }
+            ]
+        }
+        mock_get_durable_id.return_value = 'test_durable_id'
+        mock_submit_request.return_value = 'test_job_id'
+
+        azure_container = AzureContainer(
+            credentials_file='tests/creds.json',
+        )
+        azure_container._access_token = 'my_test_access_token'
+
+        azure_container.go_live_with_offer(
+            offer_id='test_offer_id'
+        )
+        mock_submit_request.assert_called_with(
+            'my_test_access_token',
+            [
+                {
+                    '$schema': 'https://schema.mp.microsoft.com/schema/submission/2022-03-01-preview2',  # NOQA
+                    'product': 'product/test_durable_id',
+                    'id': '321',
+                    'target': {'targetType': 'live'}
+                }
+            ],
+            wait=False
+        )
+        mock_get_durable_id.assert_called_with(
+            {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer my_test_access_token'
+            },
+            'test_offer_id'
+        )
+        mock_get_offer_submissions.assert_called_with(
+            'test_durable_id',
+            {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer my_test_access_token'
+            }
+        )
