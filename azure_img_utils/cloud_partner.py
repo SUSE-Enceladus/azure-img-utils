@@ -447,3 +447,32 @@ def add_cnab_version_to_offer(
 
     doc[CNAB_REFERENCES_KEY].append(cnab_reference)
     return doc
+
+
+def remove_cnab_version_from_offer_doc(
+    doc: dict,
+    registry_name: str,
+    repository_name: str,
+    tag: str
+) -> dict:
+    """
+    Deprecate the image version in the cloud partner offer doc.
+    """
+    for cnab_ref in doc[CNAB_REFERENCES_KEY]:
+        if all([
+            registry_name == cnab_ref['registryName'],
+            repository_name == cnab_ref['repositoryName'],
+            tag == cnab_ref['tag']
+        ]):
+            doc[CNAB_REFERENCES_KEY].remove(cnab_ref)
+            break
+    else:
+        raise AzureCloudPartnerException(
+            'No Match found for the cnab version with '
+            f'registry:{registry_name} '
+            f'repository:{repository_name} '
+            f'tag: {tag} .'
+            'Offer doc not updated properly.'
+        )
+
+    return doc

@@ -226,6 +226,38 @@ class AzureContainer(object):
             updated_plan_details
         )
 
+    def remove_cnab_version_from_offer(
+        self,
+        offer_id: str,
+        sku: str,
+        registry_name: str,
+        repository_name: str,
+        tag: str
+    ):
+        """
+        Delete the given image version from the offer.
+
+        The offer is pulled from the partner center, the old image version
+        is deleted and re-uploaded. To make the new image available
+        the offer must be published and set to go-live.
+        """
+        offer_doc = self.get_offer_doc(offer_id)
+        plan_details = cloud_partner.get_technical_details(
+            offer_doc,
+            sku,
+            container_offer=True
+        )
+
+        plan_details = cloud_partner.remove_cnab_version_from_offer_doc(
+            plan_details,
+            registry_name,
+            repository_name,
+            tag
+        )
+        self.update_resource_in_offer(
+            plan_details
+        )
+
     def publish_offer(
         self,
         offer_id: str

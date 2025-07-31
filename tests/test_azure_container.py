@@ -383,3 +383,98 @@ class TestAzureContainer(object):
                 'Authorization': 'Bearer my_test_access_token'
             }
         )
+
+    @patch('azure_img_utils.azure_container.cloud_partner.get_offer_doc')
+    @patch('azure_img_utils.azure_container.cloud_partner.submit_request')
+    def test_remove_cnab_version_from_offer(
+        self,
+        mock_submit_request,
+        mock_get_offer_doc,
+    ):
+        doc = {
+            "resources": [
+                {
+                    "$schema": "https://schema.mp.microsoft.com/schema/plan/2022-03-01-preview3",  # NOQA
+                    "id": "plan/d6605881-da06-4fb5-a326-1bd8b0843437/c9257046-f7bf-44df-8f4c-a78bc0814958",  # NOQA
+                    "identity": {
+                        "externalId": "payg"
+                    },
+                    "alias": "NeuVector Prime with 24x7 Support (non-EU and non-UK only) deprecated",  # NOQA
+                    "azureRegions": [
+                        "azureGlobal"
+                    ],
+                    "product": "product/d6605881-da06-4fb5-a326-1bd8b0843437",
+                    "lifecycleState": "deprecated"
+                },
+                {
+                    "$schema": "https://schema.mp.microsoft.com/schema/container-plan-technical-configuration/2022-03-01-preview3",  # NOQA
+                    "id": "container-plan-technical-configuration/d6605881-da06-4fb5-a326-1bd8b0843437/c9257046-f7bf-44df-8f4c-a78bc0814958",  # NOQA
+                    "product": "product/d6605881-da06-4fb5-a326-1bd8b0843437",
+                    "plan": "plan/d6605881-da06-4fb5-a326-1bd8b0843437/c9257046-f7bf-44df-8f4c-a78bc0814958",  # NOQA
+                    "payloadType": "cnab",
+                    "clusterExtensionType": "suse.neuvector-prime-llc",
+                    "cnabReferences": [
+                        {
+                            "tenantId": "c977ffe0-e8f3-4d6f-ab49-e03bbc3287b1",
+                            "subscriptionId": "b297ab83-361f-424f-804c-0c44fa26e903",  # NOQA
+                            "resourceGroupName": "suse-llc-marketplace-containers",  # NOQA
+                            "registryName": "susellcforazuremarketplace",
+                            "repositoryName": "suse.neuvector-prime-llc",
+                            "tag": "50202.1.202310252",
+                            "digest": "sha256:48ea065b1f85323111c970b27d5641fc54942dd8b6bb8ed87f4220f238ceb57d"  # NOQA
+                        },
+                        {
+                            "tenantId": "c977ffe0-e8f3-4d6f-ab49-e03bbc3287b1",
+                            "subscriptionId": "b297ab83-361f-424f-804c-0c44fa26e903",  # NOQA
+                            "resourceGroupName": "suse-llc-marketplace-containers",  # NOQA
+                            "registryName": "susellcforazuremarketplace",
+                            "repositoryName": "suse.neuvector-prime-llc",
+                            "tag": "50303.1.20250101",
+                            "digest": "sha256:48ea065b1f85323111c970b27d5641fc54942dd8b6bb8ed87f4220f238ceb57d"  # NOQA
+                        }
+
+
+                    ]
+                }
+            ]
+        }
+
+        mock_get_offer_doc.return_value = doc
+
+        azure_container = AzureContainer(
+            credentials_file='tests/creds.json',
+        )
+        azure_container._access_token = 'my_test_access_token'
+
+        azure_container.remove_cnab_version_from_offer(
+            offer_id='my_test_offer',
+            sku='payg',
+            registry_name='susellcforazuremarketplace',
+            repository_name='suse.neuvector-prime-llc',
+            tag='50303.1.20250101'
+        )
+
+        mock_submit_request.assert_called_with(
+            'my_test_access_token',
+            [
+                {
+                    '$schema': 'https://schema.mp.microsoft.com/schema/container-plan-technical-configuration/2022-03-01-preview3',  # NOQA
+                    'id': 'container-plan-technical-configuration/d6605881-da06-4fb5-a326-1bd8b0843437/c9257046-f7bf-44df-8f4c-a78bc0814958',  # NOQA
+                    'product': 'product/d6605881-da06-4fb5-a326-1bd8b0843437',
+                    'plan': 'plan/d6605881-da06-4fb5-a326-1bd8b0843437/c9257046-f7bf-44df-8f4c-a78bc0814958',  # NOQA
+                    'payloadType': 'cnab',
+                    'clusterExtensionType': 'suse.neuvector-prime-llc',
+                    'cnabReferences': [
+                        {
+                            'tenantId': 'c977ffe0-e8f3-4d6f-ab49-e03bbc3287b1',
+                            'subscriptionId': 'b297ab83-361f-424f-804c-0c44fa26e903',  # NOQA
+                            'resourceGroupName': 'suse-llc-marketplace-containers',  # NOQA
+                            'registryName': 'susellcforazuremarketplace',
+                            'repositoryName': 'suse.neuvector-prime-llc',
+                            'tag': '50202.1.202310252',
+                            'digest': 'sha256:48ea065b1f85323111c970b27d5641fc54942dd8b6bb8ed87f4220f238ceb57d'  # NOQA
+                        }
+                    ]
+                }
+            ]
+        )
