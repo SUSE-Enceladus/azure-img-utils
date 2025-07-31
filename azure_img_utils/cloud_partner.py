@@ -456,7 +456,7 @@ def remove_cnab_version_from_offer_doc(
     tag: str
 ) -> dict:
     """
-    Deprecate the image version in the cloud partner offer doc.
+    Removes the cnab version in the cloud partner offer doc.
     """
     for cnab_ref in doc[CNAB_REFERENCES_KEY]:
         if all([
