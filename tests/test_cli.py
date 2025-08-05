@@ -1766,3 +1766,32 @@ def test_cloud_partner_get_offer_doc_ok(azure_image_mock, mock_save_file):
     runner = CliRunner()
     result = runner.invoke(az_img_utils, args)
     assert result.exit_code == 0
+
+
+# -------------------------------------------------
+# cloud-partner-container-offer get-offer-document tests
+@patch('azure_img_utils.cli.container_offer.save_json_to_file')
+@patch('azure_img_utils.cli.container_offer.AzureContainer')
+def test_cloud_partner_container_get_offer_doc_ok(
+    azure_container_mock,
+    mock_save_file
+):
+    """Confirm cloud partner container offer get-offer-document is ok."""
+
+    container_class = MagicMock()
+    azure_container_mock.return_value = container_class
+
+    fake_doc = {'this': 'is', 'a': 'fake', 'offer': 'doc'}
+    container_class.get_offer_doc.return_value = fake_doc
+
+    args = [
+        'cloud-partner-container-offer', 'get-offer-document',
+        '--credentials-file', 'tests/creds.json',
+        '--offer-id', 'myOfferId',
+        '--offer-document-file', 'tests/fake.json',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0

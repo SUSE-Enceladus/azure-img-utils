@@ -28,6 +28,7 @@ from azure_img_utils.cli.gallery_image_version import (
     gallery_image_version
 )
 from azure_img_utils.cli.offer import offer
+from azure_img_utils.cli.container_offer import container_offer
 
 
 # -----------------------------------------------------------------------------
@@ -68,3 +69,4 @@ az_img_utils.add_command(blob)
 az_img_utils.add_command(image)
 az_img_utils.add_command(gallery_image_version)
 az_img_utils.add_command(offer)
+az_img_utils.add_command(container_offer)
