@@ -67,7 +67,7 @@ def container_offer():
 )
 @click.option(
     '--target-type',
-    type=click.STRING,
+    type=click.Choice(('draft', 'preview', 'live')),
     default='draft',
     help='The document type to retrieve. Valid types: draft, preview, live.'
 )
@@ -102,10 +102,23 @@ def get_container_offer_document(
             retries=retries
         )
 
-        save_json_to_file(doc, offer_document_file)
     except Exception as e:
         echo_style(
             'Unable to download cloud partner offer document.',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+    try:
+        save_json_to_file(doc, offer_document_file)
+    except Exception as e:
+        echo_style(
+            (
+                'Unable to save json file with cloud partner offer document '
+                f'to {offer_document_file}: {str(e)}'
+            ),
             config_data.no_color,
             fg='red'
         )
