@@ -35,6 +35,7 @@ BuildRequires:  fdupes
 BuildRequires:  %{pythons}-msal
 BuildRequires:  %{pythons}-azure-identity
 BuildRequires:  %{pythons}-azure-mgmt-compute >= 26.1.0
+BuildRequires:  %{pythons}-azure-mgmt-compute < 36.0.0
 BuildRequires:  %{pythons}-azure-mgmt-storage
 BuildRequires:  %{pythons}-azure-storage-blob >= 12.0.1
 BuildRequires:  %{pythons}-requests
@@ -47,6 +48,7 @@ BuildRequires:  %{pythons}-wheel
 Requires:       %{pythons}-msal
 Requires:       %{pythons}-azure-identity
 Requires:       %{pythons}-azure-mgmt-compute >= 26.1.0
+Requires:       %{pythons}-azure-mgmt-compute < 36.0.0
 Requires:       %{pythons}-azure-mgmt-storage
 Requires:       %{pythons}-azure-storage-blob >= 12.0.1
 Requires:       %{pythons}-requests
