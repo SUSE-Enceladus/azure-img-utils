@@ -2,8 +2,6 @@ import pytest
 
 from unittest.mock import MagicMock
 
-from azure.mgmt.compute import ComputeManagementClient
-
 from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.exceptions import AzureImgUtilsException
 
@@ -28,7 +26,7 @@ class TestAzureImageCompute(object):
         )
 
         # Mock compute client
-        self.cc = MagicMock(spec=ComputeManagementClient)
+        self.cc = MagicMock()
         self.cc.images.list.return_value = [Image('test-image-123')]
         self.image._compute_client = self.cc
 
