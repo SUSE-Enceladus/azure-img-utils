@@ -1,3 +1,10 @@
+v2.5.0 (2025-10-01)
+===================
+
+- Includes the option to get_technical_details for container based products
+- Update python versions in ci test
+- Fix tests for newer versions of azure management compute package
+
 v2.4.0 (2025-05-20)
 ===================
 
