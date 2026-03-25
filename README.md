@@ -517,12 +517,13 @@ The *required* parameters for the execution of the command (authentication
  aside):
 - --image-name
 - --offer-id
-- --sku
+- --plan-id
 - --gallery-name
 - --gallery-image-name
 
 Some *optional* parameters for the execution of the command include:
 - --gallery-resource-group (if not provided the configured resource group will be used)
+- --generation-id (if adding an image to a multi-generation plan)
 
 Example:
 
@@ -530,7 +531,7 @@ Example:
 $ azure-img-utils cloud-partner-offer add-image-from-sig-to-offer \
         --image-name myImageName \
         --offer-id myOfferId \
-        --sku mySKU \
+        --plan-id mySKU \
         --gallery-name mySIG \
         --gallery-image-name mySIGImageDef \
         --gallery-resource-group rg1 \
