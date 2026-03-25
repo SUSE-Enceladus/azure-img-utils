@@ -24,7 +24,7 @@
 %global _sitelibdir %{%{pythons}_sitelib}
 
 Name:           python-azure-img-utils
-Version:        2.5.0
+Version:        2.6.0
 Release:        0
 Summary:        Package that provides utilities for handling images in Azure Cloud
 License:        GPL-3.0-or-later
