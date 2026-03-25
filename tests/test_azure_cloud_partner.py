@@ -149,6 +149,84 @@ class TestAzureCloudPartner(object):
             )
 
     @patch.object(AzureImage, 'wait_on_operation')
+    @patch('azure_img_utils.azure_image.submit_configure_request')
+    @patch('azure_img_utils.azure_image.process_request')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_add_sig_image_to_offer(
+        self,
+        mock_process_request,
+        mock_preq2,
+        mock_sub_config_req,
+        mock_wait_on_operation
+    ):
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
+
+        doc = {
+            'resources': [
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/'
+                        'virtual-machine-plan-technical-configuration/'
+                        '2022-03-01-preview5'
+                    ),
+                    'plan': 'plan/1234/4321',
+                    'skus': [{
+                        'imageType': 'x64Gen1',
+                        'skuId': 'gen1'
+                    }],
+                    'vmImageVersions': []
+                },
+                {
+                    '$schema': (
+                        'https://schema.mp.microsoft.com/schema/plan/'
+                        '2022-03-01-preview2'
+                    ),
+                    'id': 'plan/1234/4321',
+                    'identity': {
+                        'externalId': 'gen1'
+                    },
+                }
+            ]
+        }
+
+        mock_process_request.return_value = {
+            'value': [{
+                'id': 'product/123456789'
+            }]
+        }
+        mock_preq2.return_value = doc
+        mock_sub_config_req.return_value = '123'
+
+        self.image.add_sig_image_to_offer(
+            '2011.11.11',
+            'sles',
+            'gen1',
+            'gallery123',
+            'galleryimgdef123',
+            'rg1'
+        )
+
+        plan = doc['resources'][0]['vmImageVersions'][0]
+
+        assert plan['versionNumber'] == '2011.11.11'
+        assert plan['lifecycleState'] == 'generallyAvailable'
+
+        msg = 'No plan found for id: gen2'
+
+        with pytest.raises(AzureCloudPartnerException, match=msg):
+            self.image.add_sig_image_to_offer(
+                '2011.11.12',
+                'sles',
+                'gen2',
+                'gallery123',
+                'galleryimgdef123',
+                'rg1'
+            )
+
+    @patch.object(AzureImage, 'wait_on_operation')
     @patch('azure_img_utils.azure_image.get_durable_id')
     @patch('azure_img_utils.azure_image.get_offer_submissions')
     @patch('azure_img_utils.cloud_partner.process_request')

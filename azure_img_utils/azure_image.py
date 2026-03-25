@@ -55,6 +55,7 @@ from azure_img_utils.compute import (
 
 from azure_img_utils.cloud_partner import (
     add_image_version_to_offer,
+    add_sig_image_version_to_offer,
     get_cloud_partner_api_headers,
     get_resource_endpoint,
     process_request,
@@ -484,7 +485,8 @@ class AzureImage(object):
     def submit_request(
         self,
         resource,
-        wait: bool = True
+        wait: bool = True,
+        ignored_errors: list = None
     ):
         """
         Submit a configuration request and wait for operation to finish
@@ -498,8 +500,15 @@ class AzureImage(object):
             operation = self.wait_on_operation(job_id)
 
             if operation.get('jobResult') == 'failed':
+                job_errors = operation.get('errors', [])
+
+                if ignored_errors:
+                    for error in ignored_errors:
+                        if error in str(job_errors):
+                            return job_id
+
                 msg = 'Failed to update resource: '
-                for error in operation.get('errors', []):
+                for error in job_errors:
                     msg += error.get('message', '')
                     msg += ' '
                 raise AzureImgUtilsException(msg)
@@ -520,14 +529,18 @@ class AzureImage(object):
 
     def update_resource_in_offer(
         self,
-        resource_doc: dict
+        resource_doc: dict,
+        ignored_errors: list = None
     ):
         """
         Update the offer using the provided resource doc.
 
         resource_doc is a dictionary defining the resource details.
         """
-        job_id = self.submit_request([resource_doc])
+        job_id = self.submit_request(
+            [resource_doc],
+            ignored_errors=ignored_errors
+        )
         return job_id
 
     def add_image_to_offer(
@@ -579,6 +592,49 @@ class AzureImage(object):
         )
         self.update_resource_in_offer(
             plan_details
+        )
+
+    def add_sig_image_to_offer(
+        self,
+        version_number: str,
+        offer_id: str,
+        plan_id: str,
+        gallery_name: str,
+        gallery_image_name: str,
+        gallery_resource_group: str = None,
+        generation_id: str = None
+    ):
+        """
+        Add a new image version to the given offer from a gallery.
+
+        The offer is pulled from the partner center, updated with the
+        new image version and re-uploaded. To make the new image available
+        the offer must be published and set to go-live.
+        """
+        if not gallery_resource_group:
+            resource_group = self.resource_group
+        else:
+            resource_group = gallery_resource_group
+
+        offer_doc = self.get_offer_doc(offer_id)
+        plan_details = get_technical_details(offer_doc, plan_id)
+
+        plan_details = add_sig_image_version_to_offer(
+            plan_details,
+            version_number,
+            generation_id or plan_id,
+            gallery_name,
+            resource_group,
+            gallery_image_name,
+            self.credentials['tenantId'],
+            self.credentials['subscriptionId']
+        )
+        self.update_resource_in_offer(
+            plan_details,
+            ignored_errors=[
+                # Bug in Azure with multi-generation plans
+                'requires at least one active image'
+            ]
         )
 
     def remove_image_from_offer(

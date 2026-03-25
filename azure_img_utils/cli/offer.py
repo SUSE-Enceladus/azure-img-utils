@@ -287,10 +287,104 @@ def add_image_to_offer(
             blob_name,
             image_name,
             offer_id,
-            config_data.publisher_id,
             sku,
             blob_url=blob_url,
             generation_id=generation_id,
+        )
+
+    except Exception as e:
+        echo_style(
+            'Unable to add image to cloud partner offer.',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# cloud partner offer add-sig-image-to-offer command function
+@offer.command(name="add-sig-image-to-offer")
+@click.option(
+    '--version-number',
+    type=click.STRING,
+    required=True,
+    help='The gallery image version. The expected format is in dot notation. '
+         'For example: "1.2.3".'
+)
+@click.option(
+    '--offer-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the cloud partner offer to use.'
+)
+@click.option(
+    '--plan-id',
+    type=click.STRING,
+    required=True,
+    help='Plan where the image will be added'
+)
+@click.option(
+    '--gallery-name',
+    type=click.STRING,
+    required=True,
+    help='Name of the shared image gallery where the gallery image exists'
+)
+@click.option(
+    '--gallery-image-name',
+    type=click.STRING,
+    required=True,
+    help='Name of the shared image gallery image where the version exists'
+)
+@click.option(
+    '--gallery-resource-group',
+    type=click.STRING,
+    help='Name of the resource group where the shared image gallery lives'
+)
+@click.option(
+    '--generation-id',
+    type=click.STRING,
+    help='Generation ID for the image that will be added'
+)
+@add_options(shared_options)
+@click.pass_context
+def add_sig_image_to_offer(
+    context,
+    version_number,
+    offer_id,
+    plan_id,
+    gallery_name,
+    gallery_image_name,
+    gallery_resource_group,
+    generation_id,
+    **kwargs
+):
+    """
+    Adds an image to a cloud partner offer
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        az_img.add_sig_image_to_offer(
+            version_number,
+            offer_id,
+            plan_id,
+            gallery_name,
+            gallery_image_name,
+            gallery_resource_group=gallery_resource_group,
+            generation_id=generation_id
         )
 
     except Exception as e:

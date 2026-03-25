@@ -506,6 +506,46 @@ command see the help message:
 $ azure-img-utils cloud-partner-offer add-image-to-offer --help
 ```
 
+### add-image-from-sig-to-offer subcommand
+
+This subcommand allows the user to add an image to a cloud partner offer.
+The image is added from the provided shared image gallery.
+
+The subcommand is *azure-img-utils cloud-partner-offer add-image-from-sig-to-offer*.
+
+The *required* parameters for the execution of the command (authentication
+ aside):
+- --image-name
+- --offer-id
+- --plan-id
+- --gallery-name
+- --gallery-image-name
+
+Some *optional* parameters for the execution of the command include:
+- --gallery-resource-group (if not provided the configured resource group will be used)
+- --generation-id (if adding an image to a multi-generation plan)
+
+Example:
+
+```shell
+$ azure-img-utils cloud-partner-offer add-image-from-sig-to-offer \
+        --image-name myImageName \
+        --offer-id myOfferId \
+        --plan-id mySKU \
+        --gallery-name mySIG \
+        --gallery-image-name mySIGImageDef \
+        --gallery-resource-group rg1 \
+```
+
+This command will output only if there's any problem adding the image
+ to the offer.
+
+For more information about the cloud partner offer add-image-from-sig-to-offer
+command see the help message:
+
+```shell
+$ azure-img-utils cloud-partner-offer add-image-from-sig-to-offer --help
+```
 ### remove-image-from-offer subcommand
 
 This subcommand allows the user to remove an image from a cloud partner offer.

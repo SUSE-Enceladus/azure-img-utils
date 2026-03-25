@@ -1673,6 +1673,94 @@ def test_cloud_partner_offer_add_image_nok_exc(
 
 
 # -------------------------------------------------
+# cloud-partner-offer add-image-from-sig-to-offer tests
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_sig_image_ok(azure_image_mock):
+    """Confirm cloud partner offer add-sig-image-to-offer is ok."""
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-sig-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--version-number', '2026.03.16',
+        '--offer-id', 'myOfferId',
+        '--plan-id', 'mySku',
+        '--gallery-name', 'gallery1',
+        '--gallery-image-name', 'gallery-image1',
+        '--gallery-resource-group', 'rg1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 0
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_sig_image_nok_gallery_missing(
+    azure_image_mock
+):
+    """
+    Confirm cloud partner offer add-sig-image-to-offer
+
+    Handles missing params well
+    """
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-sig-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--version-number', '2026.03.16',
+        '--offer-id', 'myOfferId',
+        '--plan-id', 'mySku',
+        '--gallery-image-name', 'galleryimg1',
+        '--gallery-resource-group', 'rg1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option " in result.output
+    assert "--gallery-name" in result.output
+
+
+@patch('azure_img_utils.cli.offer.AzureImage')
+def test_cloud_partner_offer_add_sig_image_nok_gallery_image_missing(
+    azure_image_mock
+):
+    """
+    Confirm cloud partner offer add-sig-image-to-offer
+
+    Handles missing params well
+    """
+
+    image_class = MagicMock()
+    azure_image_mock.return_value = image_class
+
+    args = [
+        'cloud-partner-offer', 'add-sig-image-to-offer',
+        '--credentials-file', 'tests/creds.json',
+        '--version-number', '2026.03.16',
+        '--offer-id', 'myOfferId',
+        '--plan-id', 'mySku',
+        '--gallery-name', 'gallery1',
+        '--gallery-resource-group', 'rg1',
+        '--no-color'
+    ]
+
+    runner = CliRunner()
+    result = runner.invoke(az_img_utils, args)
+    assert result.exit_code == 2
+    assert "Missing option " in result.output
+    assert "--gallery-image-name" in result.output
+
+
+# -------------------------------------------------
 # cloud-partner-offer remove-image-from-offer tests
 @patch('azure_img_utils.cli.offer.AzureImage')
 def test_cloud_partner_offer_remove_image_ok(azure_image_mock):

@@ -195,6 +195,55 @@ def get_offer_submissions(durable_id: str, headers: dict) -> dict:
     return response
 
 
+def add_sig_image_version_to_offer(
+    doc: dict,
+    version_number: str,
+    sku: str,
+    gallery_name: str,
+    gallery_resource_group: str,
+    gallery_image_name: str,
+    tenant_id: str,
+    subscription_id: str
+) -> dict:
+    """
+    Update the cloud partner offer doc
+
+    Add the new version from a gallery for the given sku.
+    """
+    for vm_image in doc[VM_IMAGES_KEY]:
+        if vm_image['versionNumber'] == version_number:
+            version = vm_image
+    else:
+        version = {
+            'versionNumber': version_number,
+            'vmImages': [],
+            'lifecycleState': 'generallyAvailable'
+        }
+
+    image_type = get_image_type(sku, doc['skus'])
+    version['vmImages'].append(
+        {
+            'imageType': image_type,
+            'source': {
+                'sourceType': 'sharedImageGallery',
+                'sharedImage': {
+                  'tenantId': tenant_id,
+                  'resourceId': (
+                      f'/subscriptions/{subscription_id}'
+                      f'/resourceGroups/{gallery_resource_group}'
+                      '/providers/Microsoft.Compute/'
+                      f'galleries/{gallery_name}/images/{gallery_image_name}'
+                      f'/versions/{version_number}'
+                  )
+                }
+            }
+        }
+    )
+
+    doc[VM_IMAGES_KEY].append(version)
+    return doc
+
+
 def add_image_version_to_offer(
     doc: dict,
     blob_url: str,
