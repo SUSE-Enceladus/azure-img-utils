@@ -1,3 +1,8 @@
+v2.6.0 (2026-03-25)
+===================
+
+- Add CLI command to add image from gallery to offer
+
 v2.5.0 (2025-10-01)
 ===================
 
