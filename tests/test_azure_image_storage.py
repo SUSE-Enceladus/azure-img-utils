@@ -92,7 +92,8 @@ class TestAzureImageStorage(object):
 
         # Blob upload fails
 
-        msg = 'Unable to upload tests/image.raw: Permission denied'
+        msg = 'Unable to upload tests/image.raw as image.raw in container' \
+              ' images: Permission denied'
 
         with pytest.raises(AzureImgUtilsStorageException, match=msg):
             self.image.upload_image_blob('tests/image.raw')

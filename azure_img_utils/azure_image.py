@@ -204,7 +204,12 @@ class AzureImage(object):
                         max_attempts -= 1
 
             raise AzureImgUtilsStorageException(
-                'Unable to upload {0}: {1}'.format(image_file, msg)
+                'Unable to upload {0} as {1} in container {2}: {3}'.format(
+                    image_file,
+                    blob_name,
+                    self.container,
+                    msg
+                )
             )
 
         except FileNotFoundError:
