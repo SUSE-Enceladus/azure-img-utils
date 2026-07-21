@@ -40,24 +40,30 @@ def create_gallery_image_definition_version(
     subscription_id = compute_client._config.subscription_id
     image_profile = {
         'location': region,
-        'publishing_profile': {
-            'target_regions': [
-                {
-                    'name': region
+        'properties': {
+            'publishingProfile': {
+                'targetRegions': [
+                    {
+                        'name': region
+                    }
+                ]
+            },
+            'storageProfile': {
+                'osDiskImage': {
+                    'source': {
+                        'storageAccountId': (
+                            f'/subscriptions/{subscription_id}/'
+                            f'resourceGroups/{resource_group}/'
+                            'providers/Microsoft.Storage/'
+                            f'storageAccounts/{storage_account}'
+                        ),
+                        'uri': (
+                            f'https://{storage_account}.blob.core.windows.net/'
+                            f'{container}/{blob_name}'
+                        )
+                    },
+                    'hostCaching': 'ReadWrite'
                 }
-            ]
-        },
-        'storage_profile': {
-            'os_disk_image': {
-                'source': {
-                    'storageAccountId': f'/subscriptions/{subscription_id}/'
-                                        f'resourceGroups/{resource_group}/'
-                                        'providers/Microsoft.Storage/'
-                                        f'storageAccounts/{storage_account}',
-                    'uri': f'https://{storage_account}.blob.core.windows.net/'
-                           f'{container}/{blob_name}'
-                },
-                'host_caching': 'ReadWrite'
             }
         }
     }
