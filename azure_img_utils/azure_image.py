@@ -584,6 +584,24 @@ class AzureImage(object):
         offer_doc = self.get_offer_doc(offer_id)
         plan_details = get_technical_details(offer_doc, sku)
 
+        # Temporary workaround (added 2026-08-11):
+        # The API currently returns a "virtualizationType" key within the
+        # "vmProperties" dictionary of the plan details. However, this key is
+        # not defined in the active schema:
+        # https://schema.mp.microsoft.com/schema/core-virtual-machine-plan-technical-configuration/2026-04-01-preview1  # NOQA
+        # We must remove this undocumented key to prevent schema validation
+        # errors upon re-submission.
+        if (
+            plan_details and
+            '$schema' in plan_details and
+            plan_details['$schema'] == 'https://schema.mp.microsoft.com/schema/core-virtual-machine-plan-technical-configuration/2026-04-01-preview1' and  # NOQA
+            'vmProperties' in plan_details and
+            plan_details['vmProperties'] and
+            'virtualizationType' in plan_details['vmProperties']
+        ):
+            del plan_details['vmProperties']['virtualizationType']
+        # end temporary workaround
+
         kwargs = {
             'generation_id': generation_id
         }
