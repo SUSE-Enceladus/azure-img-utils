@@ -5,7 +5,9 @@ from unittest.mock import patch, Mock
 from azure_img_utils.azure_image import AzureImage
 from azure_img_utils.cloud_partner import (
     deprecate_image_in_offer_doc,
-    get_technical_details
+    get_technical_details,
+    INGESTION_API,
+    PLAN_SCHEMA
 )
 
 from azure_img_utils.exceptions import (
@@ -661,3 +663,7 @@ class TestAzureCloudPartner(object):
             container_offer=True
         )
         assert result['plan'] == 'plan/9876/6789'
+
+    def test_constants_end_with_slash(self):
+        assert INGESTION_API.endswith('/')
+        assert PLAN_SCHEMA.endswith('/')

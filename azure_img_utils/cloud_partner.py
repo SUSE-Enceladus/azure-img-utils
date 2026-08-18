@@ -41,7 +41,7 @@ def get_resource_endpoint(
     Return the endpoint URL to cloud partner API for offer and publisher.
     """
     endpoint = (
-        f'{INGESTION_API}/resource-tree/{durable_id}?'
+        f'{INGESTION_API}resource-tree/{durable_id}?'
         f'targetType={target_type}'
     )
     return endpoint
