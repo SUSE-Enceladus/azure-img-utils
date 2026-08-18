@@ -836,7 +836,7 @@ class AzureImage(object):
         Returns a dictionary status for the given operation.
         """
         headers = get_cloud_partner_api_headers(self.access_token)
-        endpoint = '/'.join([INGESTION_API, 'configure', operation, 'status'])
+        endpoint = INGESTION_API + '/'.join(['configure', operation, 'status'])
 
         response = process_request(
             endpoint,
