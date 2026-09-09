@@ -515,3 +515,59 @@ def get_offer_document(
         )
         echo_style(str(e), config_data.no_color, fg='red')
         sys.exit(1)
+
+
+# -----------------------------------------------------------------------------
+# cloud partner offer deprecate command function
+@offer.command(name="deprecate")
+@click.option(
+    '--offer-id',
+    type=click.STRING,
+    required=True,
+    help='Id of the cloud partner offer to deprecate.'
+)
+@add_options(shared_options)
+@click.pass_context
+def deprecate(
+    context,
+    offer_id,
+    **kwargs
+):
+    """
+    Deprecates a cloud partner offer
+    """
+
+    process_shared_options(context.obj, kwargs)
+    config_data = get_config(context.obj)
+    logger = logging.getLogger('azure_img_utils')
+    logger.setLevel(config_data.log_level)
+
+    try:
+        az_img = AzureImage(
+            container=config_data.container,
+            storage_account=config_data.storage_account,
+            credentials_file=config_data.credentials_file,
+            resource_group=config_data.resource_group,
+            log_level=config_data.log_level,
+            log_callback=logger
+        )
+        operation_id = az_img.deprecate_offer(
+            offer_id,
+        )
+
+        if operation_id:
+            echo_style(
+                'Cloud partner offer deprecated. Operation URI: ' +
+                operation_id,
+                config_data.no_color,
+                fg='green'
+            )
+
+    except Exception as e:
+        echo_style(
+            'Unable to deprecate cloud partner offer.',
+            config_data.no_color,
+            fg='red'
+        )
+        echo_style(str(e), config_data.no_color, fg='red')
+        sys.exit(1)
