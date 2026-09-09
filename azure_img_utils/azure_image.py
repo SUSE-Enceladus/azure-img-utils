@@ -726,6 +726,46 @@ class AzureImage(object):
         job_id = self.submit_request(resources, wait=False)
         return job_id
 
+    def deprecate_offer(
+        self,
+        offer_id: str
+    ) -> str:
+        """
+        Set the offer as deprecated.
+
+        Deprecation removes the resource from Microsoft Marketplace.
+        The deprecation will immediately be scheduled 90 days into the future
+        upon confirmation and customers will be notified
+
+        Returns the operation uri.
+        """
+        headers = get_cloud_partner_api_headers(self.access_token)
+        durable_id = get_durable_id(headers, offer_id)
+        submissions = get_offer_submissions(durable_id, headers)
+
+        # Note that the operation we need to set to deprecated is the one
+        # in Live state
+        operation_id = jmespath.search(
+            "value[?target.targetType=='live'] | [0].id",
+            submissions
+        )
+
+        resources = [
+            {
+                '$schema': (
+                    'https://schema.mp.microsoft.com/'
+                    'schema/submission/2022-03-01-preview2'
+                ),
+                'product': '/'.join(['product', durable_id]),
+                'id': operation_id,
+                'target': {'targetType': 'live'},
+                'lifecycleState': 'deprecated'
+            }
+        ]
+
+        job_id = self.submit_request(resources, wait=False)
+        return job_id
+
     def get_offer_status(self, offer_id: str) -> str:
         """
         Returns the status of the offer.

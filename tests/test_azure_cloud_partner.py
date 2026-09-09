@@ -286,6 +286,35 @@ class TestAzureCloudPartner(object):
         operation = self.image.go_live_with_offer('sles')
         assert operation == '123'
 
+    @patch.object(AzureImage, 'wait_on_operation')
+    @patch('azure_img_utils.azure_image.get_durable_id')
+    @patch('azure_img_utils.azure_image.get_offer_submissions')
+    @patch('azure_img_utils.cloud_partner.process_request')
+    def test_deprecate_offer(
+        self,
+        mock_process_request,
+        mock_get_submissions,
+        mock_get_durable_id,
+        mock_wait_on_operation
+    ):
+        response = {'jobId': '123'}
+        mock_process_request.return_value = response
+
+        mock_get_durable_id.return_value = '123456789'
+        mock_get_submissions.return_value = {
+            'value': [
+                {'target': {'targetType': 'live', 'id': '321'}}
+            ]
+        }
+
+        mock_wait_on_operation.return_value = {
+            'jobStatus': 'completed',
+            'jobResult': 'succeeded'
+        }
+
+        operation = self.image.deprecate_offer('sles')
+        assert operation == '123'
+
     @patch('azure_img_utils.azure_image.get_durable_id')
     @patch('azure_img_utils.cloud_partner.process_request')
     def test_get_offer_status_publishing(
