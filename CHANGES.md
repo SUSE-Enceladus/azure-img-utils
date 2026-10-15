@@ -1,3 +1,10 @@
+v2.7.0 (2026-10-15)
+===================
+
+- Error message improvement for blob upload unsuccessful scenario
+- Update image profile to match breaking SDK changes
+- Normalize URLs
+
 v2.6.0 (2026-03-25)
 ===================
 
